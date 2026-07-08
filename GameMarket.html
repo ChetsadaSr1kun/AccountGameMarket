@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GameMarket — ตลาดซื้อขายไอดีเกม</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&amp;family=Sarabun:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<!-- ===================== NAVBAR ===================== -->
+<nav class="navbar" id="mainNav">
+<a class="logo" onclick="goPage('home')">
+<div class="logo-icon">G</div>
+<div class="logo-text">
+<div class="logo-title">GameMarket</div>
+<div class="logo-sub">Marketplace ซื้อขายไอดีเกม</div>
+</div>
+</a>
+<div class="nav-links" id="navLinks"></div>
+<div class="nav-right" id="navRight"></div>
+</nav>
+<!-- ===================== DEV NAV ===================== -->
+<div class="devnav">
+<span class="devnav-label">🗺️ หน้าทั้งหมด:</span>
+<button class="devbtn" onclick="goPage('home')">🏠 หน้าแรก (Guest)</button>
+<button class="devbtn" onclick="goPage('login')">🔐 Login</button>
+<button class="devbtn" onclick="goPage('register')">📝 Register</button>
+<button class="devbtn" onclick="goPage('forgot')">🔑 ลืมรหัสผ่าน</button>
+<button class="devbtn" onclick="goPage('otp-reset')">📱 OTP รีเซ็ต</button>
+<button class="devbtn" onclick="goPage('reset-success')">✅ รีเซ็ตสำเร็จ</button>
+<span style="color:var(--border2);margin:0 4px">|</span>
+<button class="devbtn" onclick="goPage('listings')">🛍️ รายการ (Guest)</button>
+<button class="devbtn" onclick="goPage('product')">📄 สินค้า (Guest)</button>
+<span style="color:var(--border2);margin:0 4px">|</span>
+<button class="devbtn" onclick="loginAndGo('home-user')">🏠 หน้าแรก (User)</button>
+<button class="devbtn" onclick="loginAndGo('listings-user')">🛍️ รายการ (User)</button>
+<button class="devbtn" onclick="loginAndGo('product-user')">📄 สินค้า (User)</button>
+<button class="devbtn" onclick="loginAndGo('profile')">👤 Profile</button>
+<button class="devbtn" onclick="loginAndGo('wallet')">💰 Wallet</button>
+<button class="devbtn" onclick="loginAndGo('history')">📋 History</button>
+<button class="devbtn" onclick="loginAndGo('chat')">💬 Chat</button>
+<span style="color:var(--border2);margin:0 4px">|</span>
+<button class="devbtn" onclick="loginAndGo('order-confirm')">🛒 Order</button>
+<button class="devbtn" onclick="loginAndGo('order-otp')">🔐 Order OTP</button>
+<button class="devbtn" onclick="loginAndGo('order-success')">🎉 Order สำเร็จ</button>
+<button class="devbtn" onclick="loginAndGo('order-info')">📋 ข้อมูลสินค้า</button>
+<button class="devbtn" onclick="loginAndGo('review')">⭐ รีวิว</button>
+<span style="color:var(--border2);margin:0 4px">|</span>
+<button class="devbtn" onclick="loginAndGo('seller-verify')">🪪 Seller Verify</button>
+<button class="devbtn" onclick="loginAndGo('add-listing')">➕ ลงขาย</button>
+<button class="devbtn" onclick="loginAndGo('edit-listing')">✏️ แก้รายการ</button>
+<button class="devbtn" onclick="loginAndGo('my-listings')">📦 ประกาศฉัน</button>
+<span style="color:var(--border2);margin:0 4px">|</span>
+<button class="devbtn" onclick="goAdmin('admin-dashboard')">📊 Admin</button>
+<button class="devbtn" onclick="goAdmin('admin-games')">🎮 หมวดหมู่</button>
+<button class="devbtn" onclick="goAdmin('admin-chat-log')">💬 แชทLog</button>
+<button class="devbtn" onclick="goAdmin('admin-withdraw')">💸 ถอนเงิน</button>
+<button class="devbtn" onclick="goAdmin('admin-report')">🚨 รายงาน</button>
+</div>
+<!-- ===================== PAGES ===================== -->
+<div id="pages">
+<!-- ======== PAGE: HOME (GUEST) ======== -->
+<div class="page" id="pg-home">
+<div class="hero-bg" style="padding:64px 0">
+<div class="container">
+<div style="display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:start">
+<div>
+<span class="badge badge-blue" style="margin-bottom:16px">🎮 ตลาดซื้อขายไอดีเกมอันดับ 1</span>
+<h1 style="font-size:52px;font-weight:900;line-height:1.15;margin:14px 0 20px">
+            ซื้อขายไอดีเกมได้ง่าย<br/>
+<span style="color:var(--accent)">ปลอดภัย</span> และครบในที่เดียว
+          </h1>
+<p style="color:var(--muted);font-size:16px;line-height:1.8;margin-bottom:32px;max-width:520px">
+            GameMarket คือแพลตฟอร์มสำหรับซื้อขายไอดีเกมที่ผ่านให้ผู้ใช้สามารถค้นหา เปรียบเทียบราคา พูดคุยกับผู้ขาย และสั่งซื้อได้อย่างสะดวกในระบบเดียว
+          </p>
+<div class="flex gap-12" style="margin-bottom:40px">
+<button class="btn btn-primary btn-lg" onclick="goPage('register')">🚀 เริ่มต้นใช้งาน</button>
+<button class="btn btn-secondary btn-lg" onclick="goPage('listings')">📋 ดูรายการขายทั้งหมด</button>
+</div>
+<div class="grid3" style="gap:12px">
+<div class="card" style="padding:16px 18px">
+<div class="kanit" style="font-size:24px;font-weight:800;color:var(--accent)">1,248</div>
+<div style="font-size:13px;color:var(--muted)">รายการขายทั้งหมด</div>
+</div>
+<div class="card" style="padding:16px 18px">
+<div class="kanit" style="font-size:24px;font-weight:800;color:var(--success)">5,420</div>
+<div style="font-size:13px;color:var(--muted)">สมาชิกทั้งหมด</div>
+</div>
+<div class="card" style="padding:16px 18px">
+<div class="kanit" style="font-size:24px;font-weight:800;color:var(--warn)">9,875</div>
+<div style="font-size:13px;color:var(--muted)">ครั้งซื้อสำเร็จ</div>
+</div>
+</div>
+</div>
+<!-- Search Box -->
+<div class="card" style="padding:28px">
+<div style="margin-bottom:20px">
+<h3 style="font-size:18px;font-weight:700;margin-bottom:4px">ค้นหาอย่างรวดเร็ว</h3>
+<p style="color:var(--muted);font-size:13px">ค้นหาไอดีเกมที่ต้องการจากคลังสินค้าของเรา</p>
+</div>
+<input class="inp" placeholder="🔍  ค้นหาเกม ชื่อสินค้า หรือคำสำคัญ" style="margin-bottom:12px"/>
+<div class="grid2" style="gap:8px;margin-bottom:12px">
+<select class="inp"><option>เกม: ทุกเกม</option><option>Valorant</option><option>ROV</option><option>PUBG</option><option>Free Fire</option><option>Genshin Impact</option></select>
+<select class="inp"><option>ราคา: ทุกช่วง</option><option>0–500 ฿</option><option>500–1,500 ฿</option><option>1,500+ ฿</option></select>
+</div>
+<button class="btn btn-primary btn-full btn-md" onclick="goPage('listings')">🔍 ค้นหารายการขาย</button>
+<div class="divider"></div>
+<p style="font-size:13px;color:var(--muted);text-align:center">มีบัญชีแล้ว? <a onclick="goPage('login')" style="cursor:pointer">เข้าสู่ระบบ</a></p>
+</div>
+</div>
+</div>
+</div>
+<!-- Game Categories -->
+<div class="container" style="padding-top:48px;padding-bottom:16px">
+<div class="sec-header">
+<div class="sec-title">หมวดหมู่เกมยอดนิยม</div>
+<div class="sec-sub">เลือกดูรายการขายตามประเภทเกมที่คุณสนใจ</div>
+</div>
+<div class="grid6">
+<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
+<img alt="Valorant" src="assets/images/Valorant.png" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
+<div style="font-weight:600;font-size:13px">Valorant</div>
+<div style="color:var(--muted);font-size:12px;margin-top:4px">42 รายการ</div>
+</div>
+<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
+<img alt="ROV" src="assets/images/Rov.png" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
+<div style="font-weight:600;font-size:13px">ROV</div>
+<div style="color:var(--muted);font-size:12px;margin-top:4px">38 รายการ</div>
+</div>
+<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
+<img alt="PUBG" src="assets/images/Pubg.png" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
+<div style="font-weight:600;font-size:13px">PUBG</div>
+<div style="color:var(--muted);font-size:12px;margin-top:4px">30 รายการ</div>
+</div>
+<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
+<img alt="Free Fire" src="assets/images/FreeFire.jpg" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
+<div style="font-weight:600;font-size:13px">Free Fire</div>
+<div style="color:var(--muted);font-size:12px;margin-top:4px">25 รายการ</div>
+</div>
+<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
+<img alt="Genshin Impact" src="assets/images/Genshin impact.jpg" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
+<div style="font-weight:600;font-size:13px">Genshin Impact</div>
+<div style="color:var(--muted);font-size:12px;margin-top:4px">20 รายการ</div>
+</div>
+<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
+<img alt="Honkai: Star Rail" src="assets/images/Honkai Starrail.png" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
+<div style="font-weight:600;font-size:13px">Honkai: Star Rail</div>
+<div style="color:var(--muted);font-size:12px;margin-top:4px">18 รายการ</div>
+</div>
+</div>
+</div>
+<!-- Featured Listings -->
+<div class="container" style="padding-top:40px;padding-bottom:16px">
+<div class="sec-header flex-between">
+<div>
+<div class="sec-title">รายการขายแนะนำ</div>
+<div class="sec-sub">สินค้าที่ได้รับความนิยมสูงสุดในขณะนี้</div>
+</div>
+<button class="btn btn-ghost btn-sm" onclick="goPage('listings')">ดูทั้งหมด →</button>
+</div>
+<div class="grid4">
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/valorantpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,70,85,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">Valorant</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Valorant Immortal 3</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: AimPro</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 Immortal 3</span>
+<span class="badge badge-blue">🎨 42 สกิน</span>
+</div>
+<div class="flex-between">
+<span class="kanit" style="font-size:20px;font-weight:800;color:var(--accent)">1,500 ฿</span>
+<span class="stars">★★★★★ <span style="color:var(--muted)">4.8</span></span>
+</div>
+</div>
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/pubgpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(245,166,35,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">PUBG</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี PUBG ชุด Mythic เต็ม</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: GamerX</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 Conqueror</span>
+<span class="badge badge-blue">🎨 88 สกิน</span>
+</div>
+<div class="flex-between">
+<span class="kanit" style="font-size:20px;font-weight:800;color:var(--accent)">1,900 ฿</span>
+<span class="stars">★★★★★ <span style="color:var(--muted)">4.7</span></span>
+</div>
+</div>
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/freefirepage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,107,53,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">Free Fire</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Free Fire สิงห์แดง</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: FFMaster</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 สิงห์แดง</span>
+<span class="badge badge-blue">🎨 30 สกิน</span>
+</div>
+<div class="flex-between">
+<span class="kanit" style="font-size:20px;font-weight:800;color:var(--accent)">850 ฿</span>
+<span class="stars">★★★★★ <span style="color:var(--muted)">4.6</span></span>
+</div>
+</div>
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/Genshinimpactpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(123,179,255,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">Genshin Impact</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Genshin เวิ่นดิน AR55</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: KleeMain</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 AR55</span>
+<span class="badge badge-blue">🎨 15 ตัวละคร</span>
+</div>
+<div class="flex-between">
+<span class="kanit" style="font-size:20px;font-weight:800;color:var(--accent)">500 ฿</span>
+<span class="stars">★★★★★ <span style="color:var(--muted)">4.9</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- How it works -->
+<div class="container" style="padding-top:48px;padding-bottom:60px">
+<div class="sec-header">
+<div class="sec-title">ขั้นตอนการใช้งาน</div>
+<div class="sec-sub">ง่ายและปลอดภัยใน 4 ขั้นตอน</div>
+</div>
+<div class="grid4">
+<div class="card" style="padding:24px;text-align:center">
+<div style="width:48px;height:48px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;margin:0 auto 16px">1</div>
+<div style="font-weight:700;margin-bottom:8px">สมัครสมาชิก</div>
+<div style="color:var(--muted);font-size:13px">สร้างบัญชีผู้ใช้เพื่อเข้าใช้งานระบบ</div>
+</div>
+<div class="card" style="padding:24px;text-align:center">
+<div style="width:48px;height:48px;background:var(--success);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;margin:0 auto 16px">2</div>
+<div style="font-weight:700;margin-bottom:8px">ค้นหารายการขาย</div>
+<div style="color:var(--muted);font-size:13px">เลือกสินค้าและเปรียบเทียบราคา</div>
+</div>
+<div class="card" style="padding:24px;text-align:center">
+<div style="width:48px;height:48px;background:var(--warn);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;margin:0 auto 16px">3</div>
+<div style="font-weight:700;margin-bottom:8px">แจ้ง / สั่งซื้อ</div>
+<div style="color:var(--muted);font-size:13px">ติดต่อผู้ขายและยืนยัน OTP</div>
+</div>
+<div class="card" style="padding:24px;text-align:center">
+<div style="width:48px;height:48px;background:var(--purple);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;margin:0 auto 16px">4</div>
+<div style="font-weight:700;margin-bottom:8px">รีวิวหลังใช้งาน</div>
+<div style="color:var(--muted);font-size:13px">แบ่งปันประสบการณ์กับผู้ใช้คนอื่น</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: LOGIN ======== -->
+<div class="page" id="pg-login">
+<div style="min-height:calc(100vh - 62px);display:flex;align-items:center;justify-content:center;padding:48px 24px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:56px;max-width:900px;width:100%">
+<div style="display:flex;flex-direction:column;justify-content:center">
+<span class="badge badge-blue" style="margin-bottom:16px;width:fit-content">หน้าเข้าสู่ระบบ</span>
+<h1 style="font-size:38px;font-weight:900;line-height:1.25;margin-bottom:16px">
+          เข้าสู่ระบบเพื่อ<br/>เริ่มใช้งาน <span style="color:var(--accent)">GameMarket</span>
+</h1>
+<p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:28px">
+          เข้าถึงแดชบอร์ดเต็มรูปแบบ จัดการรายการขาย พูดคุยกับผู้ซื้อและผู้ขาย ติดตามคำสั่งซื้อและธุรกรรมทุกอย่างได้จากบัญชีเดียว
+        </p>
+<div class="grid2" style="gap:12px">
+<div class="card" style="padding:16px">
+<div style="font-size:20px;margin-bottom:8px">🛡️</div>
+<div style="font-weight:700;margin-bottom:4px;font-size:14px">ปลอดภัยสูงสุด</div>
+<div style="color:var(--muted);font-size:12px">ระบบยืนยัน OTP ทุกธุรกรรม</div>
+</div>
+<div class="card" style="padding:16px">
+<div style="font-size:20px;margin-bottom:8px">⚡</div>
+<div style="font-weight:700;margin-bottom:4px;font-size:14px">รวดเร็วทันใจ</div>
+<div style="color:var(--muted);font-size:12px">โอนข้อมูลบัญชีภายใน 5 นาที</div>
+</div>
+</div>
+</div>
+<div class="card" style="padding:36px">
+<h2 style="font-size:22px;font-weight:700;margin-bottom:6px">เข้าสู่ระบบ</h2>
+<p style="color:var(--muted);font-size:13px;margin-bottom:28px">กรอกอีเมลและรหัสผ่านเพื่อเข้าใช้งาน</p>
+<div class="inp-group">
+<label class="inp-label">อีเมล</label>
+<input class="inp" placeholder="example@email.com" type="email"/>
+</div>
+<div class="inp-group">
+<label class="inp-label">รหัสผ่าน</label>
+<input class="inp" placeholder="••••••••" type="password"/>
+</div>
+<div class="flex-between" style="margin-bottom:22px">
+<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer">
+<input style="accent-color:var(--accent)" type="checkbox"/> จดจำการเข้าสู่ระบบ
+          </label>
+<a onclick="goPage('forgot')" style="font-size:13px;cursor:pointer">ลืมรหัสผ่าน?</a>
+</div>
+<button class="btn btn-primary btn-full btn-lg" onclick="loginAndGo('home-user')" style="margin-bottom:14px">🔐 เข้าสู่ระบบ</button>
+<div style="text-align:center;color:var(--dim);font-size:13px;margin-bottom:14px">— หรือ —</div>
+<button class="btn btn-secondary btn-full btn-md" onclick="loginAndGo('home-user')" style="margin-bottom:22px">🔗 เข้าสู่ระบบด้วย Google</button>
+<p style="text-align:center;font-size:13px;color:var(--muted)">ยังไม่มีบัญชี? <a onclick="goPage('register')" style="cursor:pointer">สมัครสมาชิก</a></p>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: REGISTER ======== -->
+<div class="page" id="pg-register">
+<div style="min-height:calc(100vh - 62px);display:flex;align-items:center;justify-content:center;padding:48px 24px">
+<div style="display:grid;grid-template-columns:1fr 1.3fr;gap:56px;max-width:980px;width:100%">
+<div style="display:flex;flex-direction:column;justify-content:center">
+<span class="badge badge-blue" style="margin-bottom:16px;width:fit-content">หน้าสมัครสมาชิก</span>
+<h1 style="font-size:34px;font-weight:900;line-height:1.3;margin-bottom:16px">
+          สร้างบัญชีใหม่เพื่อเริ่มต้น<br/>ซื้อขายไอดีเกม
+        </h1>
+<p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:22px">เมื่อสมัครสมาชิกแล้ว คุณจะสามารถค้นหาและขายสินค้า ใช้ระบบแชท รีวิว และติดตาม Point / Wallet ได้ครบในที่เดียว</p>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div class="card" style="padding:14px;display:flex;align-items:center;gap:12px">
+<span style="color:var(--success);font-size:18px">✓</span>
+<span style="font-size:14px;color:var(--muted)">ลงขายสินค้าและจัดการรายการของตนเอง</span>
+</div>
+<div class="card" style="padding:14px;display:flex;align-items:center;gap:12px">
+<span style="color:var(--success);font-size:18px">✓</span>
+<span style="font-size:14px;color:var(--muted)">ติดต่อผู้ซื้อและผู้ขายผ่านระบบแชทภายใน</span>
+</div>
+<div class="card" style="padding:14px;display:flex;align-items:center;gap:12px">
+<span style="color:var(--success);font-size:18px">✓</span>
+<span style="font-size:14px;color:var(--muted)">ดูประวัติการซื้อขาย รีวิว และประวัติธุรกรรม</span>
+</div>
+</div>
+</div>
+<div class="card" style="padding:30px">
+<h2 style="font-size:20px;font-weight:700;margin-bottom:4px">สมัครสมาชิก</h2>
+<p style="color:var(--muted);font-size:13px;margin-bottom:22px">กรอกข้อมูลให้ครบถ้วนเพื่อสร้างบัญชีใหม่</p>
+<div class="grid2" style="gap:12px">
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">ชื่อผู้ใช้</label>
+<input class="inp" placeholder="กรอกชื่อผู้ใช้"/>
+</div>
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">อีเมล</label>
+<input class="inp" placeholder="กรอกอีเมล" type="email"/>
+</div>
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">รหัสผ่าน</label>
+<input class="inp" placeholder="••••••••" type="password"/>
+</div>
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">ยืนยันรหัสผ่าน</label>
+<input class="inp" placeholder="••••••••" type="password"/>
+</div>
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">ชื่อ</label>
+<input class="inp" placeholder="กรอกชื่อ"/>
+</div>
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">นามสกุล</label>
+<input class="inp" placeholder="กรอกนามสกุล"/>
+</div>
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">เบอร์โทรศัพท์</label>
+<input class="inp" placeholder="08X-XXX-XXXX"/>
+</div>
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">วันเกิด</label>
+<input class="inp" type="date"/>
+</div>
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">เพศ</label>
+<select class="inp"><option>เลือกเพศ</option><option>ชาย</option><option>หญิง</option><option>ไม่ระบุ</option></select>
+</div>
+<div class="inp-group" style="margin-bottom:0">
+<label class="inp-label">รูปโปรไฟล์</label>
+<input accept="image/*" class="inp" style="padding:8px" type="file"/>
+</div>
+</div>
+<div class="notice" style="margin:16px 0">
+<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px">
+<input style="margin-top:2px;accent-color:var(--accent)" type="checkbox"/>
+            ยินยอมรับเงื่อนไขการใช้งานและนโยบายความเป็นส่วนตัวของระบบ
+          </label>
+</div>
+<button class="btn btn-primary btn-full btn-lg" onclick="goPage('login')">📝 ลงทะเบียนสมาชิก</button>
+<p style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted)">มีบัญชีแล้ว? <a onclick="goPage('login')" style="cursor:pointer">เข้าสู่ระบบ</a></p>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: FORGOT PASSWORD ======== -->
+<div class="page" id="pg-forgot">
+<div style="min-height:calc(100vh - 62px);display:flex;align-items:center;justify-content:center;padding:48px 24px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:56px;max-width:900px;width:100%">
+<div style="display:flex;flex-direction:column;justify-content:center">
+<span class="badge badge-blue" style="margin-bottom:16px;width:fit-content">รีเซ็ตรหัสผ่าน</span>
+<h1 style="font-size:36px;font-weight:900;line-height:1.3;margin-bottom:16px">รีเซ็ตรหัสผ่าน<br/>ด้วย OTP</h1>
+<p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:24px">หากคุณลืมรหัสผ่าน สามารถรับรหัส OTP ผ่านอีเมลหรือเบอร์โทรศัพท์เพื่อยืนยันตัวตนและตั้งรหัสใหม่ได้อย่างปลอดภัย</p>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div class="card" style="padding:12px 16px;font-size:14px;color:var(--muted)">1. กรอกข้อมูลอีเมลหรือเบอร์โทรศัพท์ที่ลงทะเบียนไว้</div>
+<div class="card" style="padding:12px 16px;font-size:14px;color:var(--muted)">2. เลือกวิธีรับ OTP ทางอีเมลหรือเบอร์โทรศัพท์</div>
+<div class="card" style="padding:12px 16px;font-size:14px;color:var(--muted)">3. กรอกรหัส OTP และตั้งรหัสผ่านใหม่</div>
+</div>
+</div>
+<div class="card" style="padding:36px">
+<h2 style="font-size:20px;font-weight:700;margin-bottom:4px">เลือกช่องทางรับ OTP</h2>
+<p style="color:var(--muted);font-size:13px;margin-bottom:22px">ระบบจะส่งรหัส OTP ไปยังช่องทางที่คุณเลือก</p>
+<div class="inp-group">
+<label class="inp-label">อีเมลหรือเบอร์โทรศัพท์</label>
+<input class="inp" placeholder="กรอกอีเมลหรือเบอร์ที่ใช้สมัคร"/>
+</div>
+<div class="radio-option selected" onclick="selectOTPMethod(this)" style="margin-bottom:10px">
+<div class="flex-between" style="margin-bottom:4px">
+<span style="font-weight:700">📧 ส่ง OTP ทางอีเมล</span>
+<div style="width:18px;height:18px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center">
+<div style="width:10px;height:10px;border-radius:50%;background:var(--accent)"></div>
+</div>
+</div>
+<p style="color:var(--muted);font-size:12px;margin-bottom:4px">ส่งรหัส OTP ไปยังอีเมลที่ผูกกับบัญชี</p>
+<p style="font-size:12px;color:var(--accent)">ตัวอย่าง: gamepro123@example.com</p>
+</div>
+<div class="radio-option" onclick="selectOTPMethod(this)" style="margin-bottom:20px">
+<div class="flex-between" style="margin-bottom:4px">
+<span style="font-weight:700">📱 ส่ง OTP เบอร์โทรศัพท์</span>
+<div style="width:18px;height:18px;border-radius:50%;border:2px solid var(--border2)"></div>
+</div>
+<p style="color:var(--muted);font-size:12px;margin-bottom:4px">ส่งรหัส OTP ผ่าน SMS ไปยังเบอร์ที่ลงทะเบียน</p>
+<p style="font-size:12px;color:var(--accent)">ตัวอย่าง: 08X-XXX-5678</p>
+</div>
+<button class="btn btn-primary btn-full btn-lg" onclick="goPage('otp-reset')">📤 ส่งรหัส OTP</button>
+<p style="margin-top:16px;font-size:12px;color:var(--dim);text-align:center">หากไม่พบข้อมูลในระบบ กรุณาติดต่อผู้ดูแลระบบ</p>
+<div class="divider"></div>
+<p style="text-align:center;font-size:13px;color:var(--muted)"><a onclick="goPage('login')" style="cursor:pointer">← กลับไปหน้าเข้าสู่ระบบ</a></p>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: OTP RESET ======== -->
+<div class="page" id="pg-otp-reset">
+<div style="min-height:calc(100vh - 62px);display:flex;align-items:center;justify-content:center;padding:48px 24px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:56px;max-width:880px;width:100%">
+<div style="display:flex;flex-direction:column;justify-content:center">
+<span class="badge badge-blue" style="margin-bottom:16px;width:fit-content">ยืนยัน OTP</span>
+<h1 style="font-size:34px;font-weight:900;line-height:1.3;margin-bottom:16px">ยืนยัน OTP และตั้งรหัสผ่านใหม่</h1>
+<p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:24px">กรุณากรอกรหัสที่ได้รับเพื่อยืนยันตัวตน และตั้งรหัสผ่านใหม่เพื่อกลับเข้าใช้งานบัญชี</p>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div class="card" style="padding:12px 16px;font-size:14px;color:var(--muted)">1. รับรหัส OTP จากช่องทางที่เลือกไว้</div>
+<div class="card" style="padding:12px 16px;font-size:14px;color:var(--muted)">2. กรอกรหัส OTP ให้ครบ 6 หลัก</div>
+<div class="card" style="padding:12px 16px;font-size:14px;color:var(--muted)">3. ตั้งรหัสผ่านใหม่และยืนยันอีกครั้ง</div>
+</div>
+</div>
+<div class="card" style="padding:36px">
+<h2 style="font-size:20px;font-weight:700;margin-bottom:4px">กรอกรหัส OTP</h2>
+<p style="color:var(--muted);font-size:13px;margin-bottom:4px">ส่งรหัสไปที่ gamepro123@example.com แล้ว</p>
+<div class="otp-wrap">
+<input class="otp-box" maxlength="1" oninput="otpNext(this,0)"/>
+<input class="otp-box" maxlength="1" oninput="otpNext(this,1)"/>
+<input class="otp-box" maxlength="1" oninput="otpNext(this,2)"/>
+<input class="otp-box" maxlength="1" oninput="otpNext(this,3)"/>
+<input class="otp-box" maxlength="1" oninput="otpNext(this,4)"/>
+<input class="otp-box" maxlength="1" oninput="otpNext(this,5)"/>
+</div>
+<p style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:24px">ไม่ได้รับรหัส? <a style="cursor:pointer">ส่ง OTP ใหม่</a></p>
+<div class="inp-group">
+<label class="inp-label">รหัสผ่านใหม่</label>
+<input class="inp" placeholder="กรอกรหัสผ่านใหม่" type="password"/>
+</div>
+<div class="inp-group">
+<label class="inp-label">ยืนยันรหัสผ่านใหม่</label>
+<input class="inp" placeholder="กรอกรหัสผ่านอีกครั้ง" type="password"/>
+</div>
+<button class="btn btn-primary btn-full btn-lg" onclick="goPage('reset-success')">🔒 ยืนยันและเปลี่ยนรหัสผ่าน</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: RESET SUCCESS ======== -->
+<div class="page" id="pg-reset-success">
+<div style="min-height:calc(100vh - 62px);display:flex;align-items:center;justify-content:center;padding:48px 24px">
+<div class="card" style="max-width:560px;width:100%;text-align:center;padding:56px 48px">
+<div class="success-circle" style="background:rgba(16,185,129,0.15);border:2px solid var(--success)">✅</div>
+<span class="badge badge-green" style="margin-bottom:16px">เปลี่ยนรหัสผ่านสำเร็จ</span>
+<h1 style="font-size:30px;font-weight:900;margin:12px 0">ตั้งรหัสผ่านใหม่เรียบร้อยแล้ว</h1>
+<p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:28px">ระบบบันทึกรหัสผ่านใหม่เรียบร้อยแล้ว คุณสามารถกลับไปเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้ทันที</p>
+<div class="grid3" style="margin-bottom:28px;gap:10px">
+<div class="card" style="padding:14px 8px"><div style="color:var(--muted);font-size:12px">สถานะ</div><div style="font-weight:700;margin-top:4px;color:var(--success)">สำเร็จ</div></div>
+<div class="card" style="padding:14px 8px"><div style="color:var(--muted);font-size:12px">บัญชี</div><div style="font-weight:700;margin-top:4px">GamePro123</div></div>
+<div class="card" style="padding:14px 8px"><div style="color:var(--muted);font-size:12px">เวลาที่เปลี่ยน</div><div style="font-weight:700;margin-top:4px;font-size:12px">09/03/2026 10:45</div></div>
+</div>
+<div class="flex gap-12" style="justify-content:center">
+<button class="btn btn-primary btn-md" onclick="loginAndGo('home-user')">ไปหน้าเข้าสู่ระบบ</button>
+<button class="btn btn-secondary btn-md" onclick="goPage('home')">กลับไปหน้าแรก</button>
+</div>
+<div class="notice" style="margin-top:20px;font-size:12px">เพื่อความปลอดภัย ไม่ควรแชร์รหัสผ่านกับผู้อื่น</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: LISTINGS (GUEST) ======== -->
+<div class="page" id="pg-listings">
+<div class="container" style="padding-top:36px;padding-bottom:60px">
+<div class="sec-header">
+<div class="sec-title">รายการสินค้าทั้งหมด</div>
+<div class="sec-sub">เลือกดูและเปรียบเทียบบัญชีเกมที่มีขาย</div>
+</div>
+<div style="display:grid;grid-template-columns:240px 1fr;gap:24px">
+<div>
+<div class="card" style="margin-bottom:14px">
+<div style="font-weight:700;margin-bottom:12px">🔍 ค้นหา</div>
+<input class="inp" placeholder="ค้นหาชื่อสินค้า..."/>
+</div>
+<div class="card" style="margin-bottom:14px">
+<div style="font-weight:700;margin-bottom:12px">🎮 หมวดหมู่เกม</div>
+<div class="filter-item active">ทุกเกม</div>
+<div class="filter-item" onclick="filterGame(this)">🎯 Valorant</div>
+<div class="filter-item" onclick="filterGame(this)">⚔️ ROV</div>
+<div class="filter-item" onclick="filterGame(this)">🔫 PUBG</div>
+<div class="filter-item" onclick="filterGame(this)">🔥 Free Fire</div>
+<div class="filter-item" onclick="filterGame(this)">🌟 Genshin Impact</div>
+<div class="filter-item" onclick="filterGame(this)">🚂 Honkai: Star Rail</div>
+</div>
+<div class="card">
+<div style="font-weight:700;margin-bottom:12px">💰 ช่วงราคา</div>
+<label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 0–500 ฿</label>
+<label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 500–1,500 ฿</label>
+<label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 1,500–3,000 ฿</label>
+<label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 3,000+ ฿</label>
+</div>
+</div>
+<div>
+<div class="flex-between" style="margin-bottom:16px">
+<span style="color:var(--muted);font-size:14px">พบ 6 รายการ</span>
+<select class="inp" style="width:auto;padding:8px 14px">
+<option>ใหม่ล่าสุด</option><option>ราคาต่ำ-สูง</option><option>ราคาสูง-ต่ำ</option><option>คะแนนสูงสุด</option>
+</select>
+</div>
+<div class="grid3">
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/valorantpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,70,85,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">Valorant</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Valorant Immortal 3</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: AimPro</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 Immortal 3</span><span class="badge badge-blue">🎨 42 สกิน</span>
+</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">1,500 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.8</span></span></div>
+</div>
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/pubgpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(245,166,35,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">PUBG</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี PUBG ชุด Mythic เต็ม</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: GamerX</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 Conqueror</span><span class="badge badge-blue">🎨 88 สกิน</span>
+</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">1,900 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.7</span></span></div>
+</div>
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/freefirepage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,107,53,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">Free Fire</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Free Fire สิงห์แดง</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: FFMaster</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 สิงห์แดง</span><span class="badge badge-blue">🎨 30 สกิน</span>
+</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">850 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.6</span></span></div>
+</div>
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/Genshinimpactpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(123,179,255,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">Genshin Impact</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Genshin เวิ่นดิน AR55</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: KleeMain</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 AR55</span><span class="badge badge-blue">🎨 15 ตัวละคร</span>
+</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">500 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.9</span></span></div>
+</div>
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/Rovpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(0,196,255,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">ROV</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี ROV ไดมอนด์ Krixi</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: ROVKing</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 Diamond</span><span class="badge badge-blue">🎨 25 สกิน</span>
+</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">700 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.5</span></span></div>
+</div>
+<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/Honkaistarrailpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(155,92,246,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">Honkai: Star Rail</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Honkai E6 Seele</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: StarPlayer</div>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
+<span class="badge badge-green">🏅 Eq. 6</span><span class="badge badge-blue">🎨 12 ตัวละคร</span>
+</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">3,200 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.9</span></span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: PRODUCT DETAIL (GUEST) ======== -->
+<div class="page" id="pg-product">
+<div class="container" style="padding-top:32px;padding-bottom:60px">
+<button class="btn btn-ghost btn-sm" onclick="goPage('listings')" style="margin-bottom:20px">← กลับรายการสินค้า</button>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:32px">
+<div>
+<img alt="Valorant screenshot 1" class="product-main-img" id="productMainImageGuest" src="assets/images/valorant/valorant1.jpg" style="margin-bottom:14px"/>
+<div class="product-thumbs">
+<img alt="Valorant screenshot 1" class="product-thumb active" onclick="setProductImage('productMainImageGuest', this, 'assets/images/valorant/valorant1.jpg')" src="assets/images/valorant/valorant1.jpg"/>
+<img alt="Valorant screenshot 2" class="product-thumb" onclick="setProductImage('productMainImageGuest', this, 'assets/images/valorant/valorant2.jpg')" src="assets/images/valorant/valorant2.jpg"/>
+<img alt="Valorant screenshot 3" class="product-thumb" onclick="setProductImage('productMainImageGuest', this, 'assets/images/valorant/valorant3.jpg')" src="assets/images/valorant/valorant3.jpg"/>
+<img alt="Valorant screenshot 4" class="product-thumb" onclick="setProductImage('productMainImageGuest', this, 'assets/images/valorant/valorant4.jpg')" src="assets/images/valorant/valorant4.jpg"/>
+</div>
+<div class="card" style="margin-bottom:16px">
+<h3 style="font-weight:700;margin-bottom:16px">📋 รายละเอียดบัญชี</h3>
+<div class="grid4" style="gap:10px">
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">เกม</div><div style="font-weight:600;margin-top:4px;font-size:14px">Valorant</div></div>
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">แรงค์</div><div style="font-weight:600;margin-top:4px;font-size:14px">Immortal 3</div></div>
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">จำนวนสกิน</div><div style="font-weight:600;margin-top:4px;font-size:14px">42 สกิน</div></div>
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">เซิร์ฟเวอร์</div><div style="font-weight:600;margin-top:4px;font-size:14px">Asia</div></div>
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">ระดับบัญชี</div><div style="font-weight:600;margin-top:4px;font-size:14px">Level 230</div></div>
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">ชั่วโมงเล่น</div><div style="font-weight:600;margin-top:4px;font-size:14px">1,240 ชม.</div></div>
+<div style="padding:12px;background:var(--card2);border-radius:8px;grid-column:span 2"><div style="font-size:12px;color:var(--muted)">สกินพิเศษ</div><div style="font-weight:600;margin-top:4px;font-size:14px">Prime Phantom, Reaver Vandal, Glitchpop Sheriff</div></div>
+</div>
+</div>
+<div class="card">
+<h3 style="font-weight:700;margin-bottom:16px">⭐ รีวิวจากผู้ซื้อ</h3>
+<div style="padding:14px 0;border-bottom:1px solid var(--border)">
+<div class="flex-between" style="margin-bottom:8px">
+<div class="flex gap-8" style="align-items:center"><div class="avatar" style="width:32px;height:32px;background:var(--accent);font-size:14px">P</div><span style="font-weight:600;font-size:14px">PlayerOne</span></div>
+<span class="stars">★★★★★</span>
+</div>
+<p style="color:var(--muted);font-size:13px">บัญชีตรงตามที่ลงไว้ทุกอย่าง ผู้ขายใจดีมาก โอนข้อมูลรวดเร็วมากครับ แนะนำเลย!</p>
+</div>
+<div style="padding:14px 0">
+<div class="flex-between" style="margin-bottom:8px">
+<div class="flex gap-8" style="align-items:center"><div class="avatar" style="width:32px;height:32px;background:var(--purple);font-size:14px">G</div><span style="font-weight:600;font-size:14px">GamingPro</span></div>
+<span class="stars">★★★★☆</span>
+</div>
+<p style="color:var(--muted);font-size:13px">ได้รับข้อมูลครบ ราคาคุ้มมากเลยครับ สกินครบเป๊ะตามที่บอก</p>
+</div>
+</div>
+</div>
+<div>
+<div class="card" style="position:sticky;top:80px">
+<span class="badge badge-blue" style="margin-bottom:10px">Valorant</span>
+<h2 style="font-size:20px;font-weight:700;margin:8px 0 4px">บัญชี Valorant Immortal 3</h2>
+<div class="flex gap-10" style="align-items:center;margin-bottom:14px">
+<div class="avatar" style="width:28px;height:28px;background:var(--accent);font-size:12px">A</div>
+<span style="font-size:13px;color:var(--muted)">ผู้ขาย: <b style="color:var(--text)">AimPro</b></span>
+<span class="badge badge-green">✓ ยืนยันแล้ว</span>
+</div>
+<span class="stars" style="font-size:15px">★★★★★ <span style="color:var(--muted)">4.8 (24 รีวิว)</span></span>
+<div class="kanit" style="font-size:38px;font-weight:900;color:var(--accent);margin:16px 0">1,500 ฿</div>
+<div class="notice info" style="margin-bottom:16px;font-size:13px">🔐 ต้องเข้าสู่ระบบก่อนสั่งซื้อ</div>
+<button class="btn btn-primary btn-full btn-lg" onclick="goPage('login')" style="margin-bottom:10px">🔐 เข้าสู่ระบบเพื่อสั่งซื้อ</button>
+<button class="btn btn-secondary btn-full btn-md" onclick="goPage('login')">💬 ติดต่อผู้ขาย</button>
+<div class="divider"></div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div class="flex gap-10" style="font-size:13px;color:var(--muted);align-items:center"><span>✅</span>รับประกันสินค้าถูกต้อง</div>
+<div class="flex gap-10" style="font-size:13px;color:var(--muted);align-items:center"><span>🔒</span>ระบบป้องกันการโกง</div>
+<div class="flex gap-10" style="font-size:13px;color:var(--muted);align-items:center"><span>💬</span>มีทีมซัพพอร์ต 24/7</div>
+<div class="flex gap-10" style="font-size:13px;color:var(--muted);align-items:center"><span>🚀</span>โอนข้อมูลรวดเร็ว</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: HOME USER ======== -->
+<div class="page" id="pg-home-user">
+<div class="container" style="padding-top:36px;padding-bottom:60px">
+<div style="display:grid;grid-template-columns:1fr 300px;gap:28px">
+<div>
+<div style="margin-bottom:28px">
+<h1 style="font-size:28px;font-weight:800">ยินดีต้อนรับกลับ, <span style="color:var(--accent)">GamePro123</span> 👋</h1>
+<p style="color:var(--muted);margin-top:4px">มีรายการใหม่ที่น่าสนใจรอคุณอยู่</p>
+</div>
+<div class="grid4" style="gap:12px;margin-bottom:28px">
+<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--accent)">5,420</div><div class="stat-label">พ้อยท์คงเหลือ</div></div>
+<div class="card stat-card"><div style="font-size:24px">🛒</div><div class="stat-val" style="color:var(--success)">3</div><div class="stat-label">รายการที่ซื้อ</div></div>
+<div class="card stat-card"><div style="font-size:24px">📦</div><div class="stat-val" style="color:var(--warn)">2</div><div class="stat-label">ประกาศขาย</div></div>
+<div class="card stat-card"><div style="font-size:24px">💬</div><div class="stat-val" style="color:var(--purple)">5</div><div class="stat-label">ข้อความใหม่</div></div>
+</div>
+<div class="sec-header"><div class="sec-title">รายการแนะนำสำหรับคุณ</div></div>
+<div class="grid3">
+<div class="card card-hover" onclick="goPage('product-user')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/valorantpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,70,85,0.2);margin-bottom:12px"></div>
+<div style="font-weight:600;font-size:13px;margin-bottom:4px">บัญชี Valorant Immortal 3</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: AimPro</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">1,500 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.8</span></span></div>
+</div>
+<div class="card card-hover" onclick="goPage('product-user')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/pubgpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(245,166,35,0.2);margin-bottom:12px"></div>
+<div style="font-weight:600;font-size:13px;margin-bottom:4px">บัญชี PUBG Mythic เต็ม</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: GamerX</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">1,900 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.7</span></span></div>
+</div>
+<div class="card card-hover" onclick="goPage('product-user')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/Honkaistarrailpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(155,92,246,0.2);margin-bottom:12px"></div>
+<div style="font-weight:600;font-size:13px;margin-bottom:4px">บัญชี Honkai E6 Seele</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: StarPlayer</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">3,200 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.9</span></span></div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div class="card">
+<div class="flex gap-12" style="align-items:center;margin-bottom:16px">
+<div class="avatar" style="width:52px;height:52px;background:var(--accent);font-size:22px">G</div>
+<div><div style="font-weight:700">GamePro123</div><div style="color:var(--muted);font-size:12px;margin-bottom:4px">gamepro@email.com</div><span class="badge badge-green">✓ ยืนยันแล้ว</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<button class="btn btn-secondary btn-sm" onclick="goPage('profile')" style="justify-content:flex-start">✏️ แก้ไขข้อมูล</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('wallet')" style="justify-content:flex-start">💰 ฝาก/ถอน พ้อยท์</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('history')" style="justify-content:flex-start">📋 ประวัติ</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('seller-verify')" style="justify-content:flex-start">🏷️ ลงขายสินค้า</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('my-listings')" style="justify-content:flex-start">📦 ประกาศของฉัน</button>
+</div>
+</div>
+<div class="card">
+<h4 style="font-weight:700;margin-bottom:12px">💬 ข้อความล่าสุด</h4>
+<div style="display:flex;flex-direction:column">
+<div class="flex gap-10" onclick="goPage('chat')" style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;align-items:center">
+<div class="avatar" style="width:34px;height:34px;background:var(--accent);font-size:14px">A</div>
+<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">AimPro</div><div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ส่งข้อมูลบัญชีให้แล้วครับ</div></div>
+<div style="font-size:11px;color:var(--dim)">2 นาที</div>
+</div>
+<div class="flex gap-10" onclick="goPage('chat')" style="padding:10px 0;cursor:pointer;align-items:center">
+<div class="avatar" style="width:34px;height:34px;background:var(--success);font-size:14px">G</div>
+<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">GamerX</div><div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ราคาต่อรองได้ครับ</div></div>
+<div style="font-size:11px;color:var(--dim)">1 ชม.</div>
+</div>
+</div>
+<button class="btn btn-ghost btn-sm btn-full" onclick="goPage('chat')" style="margin-top:10px">ดูทั้งหมด →</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: LISTINGS USER ======== -->
+<div class="page" id="pg-listings-user">
+<div class="container" style="padding-top:36px;padding-bottom:60px">
+<div class="sec-header"><div class="sec-title">รายการสินค้าทั้งหมด</div><div class="sec-sub">ล็อคอินแล้ว — สามารถสั่งซื้อได้เลย</div></div>
+<div style="display:grid;grid-template-columns:240px 1fr;gap:24px">
+<div>
+<div class="card" style="margin-bottom:14px"><div style="font-weight:700;margin-bottom:12px">🔍 ค้นหา</div><input class="inp" placeholder="ค้นหาชื่อสินค้า..."/></div>
+<div class="card" style="margin-bottom:14px">
+<div style="font-weight:700;margin-bottom:12px">🎮 หมวดหมู่เกม</div>
+<div class="filter-item active">ทุกเกม</div>
+<div class="filter-item">🎯 Valorant</div><div class="filter-item">⚔️ ROV</div><div class="filter-item">🔫 PUBG</div><div class="filter-item">🔥 Free Fire</div><div class="filter-item">🌟 Genshin Impact</div>
+</div>
+<div class="card"><div style="font-weight:700;margin-bottom:12px">💰 ช่วงราคา</div>
+<label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 0–500 ฿</label>
+<label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 500–1,500 ฿</label>
+<label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 1,500+ ฿</label>
+</div>
+</div>
+<div>
+<div class="flex-between" style="margin-bottom:16px">
+<span style="color:var(--muted);font-size:14px">พบ 6 รายการ</span>
+<select class="inp" style="width:auto;padding:8px 14px"><option>ใหม่ล่าสุด</option><option>ราคาต่ำ-สูง</option></select>
+</div>
+<div class="grid3">
+<div class="card card-hover" onclick="goPage('product-user')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/valorantpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,70,85,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">Valorant</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Valorant Immortal 3</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: AimPro</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">1,500 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.8</span></span></div>
+<button class="btn btn-primary btn-sm btn-full" onclick="event.stopPropagation();goPage('order-confirm')" style="margin-top:10px">🛒 สั่งซื้อเลย</button>
+</div>
+<div class="card card-hover" onclick="goPage('product-user')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/pubgpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(245,166,35,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">PUBG</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี PUBG Mythic เต็ม</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: GamerX</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">1,900 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.7</span></span></div>
+<button class="btn btn-primary btn-sm btn-full" onclick="event.stopPropagation();goPage('order-confirm')" style="margin-top:10px">🛒 สั่งซื้อเลย</button>
+</div>
+<div class="card card-hover" onclick="goPage('product-user')" style="cursor:pointer">
+<div class="game-img" style="background-image:url('assets/images/freefirepage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,107,53,0.2);margin-bottom:12px"></div>
+<span class="badge badge-gray" style="margin-bottom:8px">Free Fire</span>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Free Fire สิงห์แดง</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: FFMaster</div>
+<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">850 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.6</span></span></div>
+<button class="btn btn-primary btn-sm btn-full" onclick="event.stopPropagation();goPage('order-confirm')" style="margin-top:10px">🛒 สั่งซื้อเลย</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: PRODUCT DETAIL USER ======== -->
+<div class="page" id="pg-product-user">
+<div class="container" style="padding-top:32px;padding-bottom:60px">
+<button class="btn btn-ghost btn-sm" onclick="goPage('listings-user')" style="margin-bottom:20px">← กลับรายการสินค้า</button>
+<div style="display:grid;grid-template-columns:1fr 340px;gap:32px">
+<div>
+<img alt="Valorant screenshot 1" class="product-main-img" id="productMainImageUser" src="assets/images/valorant/valorant1.jpg" style="margin-bottom:14px"/>
+<div class="product-thumbs">
+<img alt="Valorant screenshot 1" class="product-thumb active" onclick="setProductImage('productMainImageUser', this, 'assets/images/valorant/valorant1.jpg')" src="assets/images/valorant/valorant1.jpg"/>
+<img alt="Valorant screenshot 2" class="product-thumb" onclick="setProductImage('productMainImageUser', this, 'assets/images/valorant/valorant2.jpg')" src="assets/images/valorant/valorant2.jpg"/>
+<img alt="Valorant screenshot 3" class="product-thumb" onclick="setProductImage('productMainImageUser', this, 'assets/images/valorant/valorant3.jpg')" src="assets/images/valorant/valorant3.jpg"/>
+<img alt="Valorant screenshot 4" class="product-thumb" onclick="setProductImage('productMainImageUser', this, 'assets/images/valorant/valorant4.jpg')" src="assets/images/valorant/valorant4.jpg"/>
+</div>
+<div class="card" style="margin-bottom:16px">
+<h3 style="font-weight:700;margin-bottom:16px">📋 รายละเอียดบัญชี</h3>
+<div class="grid4" style="gap:10px">
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">เกม</div><div style="font-weight:600;margin-top:4px">Valorant</div></div>
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">แรงค์</div><div style="font-weight:600;margin-top:4px">Immortal 3</div></div>
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">จำนวนสกิน</div><div style="font-weight:600;margin-top:4px">42 สกิน</div></div>
+<div style="padding:12px;background:var(--card2);border-radius:8px"><div style="font-size:12px;color:var(--muted)">เซิร์ฟเวอร์</div><div style="font-weight:600;margin-top:4px">Asia</div></div>
+</div>
+</div>
+<div class="card">
+<h3 style="font-weight:700;margin-bottom:16px">⭐ รีวิวจากผู้ซื้อ</h3>
+<div style="padding:14px 0;border-bottom:1px solid var(--border)">
+<div class="flex-between" style="margin-bottom:8px">
+<div class="flex gap-8" style="align-items:center"><div class="avatar" style="width:32px;height:32px;background:var(--accent);font-size:14px">P</div><span style="font-weight:600;font-size:14px">PlayerOne</span></div>
+<span class="stars">★★★★★</span>
+</div>
+<p style="color:var(--muted);font-size:13px">บัญชีตรงตามที่ลงไว้ทุกอย่าง ผู้ขายใจดีมาก โอนข้อมูลรวดเร็ว!</p>
+</div>
+</div>
+</div>
+<div>
+<div class="card" style="position:sticky;top:80px">
+<span class="badge badge-blue" style="margin-bottom:10px">Valorant</span>
+<h2 style="font-size:20px;font-weight:700;margin:8px 0 4px">บัญชี Valorant Immortal 3</h2>
+<div class="flex gap-10" style="align-items:center;margin-bottom:14px">
+<div class="avatar" style="width:28px;height:28px;background:var(--accent);font-size:12px">A</div>
+<span style="font-size:13px;color:var(--muted)">ผู้ขาย: <b style="color:var(--text)">AimPro</b></span>
+</div>
+<span class="stars">★★★★★ <span style="color:var(--muted)">4.8 (24 รีวิว)</span></span>
+<div class="kanit" style="font-size:38px;font-weight:900;color:var(--accent);margin:16px 0">1,500 ฿</div>
+<button class="btn btn-primary btn-full btn-lg" onclick="goPage('order-confirm')" style="margin-bottom:10px">🛒 สั่งซื้อเลย</button>
+<button class="btn btn-secondary btn-full btn-md" onclick="goPage('chat')">💬 ติดต่อผู้ขาย</button>
+<div class="divider"></div>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted)">
+<div class="flex gap-10"><span>✅</span>รับประกันสินค้าถูกต้อง</div>
+<div class="flex gap-10"><span>🔒</span>ระบบป้องกันการโกง</div>
+<div class="flex gap-10"><span>🚀</span>โอนข้อมูลรวดเร็ว</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: PROFILE ======== -->
+<div class="page" id="pg-profile">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:820px">
+<div class="sec-header"><div class="sec-title">✏️ แก้ไขข้อมูลส่วนตัว</div><div class="sec-sub">อัปเดตข้อมูลโปรไฟล์และการตั้งค่าบัญชี</div></div>
+<div style="display:grid;grid-template-columns:200px 1fr;gap:24px">
+<div class="card" style="text-align:center;height:fit-content">
+<div class="avatar" style="width:80px;height:80px;background:var(--accent);font-size:36px;margin:0 auto 12px">G</div>
+<div style="font-weight:700">GamePro123</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:16px">gamepro@email.com</div>
+<span class="badge badge-green" style="margin-bottom:12px">✓ ยืนยันแล้ว</span><br/>
+<button class="btn btn-secondary btn-sm" style="margin-top:12px;width:100%">📷 เปลี่ยนรูป</button>
+</div>
+<div>
+<div class="card" style="margin-bottom:16px">
+<h4 style="font-weight:700;margin-bottom:20px">ข้อมูลส่วนตัว</h4>
+<div class="grid2" style="gap:12px">
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ชื่อผู้ใช้</label><input class="inp" value="GamePro123"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">อีเมล</label><input class="inp" type="email" value="gamepro@email.com"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ชื่อ</label><input class="inp" value="นาย เกม"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">นามสกุล</label><input class="inp" value="โปรเกมเมอร์"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">เบอร์โทรศัพท์</label><input class="inp" value="08X-XXX-XXXX"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">เพศ</label><select class="inp"><option>ชาย</option><option>หญิง</option></select></div>
+</div>
+</div>
+<div class="card" style="margin-bottom:16px">
+<h4 style="font-weight:700;margin-bottom:16px">🔒 เปลี่ยนรหัสผ่าน</h4>
+<div class="grid3" style="gap:12px">
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">รหัสผ่านเดิม</label><input class="inp" placeholder="••••••••" type="password"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">รหัสผ่านใหม่</label><input class="inp" placeholder="••••••••" type="password"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ยืนยันรหัสผ่านใหม่</label><input class="inp" placeholder="••••••••" type="password"/></div>
+</div>
+</div>
+<div class="flex gap-12">
+<button class="btn btn-primary btn-md">💾 บันทึกข้อมูล</button>
+<button class="btn btn-secondary btn-md">ยกเลิก</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: WALLET ======== -->
+<div class="page" id="pg-wallet">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:900px">
+<div class="sec-header"><div class="sec-title">💰 ฝาก / ถอน พ้อยท์</div><div class="sec-sub">จัดการยอดพ้อยท์ในบัญชีของคุณ</div></div>
+<div class="grid3" style="margin-bottom:28px">
+<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--accent)">5,420</div><div class="stat-label">พ้อยท์คงเหลือ</div></div>
+<div class="card stat-card"><div style="font-size:24px">📥</div><div class="stat-val" style="color:var(--success)">10,000</div><div class="stat-label">ฝากทั้งหมด</div></div>
+<div class="card stat-card"><div style="font-size:24px">📤</div><div class="stat-val" style="color:var(--warn)">4,580</div><div class="stat-label">ถอนทั้งหมด</div></div>
+</div>
+<div class="card">
+<div class="tabs">
+<button class="tab-btn active" onclick="switchTab(this,'wallet-deposit')">💳 ฝากพ้อยท์</button>
+<button class="tab-btn" onclick="switchTab(this,'wallet-withdraw')">📤 ถอนพ้อยท์</button>
+</div>
+<div id="wallet-deposit">
+<div style="max-width:480px">
+<h4 style="font-weight:700;margin-bottom:16px">เลือกช่องทางชำระเงิน</h4>
+<div class="grid2" style="gap:10px;margin-bottom:18px">
+<div class="card" style="padding:14px;cursor:pointer;text-align:center;font-size:14px;border:1px solid var(--accent)">💳 บัตรเครดิต/เดบิต</div>
+<div class="card" style="padding:14px;cursor:pointer;text-align:center;font-size:14px">🏦 โอนผ่านธนาคาร</div>
+<div class="card" style="padding:14px;cursor:pointer;text-align:center;font-size:14px">📱 พร้อมเพย์</div>
+<div class="card" style="padding:14px;cursor:pointer;text-align:center;font-size:14px">💰 TrueMoney</div>
+</div>
+<div class="inp-group"><label class="inp-label">จำนวนพ้อยท์ที่ต้องการฝาก</label><input class="inp" placeholder="กรอกจำนวน (ขั้นต่ำ 100)"/></div>
+<div class="flex gap-8" style="margin-bottom:18px">
+<button class="btn btn-secondary btn-sm">100</button>
+<button class="btn btn-secondary btn-sm">500</button>
+<button class="btn btn-secondary btn-sm">1,000</button>
+<button class="btn btn-secondary btn-sm">2,000</button>
+</div>
+<button class="btn btn-primary btn-md btn-full">✅ ดำเนินการชำระเงิน</button>
+</div>
+</div>
+<div id="wallet-withdraw" style="display:none">
+<div style="max-width:480px">
+<h4 style="font-weight:700;margin-bottom:16px">ถอนพ้อยท์ไปยังบัญชีธนาคาร</h4>
+<div class="inp-group"><label class="inp-label">ธนาคาร</label><select class="inp"><option>เลือกธนาคาร</option><option>SCB</option><option>KBank</option><option>BBL</option><option>KTB</option></select></div>
+<div class="inp-group"><label class="inp-label">เลขบัญชีธนาคาร</label><input class="inp" placeholder="กรอกเลขบัญชี"/></div>
+<div class="inp-group"><label class="inp-label">จำนวนพ้อยท์ที่ต้องการถอน</label><input class="inp" placeholder="พ้อยท์คงเหลือ: 5,420"/></div>
+<div class="notice warn" style="margin-bottom:16px">⚠️ การถอนจะถูกตรวจสอบโดย Admin ภายใน 1–3 วันทำการ</div>
+<button class="btn btn-primary btn-md btn-full">📤 ส่งคำขอถอนพ้อยท์</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: HISTORY ======== -->
+<div class="page" id="pg-history">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:900px">
+<div class="sec-header"><div class="sec-title">📋 ประวัติการทำธุรกรรม</div><div class="sec-sub">ดูประวัติการซื้อขายและธุรกรรมทั้งหมดของคุณ</div></div>
+<div class="card">
+<div class="tabs">
+<button class="tab-btn active" onclick="switchTab(this,'hist-trade')">📊 ประวัติซื้อ/ขาย</button>
+<button class="tab-btn" onclick="switchTab(this,'hist-tx')">💳 ประวัติฝาก/ถอน</button>
+</div>
+<div id="hist-trade">
+<div style="font-size:12px;color:var(--muted);margin:10px 0 14px 2px">กดปุ่ม “ดูข้อมูลสินค้า” ในรายการซื้อ เพื่อไปยังหน้าข้อมูลสินค้าที่ได้รับ</div>
+
+<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:14px 18px">
+<span class="badge badge-green">ซื้อ</span>
+<div style="flex:1">
+  <div style="font-weight:600;font-size:14px">บัญชี Valorant Immortal 3</div>
+  <div style="color:var(--muted);font-size:12px">ผู้ขาย: AimPro • 09/03/2026</div>
+</div>
+<button class="btn btn-ghost btn-sm" onclick="goPage('order-info')">📋 ดูข้อมูลสินค้า</button>
+<div class="kanit" style="font-weight:700;color:var(--danger)">-1,500 ฿</div>
+<span class="badge badge-green">สำเร็จ</span>
+</div>
+
+<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:14px 18px">
+<span class="badge badge-blue">ขาย</span>
+<div style="flex:1">
+  <div style="font-weight:600;font-size:14px">บัญชี ROV Diamond</div>
+  <div style="color:var(--muted);font-size:12px">ผู้ซื้อ: NewPlayer • 05/03/2026</div>
+</div>
+<div class="kanit" style="font-weight:700;color:var(--success)">+700 ฿</div>
+<span class="badge badge-green">สำเร็จ</span>
+</div>
+
+<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
+<span class="badge badge-green">ซื้อ</span>
+<div style="flex:1">
+  <div style="font-weight:600;font-size:14px">บัญชี PUBG Mythic</div>
+  <div style="color:var(--muted);font-size:12px">ผู้ขาย: GamerX • 01/03/2026</div>
+</div>
+<button class="btn btn-ghost btn-sm" onclick="goPage('order-info')">📋 ดูข้อมูลสินค้า</button>
+<div class="kanit" style="font-weight:700;color:var(--danger)">-1,900 ฿</div>
+<span class="badge badge-yellow">รอดำเนินการ</span>
+</div>
+</div>
+<div id="hist-tx" style="display:none">
+<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:14px 18px">
+<span class="badge badge-green">ฝาก</span>
+<div style="flex:1"><div style="font-weight:600;font-size:14px">บัตรเครดิต</div><div style="color:var(--muted);font-size:12px">09/03/2026</div></div>
+<div class="kanit" style="font-weight:700;color:var(--success)">+2,000 pts</div>
+<span class="badge badge-green">สำเร็จ</span>
+</div>
+<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:14px 18px">
+<span class="badge badge-red">ถอน</span>
+<div style="flex:1"><div style="font-weight:600;font-size:14px">โอนธนาคาร SCB</div><div style="color:var(--muted);font-size:12px">07/03/2026</div></div>
+<div class="kanit" style="font-weight:700;color:var(--danger)">-1,000 pts</div>
+<span class="badge badge-green">สำเร็จ</span>
+</div>
+<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
+<span class="badge badge-green">ฝาก</span>
+<div style="flex:1"><div style="font-weight:600;font-size:14px">พร้อมเพย์</div><div style="color:var(--muted);font-size:12px">03/03/2026</div></div>
+<div class="kanit" style="font-weight:700;color:var(--success)">+500 pts</div>
+<span class="badge badge-green">สำเร็จ</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: CHAT ======== -->
+<div class="page" id="pg-chat">
+<div class="container" style="padding-top:36px;padding-bottom:60px">
+<div class="sec-header"><div class="sec-title">💬 แชทข้อความ</div><div class="sec-sub">ติดต่อสื่อสารกับผู้ซื้อและผู้ขาย</div></div>
+<div style="display:grid;grid-template-columns:280px 1fr;border:1px solid var(--border);border-radius:14px;overflow:hidden;height:560px">
+<div style="background:var(--card);border-right:1px solid var(--border);overflow-y:auto">
+<div style="padding:14px;border-bottom:1px solid var(--border)"><input class="inp" placeholder="🔍 ค้นหาแชท..." style="font-size:13px"/></div>
+<div style="padding:12px 16px;display:flex;gap:10px;align-items:center;cursor:pointer;background:rgba(59,130,246,0.1);border-left:3px solid var(--accent)">
+<div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:16px">A</div>
+<div style="flex:1;min-width:0"><div class="flex-between"><span style="font-weight:600;font-size:14px">AimPro</span><span style="font-size:11px;color:var(--dim)">2 นาที</span></div><div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ส่งข้อมูลบัญชีให้แล้วครับ</div></div>
+<div style="width:18px;height:18px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">2</div>
+</div>
+<div onclick="" style="padding:12px 16px;display:flex;gap:10px;align-items:center;cursor:pointer;border-left:3px solid transparent">
+<div class="avatar" style="width:38px;height:38px;background:var(--success);font-size:16px">G</div>
+<div style="flex:1;min-width:0"><div class="flex-between"><span style="font-weight:600;font-size:14px">GamerX</span><span style="font-size:11px;color:var(--dim)">1 ชม.</span></div><div style="font-size:12px;color:var(--muted)">ราคาต่อรองได้ครับ</div></div>
+</div>
+<div style="padding:12px 16px;display:flex;gap:10px;align-items:center;cursor:pointer;border-left:3px solid transparent">
+<div class="avatar" style="width:38px;height:38px;background:var(--warn);font-size:16px">R</div>
+<div style="flex:1;min-width:0"><div class="flex-between"><span style="font-weight:600;font-size:14px">ROVKing</span><span style="font-size:11px;color:var(--dim)">3 ชม.</span></div><div style="font-size:12px;color:var(--muted)">สินค้ายังว่างอยู่ครับ</div></div>
+<div style="width:18px;height:18px;background:var(--danger);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">1</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column">
+<div style="padding:13px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+<div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:16px">A</div>
+<div><div style="font-weight:700">AimPro</div><div style="font-size:12px;color:var(--success)">● ออนไลน์</div></div>
+<div style="margin-left:auto;display:flex;gap:8px">
+<button class="btn btn-ghost btn-sm" onclick="goPage('product-user')">📄 ดูสินค้า</button>
+<button class="btn btn-danger btn-sm report-quick-btn" onclick="goPage('user-report')">🚨 รายงานผู้ใช้งาน</button>
+</div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:8px;align-items:flex-end"><div class="avatar" style="width:28px;height:28px;background:var(--accent);font-size:12px;flex-shrink:0">A</div><div class="chat-bubble them">สวัสดีครับ สนใจบัญชี Valorant ไหมครับ?<div style="font-size:11px;color:var(--dim);margin-top:4px;text-align:right">10:30</div></div></div>
+<div style="display:flex;gap:8px;align-items:flex-end;justify-content:flex-end"><div class="chat-bubble me">สนใจครับ แรงค์ Immortal จริงไหม?<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;text-align:right">10:31</div></div></div>
+<div style="display:flex;gap:8px;align-items:flex-end"><div class="avatar" style="width:28px;height:28px;background:var(--accent);font-size:12px;flex-shrink:0">A</div><div class="chat-bubble them">จริงครับ มีสกิน Prime และ Reaver เต็มเลยครับ<div style="font-size:11px;color:var(--dim);margin-top:4px;text-align:right">10:32</div></div></div>
+<div style="display:flex;gap:8px;align-items:flex-end;justify-content:flex-end"><div class="chat-bubble me">ราคาต่อได้ไหมครับ?<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;text-align:right">10:33</div></div></div>
+<div style="display:flex;gap:8px;align-items:flex-end"><div class="avatar" style="width:28px;height:28px;background:var(--accent);font-size:12px;flex-shrink:0">A</div><div class="chat-bubble them">ลดได้นิดหน่อยครับ ถ้าสนใจจริงๆ<div style="font-size:11px;color:var(--dim);margin-top:4px;text-align:right">10:34</div></div></div>
+<div style="display:flex;gap:8px;align-items:flex-end"><div class="avatar" style="width:28px;height:28px;background:var(--accent);font-size:12px;flex-shrink:0">A</div><div class="chat-bubble them">ส่งข้อมูลบัญชีให้แล้วครับ ลองเช็คได้เลย ✅<div style="font-size:11px;color:var(--dim);margin-top:4px;text-align:right">10:40</div></div></div>
+</div>
+<div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center">
+<input class="inp" placeholder="พิมพ์ข้อความ..." style="flex:1"/>
+<button class="btn btn-secondary btn-md" onclick="goPage('user-report')">🚨 รายงาน</button>
+<button class="btn btn-primary btn-md">ส่ง 📤</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: ORDER CONFIRM ======== -->
+<div class="page" id="pg-order-confirm">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:820px">
+<div class="sec-header"><div class="back-home-wrap"><a class="back-home-btn" href="#" onclick="if (typeof isLoggedIn !== 'undefined' &amp;&amp; isLoggedIn) { goPage('home-user'); } else { goPage('home-guest'); } return false;">← กลับหน้าแรก</a></div><div class="sec-title">🛒 ยืนยันการสั่งซื้อ</div><div class="sec-sub">ตรวจสอบรายละเอียดก่อนชำระเงินและรับข้อมูลสินค้าอัตโนมัติ</div></div>
+<div style="display:grid;grid-template-columns:1fr 300px;gap:24px">
+<div>
+<div class="card" style="margin-bottom:16px">
+<h4 style="font-weight:700;margin-bottom:14px">📦 รายละเอียดสินค้า</h4>
+<div class="flex gap-16" style="align-items:center">
+<div class="game-img" style="width:120px;height:70px;flex-shrink:0;background-image:url('assets/images/valorant/valorant1.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,70,85,0.2)"></div>
+<div>
+<div style="font-weight:600;margin-bottom:4px">บัญชี Valorant Immortal 3</div>
+<div style="color:var(--muted);font-size:13px;margin-bottom:4px">ผู้ขาย: AimPro</div>
+<div class="kanit" style="font-size:24px;font-weight:800;color:var(--accent)">1,500 ฿</div>
+</div>
+</div>
+</div>
+<div class="card">
+<h4 style="font-weight:700;margin-bottom:4px">🔐 ยืนยันตัวตนก่อนชำระเงิน</h4>
+<p style="color:var(--muted);font-size:14px;margin-bottom:16px">หลังยืนยัน OTP และชำระเงินเสร็จ ระบบจะปลดล็อกข้อมูลบัญชีให้ทันทีโดยไม่ต้องรอผู้ขายอนุมัติ</p>
+<div class="grid2" style="gap:10px;margin-bottom:16px">
+<div class="radio-option selected">
+<div class="flex-between"><span style="font-weight:700;font-size:14px">📧 OTP ทางอีเมล</span><div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center"><div style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div></div></div>
+<div style="font-size:12px;color:var(--muted);margin-top:4px">gamepro@email.com</div>
+</div>
+<div class="radio-option">
+<div class="flex-between"><span style="font-weight:700;font-size:14px">📱 OTP ทาง SMS</span><div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--border2)"></div></div>
+<div style="font-size:12px;color:var(--muted);margin-top:4px">08X-XXX-XXXX</div>
+</div>
+</div>
+<button class="btn btn-primary btn-full btn-lg" onclick="goPage('order-otp')">💳 ชำระเงินและส่ง OTP</button>
+</div>
+</div>
+<div class="card" style="height:fit-content">
+<h4 style="font-weight:700;margin-bottom:16px">🧾 สรุปคำสั่งซื้อ</h4>
+<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+<div class="flex-between" style="font-size:14px;color:var(--muted)"><span>ราคาสินค้า</span><span style="color:var(--text)">1,500 ฿</span></div>
+<div class="flex-between" style="font-size:14px;color:var(--muted)"><span>ค่าธรรมเนียม (1%)</span><span style="color:var(--text)">15 ฿</span></div>
+<div class="flex-between" style="font-size:14px;color:var(--muted)"><span>ส่วนลด</span><span style="color:var(--success)">-0 ฿</span></div>
+</div>
+<div class="divider"></div>
+<div class="flex-between" style="margin-top:14px">
+<span class="kanit" style="font-size:16px;font-weight:700">รวมทั้งหมด</span>
+<span class="kanit" style="font-size:22px;font-weight:800;color:var(--accent)">1,515 ฿</span>
+</div>
+<div class="notice info" style="margin-top:14px;font-size:13px">💰 ชำระจากพ้อยท์คงเหลือ: 5,420 pts</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: ORDER OTP ======== -->
+<div class="page" id="pg-order-otp">
+<div style="min-height:calc(100vh - 62px);display:flex;align-items:center;justify-content:center;padding:48px 24px">
+<div class="card" style="max-width:460px;width:100%;padding:40px">
+<div style="text-align:center;margin-bottom:24px">
+<div style="font-size:40px;margin-bottom:10px">🔐</div>
+<h2 style="font-size:22px;font-weight:700;margin-bottom:4px">กรอกรหัส OTP</h2>
+<p style="color:var(--muted);font-size:13px">ส่งรหัสไปที่ gamepro@email.com แล้ว</p>
+</div>
+<div class="otp-wrap">
+<input class="otp-box" maxlength="1"/><input class="otp-box" maxlength="1"/><input class="otp-box" maxlength="1"/><input class="otp-box" maxlength="1"/><input class="otp-box" maxlength="1"/><input class="otp-box" maxlength="1"/>
+</div>
+<p style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:22px">ไม่ได้รับรหัส? <a style="cursor:pointer">ส่ง OTP ใหม่</a> <span style="color:var(--dim)">(ใช้ได้ใน 05:00)</span></p>
+<button class="btn btn-primary btn-full btn-lg" onclick="goPage('order-success')">✅ ยืนยันการชำระเงิน</button>
+<button class="btn btn-secondary btn-full btn-md" onclick="goPage('order-confirm')" style="margin-top:10px">← ย้อนกลับ</button>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: ORDER SUCCESS ======== -->
+<div class="page" id="pg-order-success">
+<div style="min-height:calc(100vh - 62px);display:flex;align-items:center;justify-content:center;padding:48px 24px">
+<div class="card" style="max-width:540px;width:100%;text-align:center;padding:56px 48px">
+<div class="success-circle" style="background:rgba(16,185,129,0.15);border:2px solid var(--success)">🎉</div>
+<span class="badge badge-green" style="margin-bottom:14px">สั่งซื้อสำเร็จ</span>
+<h1 style="font-size:30px;font-weight:900;margin:10px 0 12px">ชำระเงินสำเร็จแล้ว!</h1>
+<p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:28px">ชำระเงินสำเร็จแล้ว ระบบได้ปลดล็อกข้อมูลบัญชีเกมให้คุณทันที และตัดพ้อยท์/เครดิตให้ผู้ขายเรียบร้อย</p>
+<div class="grid3" style="margin-bottom:28px;gap:10px">
+<div class="card" style="padding:14px 8px"><div style="color:var(--muted);font-size:12px">เลขออเดอร์</div><div style="font-weight:700;margin-top:4px;font-size:12px">#ORD-001</div></div>
+<div class="card" style="padding:14px 8px"><div style="color:var(--muted);font-size:12px">ยอดชำระ</div><div style="font-weight:700;margin-top:4px;color:var(--accent)">1,515 ฿</div></div>
+<div class="card" style="padding:14px 8px"><div style="color:var(--muted);font-size:12px">สถานะ</div><div style="font-weight:700;margin-top:4px;color:var(--success)">สำเร็จ</div></div>
+</div>
+<div class="flex gap-12" style="justify-content:center">
+<button class="btn btn-primary btn-md" onclick="goPage('order-info')">🔑 รับข้อมูลบัญชีทันที</button>
+<button class="btn btn-secondary btn-md" onclick="goPage('home-user')">กลับหน้าแรก</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: ORDER INFO ======== -->
+<div class="page" id="pg-order-info">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:700px">
+<div class="sec-header"><div class="sec-title">📋 ข้อมูลสินค้าที่ซื้อ</div><div class="sec-sub">ข้อมูลบัญชีเกมถูกส่งให้อัตโนมัติทันทีหลังชำระเงิน</div></div>
+<div class="card" style="padding:28px">
+<div class="flex gap-14" style="align-items:center;margin-bottom:24px">
+<div style="width:52px;height:52px;background:rgba(16,185,129,0.15);border:2px solid var(--success);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px">🔐</div>
+<div><div style="font-weight:700;font-size:16px">บัญชี Valorant Immortal 3</div><span class="badge badge-green">ได้รับข้อมูลแล้ว</span></div>
+</div>
+<div class="notice warn" style="margin-bottom:18px">⚠️ ข้อมูลสำคัญ — กรุณาเปลี่ยนรหัสผ่านทันทีหลังได้รับ และเก็บไว้ที่ปลอดภัย</div>
+<div style="display:flex;flex-direction:column">
+<div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border);align-items:center">
+<span style="color:var(--muted);font-size:14px">Username</span>
+<div class="flex gap-10" style="align-items:center"><code style="font-family:monospace;font-size:15px;font-weight:600">valorant_im3_pro</code><button class="btn btn-secondary btn-sm">คัดลอก</button></div>
+</div>
+<div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border);align-items:center">
+<span style="color:var(--muted);font-size:14px">Password</span>
+<div class="flex gap-10" style="align-items:center"><code style="font-family:monospace;font-size:15px;font-weight:600">V@l0r@nt#2024</code><button class="btn btn-secondary btn-sm">คัดลอก</button></div>
+</div>
+<div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border);align-items:center">
+<span style="color:var(--muted);font-size:14px">Email</span>
+<div class="flex gap-10" style="align-items:center"><code style="font-family:monospace;font-size:15px;font-weight:600">seller@gmail.com</code><button class="btn btn-secondary btn-sm">คัดลอก</button></div>
+</div>
+<div class="flex-between" style="padding:12px 0;align-items:center">
+<span style="color:var(--muted);font-size:14px">Email Password</span>
+<div class="flex gap-10" style="align-items:center"><code style="font-family:monospace;font-size:15px;font-weight:600">Em@il#Pass123</code><button class="btn btn-secondary btn-sm">คัดลอก</button></div>
+</div>
+</div>
+</div>
+<div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn btn-secondary btn-md" onclick="goPage('history')">← กลับไปหน้าประวัติ</button>
+<button class="btn btn-danger btn-md" onclick="goPage('user-report')">🚨 รายงานผู้ใช้งาน</button>
+<button class="btn btn-ghost btn-md" onclick="goPage('review')">⭐ รีวิวผู้ขาย</button>
+</div>
+</div>
+</div>
+
+<!-- ======== PAGE: USER REPORT ======== -->
+<div class="page" id="pg-user-report">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:860px">
+<div class="sec-header">
+  <div class="sec-title">🚨 รายงานผู้ใช้งาน</div>
+  <div class="sec-sub">แจ้งปัญหาผู้ใช้หรือพฤติกรรมที่ไม่เหมาะสม เพื่อให้แอดมินตรวจสอบต่อ</div>
+</div>
+
+<div class="card" style="padding:24px 24px 18px;margin-bottom:16px">
+  <div class="report-summary-box">
+    <div class="report-summary-item">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px">ผู้ใช้งานที่ต้องการรายงาน</div>
+      <div style="font-weight:700;font-size:16px">AimPro</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">ผู้ขาย • บัญชี Valorant Immortal 3</div>
+    </div>
+    <div class="report-summary-item">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px">อ้างอิงคำสั่งซื้อ</div>
+      <div style="font-weight:700;font-size:16px">#ORD-2026-001</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">ซื้อเมื่อ 09/03/2026 14:30</div>
+    </div>
+  </div>
+  <div class="notice warn">⚠️ กรุณาแนบรายละเอียดให้ครบถ้วน เช่น ข้อความแชท หลักฐานการโอน หรือปัญหาที่พบ เพื่อช่วยให้แอดมินตรวจสอบได้เร็วขึ้น</div>
+</div>
+
+<div class="card" style="padding:24px">
+  <div class="grid2" style="gap:16px">
+    <div class="inp-group">
+      <label class="inp-label">ผู้ถูกรายงาน</label>
+      <input class="inp" value="AimPro" placeholder="ชื่อผู้ใช้งาน"/>
+    </div>
+    <div class="inp-group">
+      <label class="inp-label">ประเภทปัญหา</label>
+      <select class="inp">
+        <option>เลือกประเภทปัญหา</option>
+        <option>สินค้าไม่ตรงตามประกาศ</option>
+        <option>ได้รับข้อมูลไม่ครบ</option>
+        <option>ไม่ตอบแชท / ติดต่อไม่ได้</option>
+        <option>พฤติกรรมไม่เหมาะสม</option>
+        <option>สงสัยการหลอกลวง</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid2" style="gap:16px">
+    <div class="inp-group">
+      <label class="inp-label">อ้างอิงจากหน้า</label>
+      <select class="inp">
+        <option>หน้าข้อมูลสินค้าที่ซื้อ</option>
+        <option>หน้าแชทข้อความ</option>
+        <option>หน้าอื่น ๆ</option>
+      </select>
+    </div>
+    <div class="inp-group">
+      <label class="inp-label">Order ID</label>
+      <input class="inp" value="ORD-2026-001" placeholder="กรอกรหัสคำสั่งซื้อ"/>
+    </div>
+  </div>
+
+  <div class="inp-group">
+    <label class="inp-label">หัวข้อรายงาน</label>
+    <input class="inp" placeholder="เช่น ได้รับข้อมูลบัญชีไม่ครบ หรือ สินค้าไม่ตรงตามที่ลงขาย"/>
+  </div>
+
+  <div class="inp-group">
+    <label class="inp-label">รายละเอียดปัญหา</label>
+    <textarea class="inp" placeholder="อธิบายเหตุการณ์ที่เกิดขึ้นอย่างละเอียด เช่น เวลาเกิดเหตุ สิ่งที่ได้รับ และสิ่งที่ไม่ตรงจากประกาศ" rows="6" style="resize:vertical"></textarea>
+  </div>
+
+  <div class="inp-group">
+    <label class="inp-label">แนบหลักฐาน</label>
+    <div class="upload-zone">
+      <div style="font-size:30px;margin-bottom:8px">📎</div>
+      <div style="font-weight:700;margin-bottom:6px">อัปโหลดรูปภาพ / แคปแชท / สลิป / ไฟล์หลักฐาน</div>
+      <div style="font-size:13px;color:var(--muted)">รองรับไฟล์ภาพหรือ PDF เพื่อใช้ประกอบการตรวจสอบ</div>
+    </div>
+  </div>
+
+  <div class="notice info" style="margin-bottom:18px">ℹ️ หลังส่งรายงานแล้ว ระบบจะส่งเรื่องไปยังแอดมินเพื่อตรวจสอบ และคุณสามารถติดตามสถานะได้จากประวัติหรือการแจ้งเตือนภายหลัง</div>
+
+  <div class="flex-between" style="gap:12px;flex-wrap:wrap">
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-md" onclick="goPage('chat')">← กลับไปหน้าแชท</button>
+      <button class="btn btn-secondary btn-md" onclick="goPage('order-info')">📋 กลับไปหน้าข้อมูลสินค้า</button>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-md">บันทึกร่าง</button>
+      <button class="btn btn-danger btn-md">🚨 ส่งรายงานให้แอดมิน</button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ======== PAGE: REVIEW ======== -->
+<div class="page" id="pg-review">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:600px">
+<div class="sec-header"><div class="sec-title">⭐ รีวิวผู้ขาย</div><div class="sec-sub">แบ่งปันประสบการณ์การซื้อขายของคุณ</div></div>
+<div class="card" style="padding:28px">
+<div class="flex gap-14" style="align-items:center;margin-bottom:24px">
+<div class="avatar" style="width:56px;height:56px;background:var(--accent);font-size:24px">A</div>
+<div><div style="font-weight:700;font-size:17px">AimPro</div><div style="color:var(--muted);font-size:13px">ผู้ขาย: บัญชี Valorant Immortal 3</div></div>
+</div>
+<h4 style="font-weight:700;margin-bottom:12px">ให้คะแนนผู้ขาย</h4>
+<div class="flex gap-8" style="margin-bottom:20px">
+<button onclick="setRating(1)" style="background:none;border:none;font-size:38px;cursor:pointer;color:var(--gold)">★</button>
+<button onclick="setRating(2)" style="background:none;border:none;font-size:38px;cursor:pointer;color:var(--gold)">★</button>
+<button onclick="setRating(3)" style="background:none;border:none;font-size:38px;cursor:pointer;color:var(--gold)">★</button>
+<button onclick="setRating(4)" style="background:none;border:none;font-size:38px;cursor:pointer;color:var(--gold)">★</button>
+<button onclick="setRating(5)" style="background:none;border:none;font-size:38px;cursor:pointer;color:var(--gold)">★</button>
+</div>
+<h4 style="font-weight:700;margin-bottom:10px">หัวข้อรีวิว</h4>
+<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:18px">
+<span class="badge badge-blue" style="cursor:pointer;padding:6px 14px">สินค้าตรงตามที่ลง</span>
+<span class="badge badge-blue" style="cursor:pointer;padding:6px 14px">ผู้ขายติดต่อรวดเร็ว</span>
+<span class="badge badge-blue" style="cursor:pointer;padding:6px 14px">โอนข้อมูลทันที</span>
+<span class="badge badge-blue" style="cursor:pointer;padding:6px 14px">คุ้มราคา</span>
+</div>
+<div class="inp-group"><label class="inp-label">เขียนรีวิว</label><textarea class="inp" placeholder="เล่าประสบการณ์การซื้อขายของคุณ..." rows="4" style="resize:none"></textarea></div>
+<div class="flex gap-12">
+<button class="btn btn-primary btn-md" onclick="goPage('history')">📤 ส่งรีวิว</button>
+<button class="btn btn-secondary btn-md" onclick="goPage('home-user')">ข้ามไปก่อน</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: SELLER VERIFY ======== -->
+<div class="page" id="pg-seller-verify">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:860px">
+<div class="sec-header"><div class="sec-title">🪪 ยืนยันตัวตนผู้ขาย</div><div class="sec-sub">ต้องยืนยันตัวตนด้วยบัตรประชาชนก่อนลงขายสินค้า</div></div>
+<div class="grid2">
+<div class="card">
+<h4 style="font-weight:700;margin-bottom:16px">ขั้นตอนการยืนยันตัวตน</h4>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">1️⃣</span><span style="font-size:14px;color:var(--muted)">อัปโหลดรูปบัตรประชาชน (ด้านหน้า)</span></div>
+<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">2️⃣</span><span style="font-size:14px;color:var(--muted)">อัปโหลดรูปบัตรประชาชน (ด้านหลัง)</span></div>
+<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">3️⃣</span><span style="font-size:14px;color:var(--muted)">ถ่ายรูปคู่กับบัตรประชาชน (Selfie)</span></div>
+<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">4️⃣</span><span style="font-size:14px;color:var(--muted)">รอ Admin ตรวจสอบ 1–2 วันทำการ</span></div>
+</div>
+<div class="notice info" style="margin-top:16px">🔒 ข้อมูลบัตรประชาชนจะถูกเข้ารหัสและเก็บอย่างปลอดภัย</div>
+</div>
+<div class="card">
+<h4 style="font-weight:700;margin-bottom:18px">อัปโหลดเอกสาร</h4>
+<div class="inp-group">
+<label class="inp-label">บัตรประชาชน (ด้านหน้า)</label>
+<div class="upload-zone"><div style="font-size:32px;margin-bottom:8px">📤</div><div style="font-size:13px;color:var(--muted)">คลิกเพื่ออัปโหลด หรือลากไฟล์มาวางที่นี่</div><div style="font-size:12px;color:var(--dim);margin-top:4px">PNG, JPG (ไม่เกิน 5MB)</div></div>
+</div>
+<div class="inp-group">
+<label class="inp-label">บัตรประชาชน (ด้านหลัง)</label>
+<div class="upload-zone"><div style="font-size:32px;margin-bottom:8px">📤</div><div style="font-size:13px;color:var(--muted)">คลิกเพื่ออัปโหลด</div></div>
+</div>
+<div class="inp-group" style="margin-bottom:20px">
+<label class="inp-label">รูปถ่ายคู่กับบัตร (Selfie)</label>
+<div class="upload-zone"><div style="font-size:32px;margin-bottom:8px">🤳</div><div style="font-size:13px;color:var(--muted)">ถ่ายภาพตัวเองพร้อมบัตร</div></div>
+</div>
+<button class="btn btn-primary btn-full btn-lg" onclick="goPage('add-listing')">📨 ส่งเอกสารเพื่อตรวจสอบ</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== PAGE: ADD LISTING ======== -->
+<div class="page" id="pg-add-listing">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:820px">
+<div class="sec-header"><div class="sec-title">➕ เพิ่มประกาศขายบัญชีเกม</div><div class="sec-sub">กรอกรายละเอียดสินค้าที่ต้องการขาย</div></div>
+<div class="card" style="padding:30px">
+<div class="grid2" style="gap:14px;margin-bottom:4px">
+<div class="inp-group"><label class="inp-label">เกม</label><select class="inp"><option>เลือกเกม</option><option>Valorant</option><option>ROV</option><option>PUBG</option><option>Free Fire</option><option>Genshin Impact</option><option>Honkai: Star Rail</option></select></div>
+<div class="inp-group"><label class="inp-label">ชื่อประกาศ</label><input class="inp" placeholder="เช่น บัญชี Valorant Immortal สกินครบ"/></div>
+<div class="inp-group"><label class="inp-label">แรงค์/เลเวล</label><input class="inp" placeholder="เช่น Immortal 3, Level 230"/></div>
+<div class="inp-group"><label class="inp-label">จำนวนสกิน</label><input class="inp" placeholder="เช่น 42 สกิน"/></div>
+<div class="inp-group"><label class="inp-label">ราคา (บาท)</label><input class="inp" placeholder="กรอกราคา" type="number"/></div>
+<div class="inp-group"><label class="inp-label">เซิร์ฟเวอร์</label><select class="inp"><option>Asia</option><option>NA</option><option>EU</option></select></div>
+</div>
+<div class="inp-group">
+<label class="inp-label">รายละเอียดเพิ่มเติม</label>
+<textarea class="inp" placeholder="อธิบายรายละเอียดสินค้า สกินพิเศษ สิ่งที่มีในบัญชี ฯลฯ" rows="4" style="resize:none"></textarea>
+</div>
+<div class="inp-group">
+<label class="inp-label">ข้อมูลบัญชีสำหรับส่งให้ผู้ซื้อ (จะแสดงหลังการขาย)</label>
+<div class="card" style="padding:16px">
+<div class="grid2" style="gap:12px">
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Username</label><input class="inp" placeholder="Username บัญชีเกม"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Password</label><input class="inp" placeholder="Password บัญชีเกม" type="password"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email บัญชีเกม</label><input class="inp" placeholder="Email ที่ผูกบัญชีเกม"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email Password</label><input class="inp" placeholder="Password Email" type="password"/></div>
+</div>
+</div>
+</div>
+<div class="inp-group">
+<label class="inp-label">รูปภาพสินค้า (สูงสุด 10 รูป)</label>
+<div class="upload-zone"><div style="font-size:40px;margin-bottom:10px">🖼️</div><div style="color:var(--muted);font-size:14px">อัปโหลดรูปภาพสกรีนช็อตของบัญชี</div></div>
+</div>
+<div class="flex gap-12">
+<button class="btn btn-primary btn-lg" onclick="goPage('my-listings')">🚀 เผยแพร่ประกาศ</button>
+<button class="btn btn-secondary btn-md">💾 บันทึกร่าง</button>
+<button class="btn btn-secondary btn-md" onclick="goPage('my-listings')">ยกเลิก</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ======== PAGE: EDIT LISTING ======== -->
+<div class="page" id="pg-edit-listing">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:820px">
+<div class="sec-header">
+<div class="sec-title">✏️ แก้รายการสินค้า</div>
+<div class="sec-sub">แก้ไขข้อมูลประกาศเดิมได้ทันที โดยระบบจะโหลดข้อมูลรายการที่เลือกมาให้</div>
+</div>
+<div class="card" style="padding:30px">
+<div class="notice info" style="margin-bottom:18px">📝 คุณกำลังแก้ไขประกาศเดิมอยู่ เมื่อบันทึกแล้วข้อมูลในหน้าประกาศของฉันจะอัปเดตตามล่าสุด</div>
+<div class="grid2" style="gap:14px;margin-bottom:4px">
+<div class="inp-group"><label class="inp-label">เกม</label><select class="inp" id="edit-game"><option>เลือกเกม</option><option>Valorant</option><option>ROV</option><option>PUBG</option><option>Free Fire</option><option>Genshin Impact</option><option>Honkai: Star Rail</option></select></div>
+<div class="inp-group"><label class="inp-label">ชื่อประกาศ</label><input class="inp" id="edit-title" placeholder="เช่น บัญชี Valorant Immortal สกินครบ"/></div>
+<div class="inp-group"><label class="inp-label">แรงค์/เลเวล</label><input class="inp" id="edit-rank" placeholder="เช่น Immortal 3, Level 230"/></div>
+<div class="inp-group"><label class="inp-label">จำนวนสกิน</label><input class="inp" id="edit-skins" placeholder="เช่น 42 สกิน"/></div>
+<div class="inp-group"><label class="inp-label">ราคา (บาท)</label><input class="inp" id="edit-price" placeholder="กรอกราคา" type="number"/></div>
+<div class="inp-group"><label class="inp-label">เซิร์ฟเวอร์</label><select class="inp" id="edit-server"><option>Asia</option><option>NA</option><option>EU</option></select></div>
+</div>
+<div class="inp-group">
+<label class="inp-label">รายละเอียดเพิ่มเติม</label>
+<textarea class="inp" id="edit-description" placeholder="อธิบายรายละเอียดสินค้า สกินพิเศษ สิ่งที่มีในบัญชี ฯลฯ" rows="4" style="resize:none"></textarea>
+</div>
+<div class="inp-group">
+<label class="inp-label">สถานะการขาย</label>
+<select class="inp" id="edit-status"><option value="active">กำลังขาย</option><option value="paused">หยุดขาย</option></select>
+</div>
+<div class="inp-group">
+<label class="inp-label">ข้อมูลบัญชีสำหรับส่งให้ผู้ซื้อ (จะแสดงหลังการขาย)</label>
+<div class="card" style="padding:16px">
+<div class="grid2" style="gap:12px">
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Username</label><input class="inp" id="edit-username" placeholder="Username บัญชีเกม"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Password</label><input class="inp" id="edit-password" placeholder="Password บัญชีเกม" type="password"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email บัญชีเกม</label><input class="inp" id="edit-email" placeholder="Email ที่ผูกบัญชีเกม"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email Password</label><input class="inp" id="edit-email-password" placeholder="Password Email" type="password"/></div>
+</div>
+</div>
+</div>
+<div class="inp-group">
+<label class="inp-label">รูปภาพสินค้า (สูงสุด 10 รูป)</label>
+<div class="upload-zone">
+<div style="font-size:40px;margin-bottom:10px">🖼️</div>
+<div style="color:var(--muted);font-size:14px">หน้า mockup นี้ยังเป็นตัวอย่างการแก้ไขข้อมูลเดิม โดยสามารถต่อยอดเชื่อมอัปโหลดจริงได้ภายหลัง</div>
+</div>
+</div>
+<div class="flex gap-12" style="flex-wrap:wrap">
+<button class="btn btn-primary btn-lg" onclick="saveEditedListing()">💾 บันทึกการแก้ไข</button>
+<button class="btn btn-secondary btn-md" onclick="loginAndGo('my-listings')">← กลับไปหน้าประกาศของฉัน</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ======== PAGE: MY LISTINGS ======== -->
+<div class="page" id="pg-my-listings">
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:940px">
+<div class="flex-between" style="margin-bottom:24px">
+<div><div class="sec-title">📦 ประกาศขายของฉัน</div><div class="sec-sub">จัดการรายการสินค้าที่คุณลงขาย — เมื่อมีผู้ซื้อชำระเงิน ระบบจะส่งข้อมูลสินค้าอัตโนมัติ</div></div>
+<button class="btn btn-primary btn-md" onclick="goPage('add-listing')">+ เพิ่มประกาศ</button>
+</div>
+<div class="notice info" style="margin-bottom:16px">⚡ ระบบขายแบบอัตโนมัติ: ผู้ซื้อชำระเงินสำเร็จเมื่อไร จะได้รับข้อมูลบัญชีทันที และระบบจะโอนพ้อยท์ให้ผู้ขายอัตโนมัติ</div>
+<div class="card" id="listing-card-valorant" style="margin-bottom:12px;padding:18px 22px">
+<div class="flex gap-16" style="align-items:center">
+<div class="game-img" style="width:100px;height:58px;flex-shrink:0;background:linear-gradient(135deg,rgba(255,70,85,0.2),rgba(255,70,85,0.05));border:1px solid rgba(255,70,85,0.2);color:#ff4655">🎯 VAL</div>
+<div style="flex:1">
+<div id="listing-title-valorant" style="font-weight:600;margin-bottom:4px">บัญชี Valorant Immortal 3</div>
+<div id="listing-meta-valorant" style="color:var(--muted);font-size:13px">Immortal 3 • 42 สกิน • Asia</div>
+<div class="flex gap-8" style="margin-top:6px"><span id="listing-status-valorant" class="badge badge-green">🟢 กำลังขาย</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.8</span></span></div>
+</div>
+<div style="text-align:right">
+<div id="listing-price-valorant" class="kanit" style="font-size:22px;font-weight:800;color:var(--accent)">1,500 ฿</div>
+<div style="font-size:12px;color:var(--muted);margin-bottom:8px">เข้าชม 124 ครั้ง</div>
+<div class="flex gap-8"><button class="btn btn-secondary btn-sm" onclick="openEditListing('valorant')">✏️ แก้ไข</button><button class="btn btn-danger btn-sm">🗑️ ลบ</button></div>
+</div>
+</div>
+</div>
+<div class="card" id="listing-card-rov" style="margin-bottom:12px;padding:18px 22px">
+<div class="flex gap-16" style="align-items:center">
+<div class="game-img" style="width:100px;height:58px;flex-shrink:0;background:linear-gradient(135deg,rgba(0,196,255,0.2),rgba(0,196,255,0.05));border:1px solid rgba(0,196,255,0.2);color:#00c4ff">⚔️ ROV</div>
+<div style="flex:1">
+<div id="listing-title-rov" style="font-weight:600;margin-bottom:4px">บัญชี ROV Diamond สกิน Krixi</div>
+<div id="listing-meta-rov" style="color:var(--muted);font-size:13px">Diamond • 25 สกิน • Asia</div>
+<div class="flex gap-8" style="margin-top:6px"><span id="listing-status-rov" class="badge badge-yellow">⏸️ หยุดขาย</span></div>
+</div>
+<div style="text-align:right">
+<div id="listing-price-rov" class="kanit" style="font-size:22px;font-weight:800;color:var(--accent)">700 ฿</div>
+<div style="font-size:12px;color:var(--muted);margin-bottom:8px">เข้าชม 58 ครั้ง</div>
+<div class="flex gap-8"><button class="btn btn-secondary btn-sm" onclick="openEditListing('rov')">✏️ แก้ไข</button><button class="btn btn-danger btn-sm">🗑️ ลบ</button></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ======== ADMIN PAGES ======== -->
+<!-- Admin Dashboard -->
+<div class="page" id="pg-admin-dashboard">
+<div class="admin-layout">
+<div class="admin-sidebar" id="adminSidebar"></div>
+<div class="admin-content">
+<div class="sec-header"><div class="sec-title">📊 แดชบอร์ดผู้ดูแลระบบ</div><div class="sec-sub">ภาพรวมของระบบ GameMarket</div></div>
+<div class="grid4" style="margin-bottom:28px">
+<div class="card stat-card"><div style="font-size:24px">👥</div><div class="stat-val" style="color:var(--accent)">5,420</div><div class="stat-label">สมาชิกทั้งหมด</div><div style="font-size:12px;color:var(--success);margin-top:4px">▲ +12% เดือนนี้</div></div>
+<div class="card stat-card"><div style="font-size:24px">📦</div><div class="stat-val" style="color:var(--success)">1,248</div><div class="stat-label">รายการขาย</div><div style="font-size:12px;color:var(--success);margin-top:4px">▲ +8%</div></div>
+<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--warn)">₿248K</div><div class="stat-label">ยอดขายเดือนนี้</div><div style="font-size:12px;color:var(--success);margin-top:4px">▲ +15%</div></div>
+<div class="card stat-card"><div style="font-size:24px">🚨</div><div class="stat-val" style="color:var(--danger)">3</div><div class="stat-label">รายงานรอดำเนินการ</div></div>
+</div>
+<div class="grid2">
+<div class="card">
+<h4 style="font-weight:700;margin-bottom:14px">📈 การทำธุรกรรมล่าสุด</h4>
+<table class="table">
+<thead><tr><th>ผู้ซื้อ → ผู้ขาย</th><th>เกม</th><th>ยอด</th><th>สถานะ</th></tr></thead>
+<tbody>
+<tr><td>PlayerOne → AimPro</td><td>Valorant</td><td style="color:var(--success);font-weight:700">1,500 ฿</td><td><span class="badge badge-green">สำเร็จ</span></td></tr>
+<tr><td>NewGamer → GamerX</td><td>PUBG</td><td style="color:var(--success);font-weight:700">1,900 ฿</td><td><span class="badge badge-green">สำเร็จ</span></td></tr>
+<tr><td>ROVFan → ROVKing</td><td>ROV</td><td style="color:var(--success);font-weight:700">700 ฿</td><td><span class="badge badge-yellow">รอดำเนินการ</span></td></tr>
+</tbody>
+</table>
+</div>
+<div class="card">
+<h4 style="font-weight:700;margin-bottom:16px">🎮 เกมยอดนิยม</h4>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="Valorant" src="assets/images/Valorant.png" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> Valorant</span><span style="color:var(--muted)">42%</span></div><div class="prog-bar"><div class="prog-fill" style="width:42%;background:var(--danger)"></div></div></div>
+<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="PUBG" src="assets/images/Pubg.png" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> PUBG</span><span style="color:var(--muted)">38%</span></div><div class="prog-bar"><div class="prog-fill" style="width:38%;background:var(--warn)"></div></div></div>
+<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="ROV" src="assets/images/Rov.png" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> ROV</span><span style="color:var(--muted)">30%</span></div><div class="prog-bar"><div class="prog-fill" style="width:30%;background:var(--accent)"></div></div></div>
+<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="Free Fire" src="assets/images/FreeFire.jpg" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> Free Fire</span><span style="color:var(--muted)">25%</span></div><div class="prog-bar"><div class="prog-fill" style="width:25%;background:var(--success)"></div></div></div>
+<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="Genshin Impact" src="assets/images/Genshin impact.jpg" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> Genshin</span><span style="color:var(--muted)">20%</span></div><div class="prog-bar"><div class="prog-fill" style="width:20%;background:var(--purple)"></div></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Admin Games -->
+<div class="page" id="pg-admin-games">
+<div class="admin-layout">
+<div class="admin-sidebar" id="adminSidebar2"></div>
+<div class="admin-content">
+<div class="flex-between" style="margin-bottom:24px">
+<div><div class="sec-title">🎮 จัดการหมวดหมู่เกม</div><div class="sec-sub">เพิ่ม ลบ แก้ไขหมวดหมู่เกม</div></div>
+<button class="btn btn-primary btn-md" onclick="toggleAddGame()">+ เพิ่มหมวดหมู่</button>
+</div>
+<div id="addGameForm" style="display:none">
+<div class="card" style="margin-bottom:20px;padding:20px">
+<h4 style="font-weight:700;margin-bottom:14px">เพิ่มหมวดหมู่ใหม่</h4>
+<div class="grid3" style="gap:12px;margin-bottom:14px">
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ชื่อเกม</label><input class="inp" placeholder="เช่น Valorant"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ประเภท</label><input class="inp" placeholder="เช่น FPS, MOBA, RPG"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ไอคอน (emoji)</label><input class="inp" placeholder="🎮"/></div>
+</div>
+<div class="flex gap-10"><button class="btn btn-primary btn-sm">💾 บันทึก</button><button class="btn btn-secondary btn-sm" onclick="toggleAddGame()">ยกเลิก</button></div>
+</div>
+</div>
+<div class="grid2">
+<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="Valorant" src="assets/images/Valorant.png" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">Valorant</div><div style="color:var(--muted);font-size:12px">FPS • 42 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
+<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="ROV" src="assets/images/Rov.png" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">ROV</div><div style="color:var(--muted);font-size:12px">MOBA • 38 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
+<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="PUBG" src="assets/images/Pubg.png" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">PUBG</div><div style="color:var(--muted);font-size:12px">Battle Royale • 30 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
+<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="Free Fire" src="assets/images/FreeFire.jpg" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">Free Fire</div><div style="color:var(--muted);font-size:12px">Battle Royale • 25 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
+<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="Genshin Impact" src="assets/images/Genshin impact.jpg" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">Genshin Impact</div><div style="color:var(--muted);font-size:12px">RPG • 20 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
+<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="Honkai: Star Rail" src="assets/images/Honkai Starrail.png" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">Honkai: Star Rail</div><div style="color:var(--muted);font-size:12px">RPG • 18 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Admin Chat Log -->
+<div class="page" id="pg-admin-chat-log">
+<div class="admin-layout">
+<div class="admin-sidebar" id="adminSidebar3"></div>
+<div class="admin-content">
+<div class="sec-header"><div class="sec-title">💬 ประวัติแชทระบบ</div><div class="sec-sub">ตรวจสอบการสนทนาย้อนหลัง</div></div>
+<div class="card" style="margin-bottom:20px">
+<div class="grid3" style="gap:12px;align-items:end">
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ค้นหาชื่อผู้ใช้</label><input class="inp" placeholder="ค้นหา..."/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ช่วงวันที่</label><input class="inp" type="date"/></div>
+<button class="btn btn-primary btn-md">🔍 ค้นหา</button>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div class="card" style="padding:16px 20px"><div class="flex-between"><div><div style="font-weight:600;font-size:14px">AimPro ↔ PlayerOne</div><div style="color:var(--muted);font-size:13px">สินค้า: Valorant • 09/03/2026 • 12 ข้อความ</div></div><button class="btn btn-secondary btn-sm">👁️ ดูแชท</button></div></div>
+<div class="card" style="padding:16px 20px"><div class="flex-between"><div><div style="font-weight:600;font-size:14px">GamerX ↔ NewPlayer</div><div style="color:var(--muted);font-size:13px">สินค้า: PUBG • 08/03/2026 • 8 ข้อความ</div></div><button class="btn btn-secondary btn-sm">👁️ ดูแชท</button></div></div>
+<div class="card" style="padding:16px 20px"><div class="flex-between"><div><div style="font-weight:600;font-size:14px">ROVKing ↔ ROVFan</div><div style="color:var(--muted);font-size:13px">สินค้า: ROV • 07/03/2026 • 5 ข้อความ</div></div><button class="btn btn-secondary btn-sm">👁️ ดูแชท</button></div></div>
+<div class="card" style="padding:16px 20px"><div class="flex-between"><div><div style="font-weight:600;font-size:14px;color:var(--danger)">⚠️ KleeMain ↔ Unknown [ถูกรายงาน]</div><div style="color:var(--muted);font-size:13px">สินค้า: Genshin • 06/03/2026 • 3 ข้อความ</div></div><div class="flex gap-8"><span class="badge badge-red">รายงาน</span><button class="btn btn-secondary btn-sm">👁️ ดูแชท</button></div></div></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Admin Withdraw -->
+<div class="page" id="pg-admin-withdraw">
+<div class="admin-layout">
+<div class="admin-sidebar" id="adminSidebar4"></div>
+<div class="admin-content">
+<div class="sec-header"><div class="sec-title">💸 อนุมัติการถอนเงิน</div><div class="sec-sub">รายการคำขอถอนพ้อยท์รอการอนุมัติ</div></div>
+<div class="grid3" style="margin-bottom:24px">
+<div class="card stat-card"><div style="font-size:24px">⏳</div><div class="stat-val" style="color:var(--warn)">2</div><div class="stat-label">รอดำเนินการ</div></div>
+<div class="card stat-card"><div style="font-size:24px">✅</div><div class="stat-val" style="color:var(--success)">28</div><div class="stat-label">อนุมัติแล้ว (เดือนนี้)</div></div>
+<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--accent)">84,500</div><div class="stat-label">ยอดถอนรวม (฿)</div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div class="card" style="padding:18px 22px"><div class="flex gap-16" style="align-items:center"><div class="avatar" style="width:46px;height:46px;background:var(--accent);font-size:20px">G</div><div style="flex:1"><div style="font-weight:600">GamePro123</div><div style="color:var(--muted);font-size:13px">SCB • เลขบัญชี: XXX-X-12345-X • 09/03/2026</div></div><div class="kanit" style="font-size:20px;font-weight:700;color:var(--accent)">1,000 pts</div><span class="badge badge-yellow">⏳ รอดำเนินการ</span><div class="flex gap-8"><button class="btn btn-success btn-sm">✓ อนุมัติ</button><button class="btn btn-danger btn-sm">✗ ปฏิเสธ</button></div></div></div>
+<div class="card" style="padding:18px 22px"><div class="flex gap-16" style="align-items:center"><div class="avatar" style="width:46px;height:46px;background:var(--success);font-size:20px">A</div><div style="flex:1"><div style="font-weight:600">AimPro</div><div style="color:var(--muted);font-size:13px">KBank • 08/03/2026</div></div><div class="kanit" style="font-size:20px;font-weight:700;color:var(--accent)">5,000 pts</div><span class="badge badge-yellow">⏳ รอดำเนินการ</span><div class="flex gap-8"><button class="btn btn-success btn-sm">✓ อนุมัติ</button><button class="btn btn-danger btn-sm">✗ ปฏิเสธ</button></div></div></div>
+<div class="card" style="padding:18px 22px"><div class="flex gap-16" style="align-items:center"><div class="avatar" style="width:46px;height:46px;background:var(--warn);font-size:20px">G</div><div style="flex:1"><div style="font-weight:600">GamerX</div><div style="color:var(--muted);font-size:13px">BBL • 07/03/2026</div></div><div class="kanit" style="font-size:20px;font-weight:700;color:var(--accent)">2,500 pts</div><span class="badge badge-green">✅ อนุมัติแล้ว</span></div></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Admin Report -->
+<div class="page" id="pg-admin-report">
+<div class="admin-layout">
+<div class="admin-sidebar" id="adminSidebar5"></div>
+<div class="admin-content">
+<div class="sec-header"><div class="sec-title">🚨 รายงาน</div><div class="sec-sub">จัดการรายงานจากผู้ใช้และปัญหาของระบบ</div></div>
+<div class="card">
+<div class="report-panel">
+  <div class="report-summary-grid">
+    <div class="report-stat danger">
+      <div class="label">รายงานทั้งหมด</div>
+      <div class="value">12</div>
+      <div class="sub">อัปเดตล่าสุด 5 นาทีที่แล้ว</div>
+    </div>
+    <div class="report-stat warn">
+      <div class="label">กำลังตรวจสอบ</div>
+      <div class="value">4</div>
+      <div class="sub">เคสที่ยังรอการตัดสินใจ</div>
+    </div>
+    <div class="report-stat success">
+      <div class="label">ปิดเคสแล้ว</div>
+      <div class="value">6</div>
+      <div class="sub">จัดการเสร็จในวันนี้ 2 เคส</div>
+    </div>
+    <div class="report-stat info">
+      <div class="label">บัคระบบ</div>
+      <div class="value">2</div>
+      <div class="sub">Critical 1 • Medium 1</div>
+    </div>
+  </div>
+
+  <div class="tabs" style="margin-bottom:18px">
+    <button class="tab-btn active" onclick="switchTab(this,'rpt-user')">🚨 รายงานผู้ใช้</button>
+    <button class="tab-btn" onclick="switchTab(this,'rpt-bug')">🐛 รายงานบัค</button>
+  </div>
+
+  <div id="rpt-user">
+    <div class="report-toolbar">
+      <div class="report-field"><span class="icon">🔍</span><input placeholder="ค้นหาชื่อผู้ใช้, Order ID หรือเหตุผลรายงาน" value=""/></div>
+      <div class="report-field"><span class="icon">📌</span><select><option>ทุกสถานะ</option><option>ยังไม่ดำเนินการ</option><option>กำลังตรวจสอบ</option><option>ปิดเคสแล้ว</option></select></div>
+      <div class="report-field"><span class="icon">🗂️</span><select><option>ทุกประเภท</option><option>หลอกลวง</option><option>ไม่ได้รับสินค้า</option><option>สื่อสารไม่ตอบกลับ</option></select></div>
+      <div class="report-field"><span class="icon">🕒</span><select><option>ล่าสุด</option><option>วันนี้</option><option>7 วันที่ผ่านมา</option><option>30 วันที่ผ่านมา</option></select></div>
+    </div>
+
+    <div class="report-list">
+      <div class="report-entry priority-high">
+        <div class="report-top">
+          <div style="flex:1">
+            <div class="report-title-row">
+              <span class="inline-badge danger">🔴 ยังไม่ดำเนินการ</span>
+              <span class="inline-badge info">Fraud Report</span>
+              <div class="report-title">PlayerOne รายงาน GamerX</div>
+            </div>
+            <div class="report-meta">
+              <span>🧾 Order ID: ORD-2026-001</span>
+              <span>👤 ผู้ซื้อ: PlayerOne</span>
+              <span>🛍️ ผู้ขาย: GamerX</span>
+              <span>🕒 09/03/2026 • 14:30</span>
+            </div>
+            <div class="report-desc">ผู้ซื้อแจ้งว่าสินค้าที่ได้รับไม่ตรงกับรายละเอียดที่ลงขายไว้ โดย rank และจำนวนสกินไม่ตรงจากประกาศ และมีการแนบภาพหลักฐานก่อนซื้อ/หลังซื้อไว้ครบถ้วน</div>
+            <div class="report-tags">
+              <span class="report-chip">Valorant</span>
+              <span class="report-chip">สินค้าไม่ตรงปก</span>
+              <span class="report-chip">มูลค่า 1,500 ฿</span>
+              <span class="report-chip">แนบหลักฐานครบ</span>
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-primary btn-sm">🔍 ดูรายละเอียด</button>
+            <button class="btn btn-secondary btn-sm">📝 รับเคส</button>
+            <button class="btn btn-danger btn-sm">🚫 ระงับผู้ขาย</button>
+            <button class="btn btn-secondary btn-sm">✅ ปิดรายงาน</button>
+          </div>
+        </div>
+        <div class="report-evidence">
+          <div class="report-note"><strong>หลักฐานแนบ</strong> รูปสินค้าก่อนซื้อ 3 ไฟล์ • แชท 5 ข้อความ • สลิปชำระเงิน</div>
+          <div class="report-note"><strong>ความเสี่ยงบัญชี</strong> ผู้ขายถูกรายงานลักษณะใกล้เคียงกัน 2 ครั้งใน 30 วันล่าสุด</div>
+          <div class="report-note"><strong>คำแนะนำระบบ</strong> แนะนำให้ตรวจสอบ chat log และข้อมูลสินค้าจริงก่อนตัดสินใจปิดเคส</div>
+        </div>
+      </div>
+
+      <div class="report-entry priority-mid">
+        <div class="report-top">
+          <div style="flex:1">
+            <div class="report-title-row">
+              <span class="inline-badge warn">🟡 กำลังตรวจสอบ</span>
+              <span class="inline-badge info">Response Delay</span>
+              <div class="report-title">NewGamer รายงาน ROVKing</div>
+            </div>
+            <div class="report-meta">
+              <span>🧾 Order ID: ORD-2026-014</span>
+              <span>👤 ผู้ซื้อ: NewGamer</span>
+              <span>🛍️ ผู้ขาย: ROVKing</span>
+              <span>🕒 08/03/2026 • 11:05</span>
+            </div>
+            <div class="report-desc">ผู้ซื้อระบุว่าหลังชำระเงินแล้วผู้ขายไม่ตอบแชทต่อเนื่องเกิน 24 ชั่วโมง แม้ระบบจะตัดยอดและส่ง OTP สำเร็จแล้ว แต่ยังไม่ได้รับข้อมูลการเข้าสู่ระบบเพิ่มเติม</div>
+            <div class="report-tags">
+              <span class="report-chip">ROV</span>
+              <span class="report-chip">ไม่ตอบกลับ</span>
+              <span class="report-chip">เสี่ยง SLA</span>
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-primary btn-sm">🔍 ดูรายละเอียด</button>
+            <button class="btn btn-secondary btn-sm">💬 เปิดแชท Log</button>
+            <button class="btn btn-secondary btn-sm">📨 แจ้งเตือนผู้ขาย</button>
+            <button class="btn btn-secondary btn-sm">✅ ปิดรายงาน</button>
+          </div>
+        </div>
+        <div class="report-evidence">
+          <div class="report-note"><strong>สถานะล่าสุด</strong> เคสนี้มีแอดมินรับเรื่องแล้ว 1 คน และรอการตอบกลับจากผู้ขาย</div>
+          <div class="report-note"><strong>เวลา SLA</strong> เหลือเวลาอีก 6 ชั่วโมงก่อนระบบ escalates เป็นระดับสูง</div>
+          <div class="report-note"><strong>ประวัติผู้ขาย</strong> ไม่มีประวัติการโดนแบน แต่เคยตอบช้ากว่าเกณฑ์ 1 ครั้ง</div>
+        </div>
+      </div>
+    </div>
+    <div class="report-empty">แสดง 2 จาก 12 รายการ • สามารถต่อยอดให้ค้นหาและกรองจริงด้วย JavaScript ภายหลังได้</div>
+
+
+
+  <div id="rpt-bug" style="display:none">
+    <div class="report-toolbar">
+      <div class="report-field"><span class="icon">🔍</span><input placeholder="ค้นหาปัญหาระบบ, module หรือ keyword" value=""/></div>
+      <div class="report-field"><span class="icon">🚦</span><select><option>ทุกระดับความรุนแรง</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div class="report-field"><span class="icon">🧩</span><select><option>ทุกโมดูล</option><option>Payment</option><option>OTP</option><option>Chat</option><option>Order</option></select></div>
+      <div class="report-field"><span class="icon">🕒</span><select><option>ล่าสุด</option><option>วันนี้</option><option>7 วันที่ผ่านมา</option></select></div>
+    </div>
+
+    <div class="report-list">
+      <div class="report-entry priority-high">
+        <div class="report-top">
+          <div style="flex:1">
+            <div class="report-title-row">
+              <span class="inline-badge danger">Critical</span>
+              <span class="inline-badge info">Payment Module</span>
+              <div class="report-title">ระบบการชำระเงินค้าง</div>
+            </div>
+            <div class="report-meta">
+              <span>📦 กระทบ 3 คำสั่งซื้อ</span>
+              <span>🕒 รายงานล่าสุด 12 นาทีที่แล้ว</span>
+              <span>👨‍💻 ผู้รับผิดชอบ: Admin A</span>
+            </div>
+            <div class="report-desc">ผู้ใช้แจ้งว่าชำระเงินแล้วแต่สถานะยังไม่อัปเดต ทำให้ยังไม่ได้รับข้อมูลสินค้า แม้ยอด points ถูกหักเรียบร้อยแล้ว</div>
+            <div class="report-tags">
+              <span class="report-chip">Payment</span>
+              <span class="report-chip">Order Sync</span>
+              <span class="report-chip">ต้องเร่งแก้</span>
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-primary btn-sm">🔧 สร้างงานแก้ไข</button>
+            <button class="btn btn-secondary btn-sm">📄 ดู log</button>
+            <button class="btn btn-danger btn-sm">🚨 Escalate</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-entry priority-mid">
+        <div class="report-top">
+          <div style="flex:1">
+            <div class="report-title-row">
+              <span class="inline-badge warn">Medium</span>
+              <span class="inline-badge info">OTP Service</span>
+              <div class="report-title">OTP ส่งช้ากว่าปกติ</div>
+            </div>
+            <div class="report-meta">
+              <span>📦 กระทบหลายผู้ใช้</span>
+              <span>🕒 รายงานล่าสุด 1 ชั่วโมงที่แล้ว</span>
+              <span>👨‍💻 ผู้รับผิดชอบ: ยังไม่ได้ assign</span>
+            </div>
+            <div class="report-desc">บางครั้ง OTP ใช้เวลานานกว่า 5 นาที ส่งผลให้ผู้ใช้บางรายคิดว่าระบบค้าง และกลับมาทำรายการซ้ำ</div>
+            <div class="report-tags">
+              <span class="report-chip">OTP</span>
+              <span class="report-chip">Latency</span>
+              <span class="report-chip">ควรตรวจสอบ provider</span>
+            </div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-primary btn-sm">🔍 ตรวจสอบ</button>
+            <button class="btn btn-secondary btn-sm">📈 ดูสถิติ</button>
+            <button class="btn btn-secondary btn-sm">📝 มอบหมายงาน</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Admin Suspended Users -->
+<div class="page" id="pg-admin-suspended-users">
+<div class="admin-layout">
+<div class="admin-sidebar" id="adminSidebar6"></div>
+<div class="admin-content">
+<div class="sec-header"><div class="sec-title">🚫 รายชื่อผู้ใช้ที่ถูกระงับ</div><div class="sec-sub">จัดการบัญชีที่ถูกระงับการใช้งานชั่วคราวหรือถาวร</div></div>
+<div class="card">
+  <div class="report-panel">
+    <div class="report-summary-grid" style="margin-bottom:18px">
+      <div class="report-stat danger">
+        <div class="label">ถูกระงับทั้งหมด</div>
+        <div class="value">3</div>
+        <div class="sub">อัปเดตล่าสุด 5 นาทีที่แล้ว</div>
+      </div>
+      <div class="report-stat warn">
+        <div class="label">ระงับชั่วคราว</div>
+        <div class="value">2</div>
+        <div class="sub">มีวันปลดระงับกำหนดไว้</div>
+      </div>
+      <div class="report-stat danger">
+        <div class="label">ระงับถาวร</div>
+        <div class="value">1</div>
+        <div class="sub">ตรวจพบพฤติกรรมร้ายแรง</div>
+      </div>
+      <div class="report-stat info">
+        <div class="label">รอตรวจสอบเพิ่ม</div>
+        <div class="value">1</div>
+        <div class="sub">อาจมีการขยายเวลาระงับ</div>
+      </div>
+    </div>
+
+    <div class="report-toolbar" style="margin-bottom:18px">
+      <div class="report-field"><span class="icon">🔍</span><input placeholder="ค้นหาชื่อผู้ใช้, User ID หรือเหตุผลการระงับ" value=""/></div>
+      <div class="report-field"><span class="icon">📌</span><select><option>ทุกสถานะ</option><option>ระงับถาวร</option><option>ระงับชั่วคราว</option></select></div>
+      <div class="report-field"><span class="icon">🗂️</span><select><option>ทุกประเภท</option><option>Fraud / Scam</option><option>Abusive Chat</option><option>Multiple Chargeback</option></select></div>
+      <div class="report-field"><span class="icon">🕒</span><select><option>ล่าสุด</option><option>7 วันที่ผ่านมา</option><option>30 วันที่ผ่านมา</option></select></div>
+    </div>
+
+    <div style="display:grid;gap:12px">
+      <div class="report-entry priority-high" style="margin:0">
+        <div class="report-top">
+          <div style="flex:1">
+            <div class="report-title-row">
+              <span class="inline-badge danger">⛔ ระงับถาวร</span>
+              <span class="inline-badge info">Fraud / Scam</span>
+              <div class="report-title">GamerX</div>
+            </div>
+            <div class="report-meta">
+              <span>🆔 User ID: U-SELL-1048</span>
+              <span>🎮 บทบาท: ผู้ขาย</span>
+              <span>📅 ระงับเมื่อ: 09/03/2026</span>
+              <span>👮 โดยแอดมิน: Admin Panel</span>
+            </div>
+            <div class="report-desc">ระงับจากกรณีขายสินค้าไม่ตรงประกาศหลายครั้ง และตรวจพบพฤติกรรมเข้าข่ายหลอกลวงผู้ซื้อซ้ำ</div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-primary btn-sm">👤 ดูโปรไฟล์</button>
+            <button class="btn btn-secondary btn-sm">📄 ประวัติรายงาน</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-entry priority-mid" style="margin:0">
+        <div class="report-top">
+          <div style="flex:1">
+            <div class="report-title-row">
+              <span class="inline-badge warn">⏳ ระงับชั่วคราว 7 วัน</span>
+              <span class="inline-badge info">Abusive Chat</span>
+              <div class="report-title">ROVKing</div>
+            </div>
+            <div class="report-meta">
+              <span>🆔 User ID: U-SELL-0871</span>
+              <span>🎮 บทบาท: ผู้ขาย</span>
+              <span>📅 ระงับเมื่อ: 08/03/2026</span>
+              <span>🔓 ปลดระงับ: 15/03/2026</span>
+            </div>
+            <div class="report-desc">ใช้ถ้อยคำไม่เหมาะสมในแชทซื้อขาย และไม่ให้ความร่วมมือกับทีมตรวจสอบหลังได้รับคำเตือน</div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-primary btn-sm">👤 ดูโปรไฟล์</button>
+            <button class="btn btn-secondary btn-sm">📝 หมายเหตุแอดมิน</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-entry priority-mid" style="margin:0">
+        <div class="report-top">
+          <div style="flex:1">
+            <div class="report-title-row">
+              <span class="inline-badge warn">⏳ ระงับชั่วคราว 3 วัน</span>
+              <span class="inline-badge info">Multiple Chargeback</span>
+              <div class="report-title">SkinFlash</div>
+            </div>
+            <div class="report-meta">
+              <span>🆔 User ID: U-BUY-2214</span>
+              <span>🎮 บทบาท: ผู้ซื้อ</span>
+              <span>📅 ระงับเมื่อ: 09/03/2026</span>
+              <span>🔓 ปลดระงับ: 12/03/2026</span>
+            </div>
+            <div class="report-desc">บัญชีถูกระงับชั่วคราวเพื่อรอตรวจสอบจากการแจ้งปฏิเสธรายการชำระเงินหลายครั้งในช่วงเวลาสั้น</div>
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-primary btn-sm">👤 ดูโปรไฟล์</button>
+            <button class="btn btn-secondary btn-sm">💳 ดูรายการชำระเงิน</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+</div><!-- end #pages -->
+<script src="assets/js/script.js"></script>
+</body>
+</html>
