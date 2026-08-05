@@ -15,7 +15,17 @@ function sendAuthenticated(res, statusCode, session) {
 }
 
 const register = asyncHandler(async (req, res) => sendAuthenticated(res, 201, await authService.register(req.validatedBody, requestMeta(req))));
-const login = asyncHandler(async (req, res) => sendAuthenticated(res, 200, await authService.login(req.validatedBody, requestMeta(req))));
+const login = asyncHandler(async (req, res) => {
+  console.log("========== LOGIN DEBUG ==========");
+  console.log("BODY:", req.body);
+  console.log("VALIDATED BODY:", req.validatedBody);
+
+  return sendAuthenticated(
+    res,
+    200,
+    await authService.login(req.validatedBody, requestMeta(req))
+  );
+});
 const refresh = asyncHandler(async (req, res) => sendAuthenticated(res, 200, await authService.refresh(req.cookies.gm_refresh, requestMeta(req))));
 
 const logout = asyncHandler(async (req, res) => {
