@@ -1,0 +1,64 @@
+const { pool } = require('../config/database');
+
+function mapUser(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    email: row.email,
+    username: row.username,
+    passwordHash: row.password_hash,
+    accountMode: row.account_mode,
+    status: row.status,
+    tokenVersion: row.token_version,
+    roles: row.role_codes ? row.role_codes.split(',') : [],
+    createdAt: row.created_at,
+  };
+}
+
+const authSelect = `
+  SELECT u.id, u.email, u.username, u.password_hash, u.account_mode, u.status,
+         u.token_version, u.created_at,
+         GROUP_CONCAT(DISTINCT r.code ORDER BY r.id SEPARATOR ',') AS role_codes
+  FROM users u
+  LEFT JOIN user_roles ur ON ur.user_id = u.id
+  LEFT JOIN roles r ON r.id = ur.role_id
+`;
+
+async function findByLogin(login) {
+  const [rows] = await pool.execute(`${authSelect} WHERE u.email = ? OR u.username = ? GROUP BY u.id LIMIT 1`, [login, login]);
+  return mapUser(rows[0]);
+}
+
+async function findByEmail(email) {
+  const [rows] = await pool.execute('SELECT id, email, username, account_mode, status, token_version FROM users WHERE email = ? LIMIT 1', [email]);
+  return rows[0] || null;
+}
+
+async function findAuthUserById(userId, executor = pool) {
+  const [rows] = await executor.execute(`${authSelect} WHERE u.id = ? GROUP BY u.id LIMIT 1`, [userId]);
+  return mapUser(rows[0]);
+}
+
+async function create(executor, { email, username, passwordHash, accountMode }) {
+  const [result] = await executor.execute(
+    'INSERT INTO users (email, username, password_hash, account_mode) VALUES (?, ?, ?, ?)',
+    [email, username, passwordHash, accountMode],
+  );
+  return result.insertId;
+}
+
+async function assignRoles(executor, userId, roleIds) {
+  const values = roleIds.map(() => '(?, ?)').join(', ');
+  const params = roleIds.flatMap((roleId) => [userId, roleId]);
+  await executor.execute(`INSERT INTO user_roles (user_id, role_id) VALUES ${values}`, params);
+}
+
+async function updatePassword(executor, userId, passwordHash) {
+  await executor.execute('UPDATE users SET password_hash = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [passwordHash, userId]);
+}
+
+async function incrementTokenVersion(executor, userId) {
+  await executor.execute('UPDATE users SET token_version = token_version + 1, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [userId]);
+}
+
+module.exports = { findByLogin, findByEmail, findAuthUserById, create, assignRoles, updatePassword, incrementTokenVersion };

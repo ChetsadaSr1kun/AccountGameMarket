@@ -1,0 +1,38 @@
+{
+  "name": "gamemarket",
+  "version": "1.0.0",
+  "description": "ตลาดซื้อขายไอดีเกม (GameMarket) - โปรเจกต์ไฟนอลที่ผ่านการจัดระเบียบไฟล์เรียบร้อยแล้ว",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "dev": "node --watch backend/src/server.js",
+    "db:migrate": "node scripts/run-migrations.js",
+    "db:create-admin": "node scripts/create-admin.js",
+    "test": "echo \"Automated tests will be added module by module\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChetsadaSr1kun/AccountGameMarket.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ChetsadaSr1kun/AccountGameMarket/issues"
+  },
+  "homepage": "https://github.com/ChetsadaSr1kun/AccountGameMarket#readme",
+  "dependencies": {
+    "argon2": "^0.45.1",
+    "better-sqlite3": "^13.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.23.2",
+    "zod": "^4.4.3"
+  }
+}
