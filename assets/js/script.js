@@ -2,6 +2,8 @@
 let currentPage = 'home';
 let isLoggedIn = false;
 let isAdmin = false;
+let currentUser = null;
+let csrfToken = null;
 
 const adminPages = ['admin-dashboard','admin-games','admin-chat-log','admin-withdraw','admin-report','admin-suspended-users'];
 const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat',
@@ -33,6 +35,8 @@ function goAdmin(pageId) {
 function updateNav() {
   const linksEl = document.getElementById('navLinks');
   const rightEl = document.getElementById('navRight');
+  const username = currentUser?.username || 'User';
+  const avatarInitial = username.charAt(0).toUpperCase();
   if (isAdmin) {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='admin-dashboard'?'active':''}" onclick="goAdmin('admin-dashboard')">📊 Dashboard</button>
@@ -54,7 +58,7 @@ function updateNav() {
     rightEl.innerHTML = `
       <span style="color:var(--muted);font-size:13px">💰 5,420 pts</span>
       <div class="dropdown">
-        <div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:18px;cursor:pointer" onclick="toggleDropdown()">G</div>
+        <div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:18px;cursor:pointer" onclick="toggleDropdown()">${avatarInitial}</div>
         <div class="dropdown-menu" id="userDropdown">
           <button class="dropdown-item" onclick="closeDropdown();loginAndGo('profile')">✏️ แก้ไขข้อมูล</button>
           <button class="dropdown-item" onclick="closeDropdown();loginAndGo('wallet')">💰 ฝาก/ถอน</button>
@@ -77,9 +81,141 @@ function updateNav() {
   }
 }
 
-function logout() { isLoggedIn = false; isAdmin = false; renderListingCard('valorant');
-renderListingCard('rov');
-goPage('home'); }
+function getCookieValue(name) {
+  const cookie = document.cookie
+    .split('; ')
+    .find((item) => item.startsWith(`${name}=`));
+
+  return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : null;
+}
+
+function setUserField(field, value) {
+  document.querySelectorAll(`[data-user-field="${field}"]`).forEach((element) => {
+    if (element instanceof HTMLInputElement) {
+      element.value = value;
+      return;
+    }
+
+    element.textContent = value;
+  });
+}
+
+function applyCurrentUser(user) {
+  currentUser = user;
+  isLoggedIn = Boolean(currentUser);
+  isAdmin = currentUser?.roles?.includes('ADMIN') || false;
+  csrfToken = csrfToken || getCookieValue('gm_csrf');
+
+  if (currentUser) {
+    const username = currentUser.username || 'User';
+    setUserField('username', username);
+    setUserField('email', currentUser.email || '');
+    setUserField('avatar', username.charAt(0).toUpperCase());
+  }
+
+  updateNav();
+}
+
+function clearClientAuthState() {
+  currentUser = null;
+  csrfToken = null;
+  isLoggedIn = false;
+  isAdmin = false;
+  renderListingCard('valorant');
+  renderListingCard('rov');
+  updateNav();
+}
+
+async function getCurrentSession() {
+  const response = await fetch('/api/v1/auth/me', {
+    credentials: 'include',
+  });
+
+  const data = await response.json().catch(() => ({}));
+  return { response, data };
+}
+
+async function refreshSession() {
+  const response = await fetch('/api/v1/auth/refresh', {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  if (!response.ok) return false;
+
+  const data = await response.json().catch(() => ({}));
+  csrfToken = data.data?.csrfToken || getCookieValue('gm_csrf');
+  return true;
+}
+
+async function restoreSession() {
+  try {
+    let session = await getCurrentSession();
+
+    if (session.response.ok) {
+      applyCurrentUser(session.data.data?.user || null);
+      return;
+    }
+
+    if (session.response.status === 401 && await refreshSession()) {
+      session = await getCurrentSession();
+      if (session.response.ok) {
+        applyCurrentUser(session.data.data?.user || null);
+        return;
+      }
+    }
+
+    clearClientAuthState();
+  } catch (error) {
+    console.error('Session restore failed:', error);
+    clearClientAuthState();
+  }
+}
+
+async function logout() {
+  const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+
+  if (!activeCsrfToken) {
+    alert('ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองออกจากระบบอีกครั้ง');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/v1/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'X-CSRF-Token': activeCsrfToken,
+      },
+    });
+
+    if (response.status === 204) {
+      clearClientAuthState();
+      alert('ออกจากระบบสำเร็จ');
+      goPage('home');
+      return;
+    }
+
+    const data = await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
+      clearClientAuthState();
+      alert('Session หมดอายุ ระบบได้นำคุณกลับสู่หน้าแรกแล้ว');
+      goPage('home');
+      return;
+    }
+
+    if (response.status === 403) {
+      alert('ไม่สามารถออกจากระบบได้ เนื่องจากข้อมูลความปลอดภัยไม่ถูกต้อง กรุณารีเฟรชหน้าแล้วลองอีกครั้ง');
+      return;
+    }
+
+    alert(data.error?.message || 'ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง');
+  } catch (error) {
+    console.error('Logout request failed:', error);
+    alert('ไม่สามารถเชื่อมต่อระบบเพื่อออกจากระบบได้ กรุณาลองอีกครั้ง');
+  }
+}
 function toggleDropdown() { document.getElementById('userDropdown').classList.toggle('open'); }
 function closeDropdown() { document.getElementById('userDropdown').classList.remove('open'); }
 document.addEventListener('click', function(e) { if (!e.target.closest('.dropdown')) closeDropdown(); });
@@ -269,7 +405,60 @@ function renderListingCard(listingId) {
   }
 }
 
+async function login() {
+
+    const emailOrUsername = document
+        .getElementById("loginEmail")
+        .value
+        .trim();
+
+    const password = document
+        .getElementById("loginPassword")
+        .value;
+
+    if (!emailOrUsername || !password) {
+        alert("กรุณากรอกอีเมลและรหัสผ่าน");
+        return;
+    }
+
+    try {
+
+        const response = await fetch('/api/v1/auth/login', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                emailOrUsername,
+                password
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            csrfToken = data.data?.csrfToken || getCookieValue('gm_csrf');
+            applyCurrentUser(data.data?.user || null);
+
+            alert("เข้าสู่ระบบสำเร็จ");
+
+            goPage(isAdmin ? 'admin-dashboard' : 'home-user');
+
+        } else {
+
+            alert(data.error?.message || "เข้าสู่ระบบไม่สำเร็จ");
+
+        }
+
+    } catch (error) {
+        console.error(error);
+    }
+
+}
+
 // ===================== INIT =====================
 renderListingCard('valorant');
 renderListingCard('rov');
 goPage('home');
+restoreSession();

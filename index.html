@@ -279,11 +279,19 @@
 <p style="color:var(--muted);font-size:13px;margin-bottom:28px">กรอกอีเมลและรหัสผ่านเพื่อเข้าใช้งาน</p>
 <div class="inp-group">
 <label class="inp-label">อีเมล</label>
-<input class="inp" placeholder="example@email.com" type="email"/>
+<input
+    id="loginEmail"
+    class="inp"
+    placeholder="example@email.com"
+    type="email">
 </div>
 <div class="inp-group">
 <label class="inp-label">รหัสผ่าน</label>
-<input class="inp" placeholder="••••••••" type="password"/>
+<input
+    id="loginPassword"
+    class="inp"
+    placeholder="••••••••"
+    type="password">
 </div>
 <div class="flex-between" style="margin-bottom:22px">
 <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer">
@@ -291,9 +299,9 @@
           </label>
 <a onclick="goPage('forgot')" style="font-size:13px;cursor:pointer">ลืมรหัสผ่าน?</a>
 </div>
-<button class="btn btn-primary btn-full btn-lg" onclick="loginAndGo('home-user')" style="margin-bottom:14px">🔐 เข้าสู่ระบบ</button>
+<button class="btn btn-primary btn-full btn-lg" onclick="login()" style="margin-bottom:14px">🔐 เข้าสู่ระบบ</button>
 <div style="text-align:center;color:var(--dim);font-size:13px;margin-bottom:14px">— หรือ —</div>
-<button class="btn btn-secondary btn-full btn-md" onclick="loginAndGo('home-user')" style="margin-bottom:22px">🔗 เข้าสู่ระบบด้วย Google</button>
+<button class="btn btn-secondary btn-full btn-md" onclick="login()" style="margin-bottom:22px">🔗 เข้าสู่ระบบด้วย Google</button>
 <p style="text-align:center;font-size:13px;color:var(--muted)">ยังไม่มีบัญชี? <a onclick="goPage('register')" style="cursor:pointer">สมัครสมาชิก</a></p>
 </div>
 </div>
@@ -667,7 +675,7 @@
 <div style="display:grid;grid-template-columns:1fr 300px;gap:28px">
 <div>
 <div style="margin-bottom:28px">
-<h1 style="font-size:28px;font-weight:800">ยินดีต้อนรับกลับ, <span style="color:var(--accent)">GamePro123</span> 👋</h1>
+<h1 style="font-size:28px;font-weight:800">ยินดีต้อนรับกลับ, <span data-user-field="username" style="color:var(--accent)">GamePro123</span> 👋</h1>
 <p style="color:var(--muted);margin-top:4px">มีรายการใหม่ที่น่าสนใจรอคุณอยู่</p>
 </div>
 <div class="grid4" style="gap:12px;margin-bottom:28px">
@@ -701,8 +709,8 @@
 <div style="display:flex;flex-direction:column;gap:14px">
 <div class="card">
 <div class="flex gap-12" style="align-items:center;margin-bottom:16px">
-<div class="avatar" style="width:52px;height:52px;background:var(--accent);font-size:22px">G</div>
-<div><div style="font-weight:700">GamePro123</div><div style="color:var(--muted);font-size:12px;margin-bottom:4px">gamepro@email.com</div><span class="badge badge-green">✓ ยืนยันแล้ว</span></div>
+<div class="avatar" data-user-field="avatar" style="width:52px;height:52px;background:var(--accent);font-size:22px">G</div>
+<div><div data-user-field="username" style="font-weight:700">GamePro123</div><div data-user-field="email" style="color:var(--muted);font-size:12px;margin-bottom:4px">gamepro@email.com</div><span class="badge badge-green">✓ ยืนยันแล้ว</span></div>
 </div>
 <div style="display:flex;flex-direction:column;gap:6px">
 <button class="btn btn-secondary btn-sm" onclick="goPage('profile')" style="justify-content:flex-start">✏️ แก้ไขข้อมูล</button>
@@ -847,9 +855,9 @@
 <div class="sec-header"><div class="sec-title">✏️ แก้ไขข้อมูลส่วนตัว</div><div class="sec-sub">อัปเดตข้อมูลโปรไฟล์และการตั้งค่าบัญชี</div></div>
 <div style="display:grid;grid-template-columns:200px 1fr;gap:24px">
 <div class="card" style="text-align:center;height:fit-content">
-<div class="avatar" style="width:80px;height:80px;background:var(--accent);font-size:36px;margin:0 auto 12px">G</div>
-<div style="font-weight:700">GamePro123</div>
-<div style="color:var(--muted);font-size:12px;margin-bottom:16px">gamepro@email.com</div>
+<div class="avatar" data-user-field="avatar" style="width:80px;height:80px;background:var(--accent);font-size:36px;margin:0 auto 12px">G</div>
+<div data-user-field="username" style="font-weight:700">GamePro123</div>
+<div data-user-field="email" style="color:var(--muted);font-size:12px;margin-bottom:16px">gamepro@email.com</div>
 <span class="badge badge-green" style="margin-bottom:12px">✓ ยืนยันแล้ว</span><br/>
 <button class="btn btn-secondary btn-sm" style="margin-top:12px;width:100%">📷 เปลี่ยนรูป</button>
 </div>
@@ -857,8 +865,8 @@
 <div class="card" style="margin-bottom:16px">
 <h4 style="font-weight:700;margin-bottom:20px">ข้อมูลส่วนตัว</h4>
 <div class="grid2" style="gap:12px">
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ชื่อผู้ใช้</label><input class="inp" value="GamePro123"/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">อีเมล</label><input class="inp" type="email" value="gamepro@email.com"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ชื่อผู้ใช้</label><input class="inp" data-user-field="username" value="GamePro123"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">อีเมล</label><input class="inp" data-user-field="email" type="email" value="gamepro@email.com"/></div>
 <div class="inp-group" style="margin-bottom:0"><label class="inp-label">ชื่อ</label><input class="inp" value="นาย เกม"/></div>
 <div class="inp-group" style="margin-bottom:0"><label class="inp-label">นามสกุล</label><input class="inp" value="โปรเกมเมอร์"/></div>
 <div class="inp-group" style="margin-bottom:0"><label class="inp-label">เบอร์โทรศัพท์</label><input class="inp" value="08X-XXX-XXXX"/></div>

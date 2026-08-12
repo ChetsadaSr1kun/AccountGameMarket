@@ -16,10 +16,6 @@ function sendAuthenticated(res, statusCode, session) {
 
 const register = asyncHandler(async (req, res) => sendAuthenticated(res, 201, await authService.register(req.validatedBody, requestMeta(req))));
 const login = asyncHandler(async (req, res) => {
-  console.log("========== LOGIN DEBUG ==========");
-  console.log("BODY:", req.body);
-  console.log("VALIDATED BODY:", req.validatedBody);
-
   return sendAuthenticated(
     res,
     200,
