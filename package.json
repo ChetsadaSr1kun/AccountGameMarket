@@ -8,7 +8,7 @@
     "dev": "node --watch backend/src/server.js",
     "db:migrate": "node scripts/run-migrations.js",
     "db:create-admin": "node scripts/create-admin.js",
-    "test": "echo \"Automated tests will be added module by module\""
+    "test": "node --require ./test/helpers/test-environment.js --test --test-concurrency=1 test/auth/auth.integration.test.js"
   },
   "repository": {
     "type": "git",
@@ -34,5 +34,8 @@
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.23.2",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "supertest": "^7.2.2"
   }
 }
