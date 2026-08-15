@@ -217,7 +217,7 @@ async function logout() {
   }
 }
 function toggleDropdown() { document.getElementById('userDropdown').classList.toggle('open'); }
-function closeDropdown() { document.getElementById('userDropdown').classList.remove('open'); }
+function closeDropdown() { document.getElementById('userDropdown')?.classList.remove('open'); }
 document.addEventListener('click', function(e) { if (!e.target.closest('.dropdown')) closeDropdown(); });
 
 // ===================== ADMIN SIDEBAR =====================
@@ -455,6 +455,70 @@ async function login() {
         console.error(error);
     }
 
+}
+
+async function register() {
+    const username = document.getElementById('registerUsername').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    const acceptedTerms = document.getElementById('registerTerms').checked;
+
+    if (!username || !email || !password || !confirmPassword) {
+        alert('กรุณากรอกชื่อผู้ใช้ อีเมล และรหัสผ่านให้ครบถ้วน');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        alert('รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน');
+        return;
+    }
+
+    if (!acceptedTerms) {
+        alert('กรุณายอมรับเงื่อนไขการใช้งานและนโยบายความเป็นส่วนตัว');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/v1/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                username,
+                email,
+                password,
+            }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+            csrfToken = data.data?.csrfToken || getCookieValue('gm_csrf');
+            applyCurrentUser(data.data?.user || null);
+            alert('สมัครสมาชิกสำเร็จ');
+            goPage(isAdmin ? 'admin-dashboard' : 'home-user');
+            return;
+        }
+
+        if (response.status === 409 && data.error?.code === 'DUPLICATE_USER') {
+            alert('อีเมลหรือชื่อผู้ใช้นี้ถูกใช้งานแล้ว กรุณาใช้ข้อมูลอื่น');
+            return;
+        }
+
+        if (response.status === 422 && data.error?.fields) {
+            const message = Object.values(data.error.fields)[0];
+            alert(`ข้อมูลสมัครสมาชิกไม่ถูกต้อง: ${message}`);
+            return;
+        }
+
+        alert(data.error?.message || 'สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    } catch (error) {
+        console.error('Register request failed:', error);
+        alert('ไม่สามารถเชื่อมต่อระบบเพื่อสมัครสมาชิกได้ กรุณาลองใหม่อีกครั้ง');
+    }
 }
 
 // ===================== INIT =====================

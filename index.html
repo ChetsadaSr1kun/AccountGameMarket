@@ -338,19 +338,19 @@
 <div class="grid2" style="gap:12px">
 <div class="inp-group" style="margin-bottom:0">
 <label class="inp-label">ชื่อผู้ใช้</label>
-<input class="inp" placeholder="กรอกชื่อผู้ใช้"/>
+<input class="inp" id="registerUsername" placeholder="กรอกชื่อผู้ใช้"/>
 </div>
 <div class="inp-group" style="margin-bottom:0">
 <label class="inp-label">อีเมล</label>
-<input class="inp" placeholder="กรอกอีเมล" type="email"/>
+<input class="inp" id="registerEmail" placeholder="กรอกอีเมล" type="email"/>
 </div>
 <div class="inp-group" style="margin-bottom:0">
 <label class="inp-label">รหัสผ่าน</label>
-<input class="inp" placeholder="••••••••" type="password"/>
+<input class="inp" id="registerPassword" placeholder="••••••••" type="password"/>
 </div>
 <div class="inp-group" style="margin-bottom:0">
 <label class="inp-label">ยืนยันรหัสผ่าน</label>
-<input class="inp" placeholder="••••••••" type="password"/>
+<input class="inp" id="registerConfirmPassword" placeholder="••••••••" type="password"/>
 </div>
 <div class="inp-group" style="margin-bottom:0">
 <label class="inp-label">ชื่อ</label>
@@ -379,11 +379,11 @@
 </div>
 <div class="notice" style="margin:16px 0">
 <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px">
-<input style="margin-top:2px;accent-color:var(--accent)" type="checkbox"/>
+<input id="registerTerms" style="margin-top:2px;accent-color:var(--accent)" type="checkbox"/>
             ยินยอมรับเงื่อนไขการใช้งานและนโยบายความเป็นส่วนตัวของระบบ
           </label>
 </div>
-<button class="btn btn-primary btn-full btn-lg" onclick="goPage('login')">📝 ลงทะเบียนสมาชิก</button>
+<button class="btn btn-primary btn-full btn-lg" onclick="register()">📝 ลงทะเบียนสมาชิก</button>
 <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted)">มีบัญชีแล้ว? <a onclick="goPage('login')" style="cursor:pointer">เข้าสู่ระบบ</a></p>
 </div>
 </div>
