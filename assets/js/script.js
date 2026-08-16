@@ -498,6 +498,13 @@ async function register() {
         if (response.ok) {
             csrfToken = data.data?.csrfToken || getCookieValue('gm_csrf');
             applyCurrentUser(data.data?.user || null);
+            // Clear form fields after successful registration (security + UX)
+            ['registerUsername','registerEmail','registerPassword','registerConfirmPassword'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const termsEl = document.getElementById('registerTerms');
+            if (termsEl) termsEl.checked = false;
             alert('สมัครสมาชิกสำเร็จ');
             goPage(isAdmin ? 'admin-dashboard' : 'home-user');
             return;
