@@ -236,3 +236,64 @@ test('enforces the login rate limit for an isolated test IP address', async () =
   assert.equal(blockedResponse.status, 429);
   assert.equal(blockedResponse.body.error.code, 'RATE_LIMITED');
 });
+
+// ===================== FORGOT PASSWORD =====================
+
+test('forgot-password returns 200 for a registered email (email delivery suppressed in tests)', async () => {
+  await registerUser('forgot-registered');
+  const response = await api
+    .post('/api/v1/auth/forgot-password')
+    .send({ email: userPayload('forgot-registered').email });
+
+  // Always 200 regardless of whether the account exists — no account disclosure.
+  assert.equal(response.status, 200);
+});
+
+test('forgot-password returns 200 for an unknown email (no account disclosure)', async () => {
+  const response = await api
+    .post('/api/v1/auth/forgot-password')
+    .send({ email: `${emailPrefix}unknown-does-not-exist@example.test` });
+
+  assert.equal(response.status, 200);
+});
+
+test('forgot-password rejects an invalid email format', async () => {
+  const response = await api
+    .post('/api/v1/auth/forgot-password')
+    .send({ email: 'not-an-email' });
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'VALIDATION_ERROR');
+});
+
+// ===================== RESET PASSWORD =====================
+
+test('rejects reset-password with an invalid token', async () => {
+  const response = await api
+    .post('/api/v1/auth/reset-password')
+    .set('X-Forwarded-For', '203.0.113.11')
+    .send({ token: 'a'.repeat(32), newPassword: 'NewPassword123' });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.error.code, 'INVALID_RESET_TOKEN');
+});
+
+test('rejects reset-password with a password that fails requirements', async () => {
+  const response = await api
+    .post('/api/v1/auth/reset-password')
+    .set('X-Forwarded-For', '203.0.113.12')
+    .send({ token: 'a'.repeat(32), newPassword: 'weakpassword' });
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'VALIDATION_ERROR');
+});
+
+test('rejects reset-password when the token is too short', async () => {
+  const response = await api
+    .post('/api/v1/auth/reset-password')
+    .set('X-Forwarded-For', '203.0.113.13')
+    .send({ token: 'short', newPassword: 'NewPassword123' });
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'VALIDATION_ERROR');
+});

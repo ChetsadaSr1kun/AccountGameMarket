@@ -21,6 +21,16 @@ if (!['SPLIT', 'UNIFIED'].includes(accountMode)) {
   throw new Error('ACCOUNT_MODE must be SPLIT or UNIFIED.');
 }
 
+const emailEnabled = process.env.EMAIL_ENABLED === 'true';
+
+// Validate SMTP config at startup when email is enabled.
+// Fail fast so misconfiguration is caught before any email is attempted.
+if (emailEnabled) {
+  if (!process.env.SMTP_HOST) throw new Error('SMTP_HOST is required when EMAIL_ENABLED=true.');
+  if (!process.env.SMTP_PORT) throw new Error('SMTP_PORT is required when EMAIL_ENABLED=true.');
+  if (!process.env.EMAIL_FROM) throw new Error('EMAIL_FROM is required when EMAIL_ENABLED=true.');
+}
+
 module.exports = {
   env: process.env.NODE_ENV || 'development',
   isProduction,
@@ -43,5 +53,13 @@ module.exports = {
     user: process.env.DB_USER || 'gamemarket_app',
     password: process.env.DB_PASSWORD || '',
   },
-  emailEnabled: process.env.EMAIL_ENABLED === 'true',
+  emailEnabled,
+  smtp: {
+    host: process.env.SMTP_HOST || '',
+    port: Number(process.env.SMTP_PORT || 1025),
+    secure: process.env.SMTP_SECURE === 'true',
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.EMAIL_FROM || '',
+  },
 };

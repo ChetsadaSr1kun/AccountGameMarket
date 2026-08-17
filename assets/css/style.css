@@ -335,3 +335,9 @@ button.history-link-card *{
 button.history-link-card .btn{
   pointer-events:auto;
 }
+
+/* ===================== FORGOT PASSWORD MESSAGE ===================== */
+.forgot-msg{font-size:13px;border-radius:10px;padding:0;min-height:0;transition:all .2s ease}
+.forgot-msg:not(:empty){padding:12px 14px}
+.forgot-msg--success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);color:#5fe3b5}
+.forgot-msg--error{background:rgba(255,91,91,.08);border:1px solid rgba(255,91,91,.3);color:#ff9d9d}
