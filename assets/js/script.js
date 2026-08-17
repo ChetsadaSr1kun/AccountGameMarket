@@ -4,6 +4,7 @@ let isLoggedIn = false;
 let isAdmin = false;
 let currentUser = null;
 let csrfToken = null;
+let resetToken = null;
 
 const adminPages = ['admin-dashboard','admin-games','admin-chat-log','admin-withdraw','admin-report','admin-suspended-users'];
 const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat',
@@ -528,8 +529,138 @@ async function register() {
     }
 }
 
+// ===================== FORGOT PASSWORD =====================
+async function forgotPassword() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    const msgEl = document.getElementById('forgotMessage');
+
+    // Clear previous message
+    if (msgEl) { msgEl.textContent = ''; msgEl.className = 'forgot-msg'; }
+
+    if (!email) {
+        if (msgEl) { msgEl.textContent = 'กรุณากรอกอีเมล'; msgEl.className = 'forgot-msg forgot-msg--error'; }
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/v1/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        // 200: always show neutral message regardless of account existence
+        if (response.status === 200) {
+            if (msgEl) {
+                msgEl.textContent = 'หากอีเมลนี้มีบัญชีในระบบ ระบบจะส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณ กรุณาตรวจสอบกล่องจดหมาย';
+                msgEl.className = 'forgot-msg forgot-msg--success';
+            }
+            const emailEl = document.getElementById('forgotEmail');
+            if (emailEl) emailEl.value = '';
+            return;
+        }
+
+        if (response.status === 429) {
+            if (msgEl) {
+                msgEl.textContent = 'คุณส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่อีกครั้ง';
+                msgEl.className = 'forgot-msg forgot-msg--error';
+            }
+            return;
+        }
+
+        if (response.status === 422 && data.error?.fields) {
+            const message = Object.values(data.error.fields)[0];
+            if (msgEl) { msgEl.textContent = `อีเมลไม่ถูกต้อง: ${message}`; msgEl.className = 'forgot-msg forgot-msg--error'; }
+            return;
+        }
+
+        // Fallback server error — still show neutral message to avoid info leak
+        if (msgEl) {
+            msgEl.textContent = 'หากอีเมลนี้มีบัญชีในระบบ ระบบจะส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณ กรุณาตรวจสอบกล่องจดหมาย';
+            msgEl.className = 'forgot-msg forgot-msg--success';
+        }
+    } catch (error) {
+        console.error('Forgot password request failed:', error);
+        if (msgEl) { msgEl.textContent = 'ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่อีกครั้ง'; msgEl.className = 'forgot-msg forgot-msg--error'; }
+    }
+}
+
+// ===================== RESET PASSWORD =====================
+async function resetPassword() {
+    if (!resetToken) {
+        alert('ไม่พบลิงก์รีเซ็ตรหัสผ่าน กรุณาคลิกลิงก์จากอีเมลอีกครั้ง หากลิงก์หมดอายุ กรุณาขอลิงก์ใหม่');
+        return;
+    }
+
+    const newPassword = document.getElementById('resetNewPassword').value;
+    const confirmPassword = document.getElementById('resetConfirmPassword').value;
+
+    if (!newPassword || !confirmPassword) {
+        alert('กรุณากรอกรหัสผ่านใหม่และยืนยันรหัสผ่านให้ครบถ้วน');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        alert('รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/v1/auth/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: resetToken, newPassword }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 200) {
+            resetToken = null;
+            const newPwEl = document.getElementById('resetNewPassword');
+            const confirmPwEl = document.getElementById('resetConfirmPassword');
+            if (newPwEl) newPwEl.value = '';
+            if (confirmPwEl) confirmPwEl.value = '';
+            goPage('reset-success');
+            return;
+        }
+
+        if (response.status === 400 && data.error?.code === 'INVALID_RESET_TOKEN') {
+            alert('ลิงก์รีเซ็ตรหัสผ่านหมดอายุหรือไม่ถูกต้อง กรุณาขอลิงก์ใหม่');
+            resetToken = null;
+            goPage('forgot');
+            return;
+        }
+
+        if (response.status === 422 && data.error?.fields) {
+            const message = Object.values(data.error.fields)[0];
+            alert(`รหัสผ่านไม่ถูกต้อง: ${message}`);
+            return;
+        }
+
+        alert(data.error?.message || 'เปลี่ยนรหัสผ่านไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    } catch (error) {
+        console.error('Reset password request failed:', error);
+        alert('ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่อีกครั้ง');
+    }
+}
+
 // ===================== INIT =====================
 renderListingCard('valorant');
 renderListingCard('rov');
 goPage('home');
 restoreSession();
+
+// Detect reset token from URL query string (Email Reset Link flow)
+// Token is read into memory only — never stored in localStorage/sessionStorage
+;(function detectResetToken() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('resetToken');
+    if (token) {
+        resetToken = token;
+        // Remove token from URL immediately after reading
+        history.replaceState(null, '', '/');
+        goPage('otp-reset');
+    }
+}());
