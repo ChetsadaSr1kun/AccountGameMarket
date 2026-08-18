@@ -112,6 +112,11 @@ function applyCurrentUser(user) {
     setUserField('username', username);
     setUserField('email', currentUser.email || '');
     setUserField('avatar', username.charAt(0).toUpperCase());
+    // Populate read-only profile display fields
+    const uInp = document.getElementById('profileUsername');
+    const eInp = document.getElementById('profileEmail');
+    if (uInp) uInp.value = username;
+    if (eInp) eInp.value = currentUser.email || '';
   }
 
   updateNav();
@@ -526,6 +531,89 @@ async function register() {
     } catch (error) {
         console.error('Register request failed:', error);
         alert('ไม่สามารถเชื่อมต่อระบบเพื่อสมัครสมาชิกได้ กรุณาลองใหม่อีกครั้ง');
+    }
+}
+
+// ===================== PROFILE =====================
+
+function setProfileMsg(id, text, isError) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.style.color = isError ? '#e53935' : '#43a047';
+}
+
+// updateProfile() and resetProfileForm() removed — personal info is read-only.
+// Backend PATCH /api/v1/user/username and /api/v1/user/email APIs are kept for
+// potential future admin use but are no longer called from the frontend.
+
+async function changePasswordFromProfile() {
+    const currentPassword = document.getElementById('profileCurrentPassword')?.value || '';
+    const newPassword     = document.getElementById('profileNewPassword')?.value     || '';
+    const confirmPassword = document.getElementById('profileConfirmPassword')?.value || '';
+    setProfileMsg('profilePasswordMsg', '', false);
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        setProfileMsg('profilePasswordMsg', 'กรุณากรอกข้อมูลให้ครบ', true);
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        setProfileMsg('profilePasswordMsg', 'รหัสผ่านใหม่ไม่ตรงกัน', true);
+        return;
+    }
+
+    // Client-side password policy — mirrors backend Zod changePasswordSchema
+    if (newPassword.length < 8) {
+        setProfileMsg('profilePasswordMsg', 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร', true);
+        return;
+    }
+    if (newPassword.length > 72) {
+        setProfileMsg('profilePasswordMsg', 'รหัสผ่านใหม่ต้องไม่เกิน 72 ตัวอักษร', true);
+        return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+        setProfileMsg('profilePasswordMsg', 'รหัสผ่านใหม่ต้องมีตัวอักษรพิมพ์เล็กอย่างน้อย 1 ตัว', true);
+        return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+        setProfileMsg('profilePasswordMsg', 'รหัสผ่านใหม่ต้องมีตัวอักษรพิมพ์ใหญ่อย่างน้อย 1 ตัว', true);
+        return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+        setProfileMsg('profilePasswordMsg', 'รหัสผ่านใหม่ต้องมีตัวเลขอย่างน้อย 1 ตัว', true);
+        return;
+    }
+
+    try {
+        const res  = await fetch('/api/v1/auth/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken || '' },
+            credentials: 'include',
+            body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            let msg;
+            if (data.error?.code === 'INVALID_CREDENTIALS') {
+                msg = 'รหัสผ่านเดิมไม่ถูกต้อง';
+            } else if (data.error?.fields) {
+                const firstField = Object.values(data.error.fields)[0];
+                msg = firstField || data.error.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้';
+            } else {
+                msg = data.error?.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้';
+            }
+            setProfileMsg('profilePasswordMsg', msg, true);
+            return;
+        }
+
+        // Backend revokes all sessions on password change — log out client immediately.
+        clearClientAuthState();
+        goPage('login');
+
+    } catch (err) {
+        console.error('changePasswordFromProfile failed:', err);
+        setProfileMsg('profilePasswordMsg', 'ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่', true);
     }
 }
 

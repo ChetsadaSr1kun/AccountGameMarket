@@ -5,6 +5,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const config = require('./config/env');
 const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
 const { globalLimit } = require('./middleware/rate-limit.middleware');
 const { notFound, errorHandler } = require('./middleware/error-handler.middleware');
 
@@ -38,6 +39,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/user', userRoutes);
 
 app.get('/', (req, res) => res.sendFile(path.join(projectRoot, 'index.html')));
 app.use('/assets', express.static(path.join(projectRoot, 'assets'), { index: false }));

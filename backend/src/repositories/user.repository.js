@@ -61,4 +61,17 @@ async function incrementTokenVersion(executor, userId) {
   await executor.execute('UPDATE users SET token_version = token_version + 1, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [userId]);
 }
 
-module.exports = { findByLogin, findByEmail, findAuthUserById, create, assignRoles, updatePassword, incrementTokenVersion };
+async function findByUsername(username) {
+  const [rows] = await pool.execute('SELECT id FROM users WHERE username = ? LIMIT 1', [username]);
+  return rows[0] || null;
+}
+
+async function updateUsername(executor, userId, username) {
+  await executor.execute('UPDATE users SET username = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [username, userId]);
+}
+
+async function updateEmail(executor, userId, email) {
+  await executor.execute('UPDATE users SET email = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [email, userId]);
+}
+
+module.exports = { findByLogin, findByEmail, findAuthUserById, create, assignRoles, updatePassword, incrementTokenVersion, findByUsername, updateUsername, updateEmail };
