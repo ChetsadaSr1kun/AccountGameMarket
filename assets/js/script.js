@@ -5,6 +5,10 @@ let isAdmin = false;
 let currentUser = null;
 let csrfToken = null;
 let resetToken = null;
+let pendingAvatarFile = null;
+let pendingAvatarPreviewUrl = null;
+
+const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
 const adminPages = ['admin-dashboard','admin-games','admin-chat-log','admin-withdraw','admin-report','admin-suspended-users'];
 const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat',
@@ -33,11 +37,47 @@ function goAdmin(pageId) {
   goPage(pageId);
 }
 
+function managedAvatarUrl(avatarUrl) {
+  return typeof avatarUrl === 'string' && managedAvatarUrlPattern.test(avatarUrl) ? avatarUrl : null;
+}
+
+function avatarContent(username, avatarUrl) {
+  const managedUrl = managedAvatarUrl(avatarUrl);
+  if (managedUrl) return `<img src="${managedUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block"/>`;
+  return username.charAt(0).toUpperCase();
+}
+
+function syncAvatarElements() {
+  const username = currentUser?.username || 'User';
+  const managedUrl = managedAvatarUrl(currentUser?.avatarUrl);
+  document.querySelectorAll('[data-user-field="avatar"]').forEach((element) => {
+    element.textContent = '';
+    if (managedUrl) element.innerHTML = `<img src="${managedUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block"/>`;
+    else element.textContent = username.charAt(0).toUpperCase();
+  });
+}
+
+function updateVerificationStatus() {
+  const verified = Boolean(currentUser?.accountVerified);
+  document.querySelectorAll('[data-account-verification]').forEach((element) => {
+    element.textContent = verified ? '✓ ยืนยันแล้ว' : 'ยังไม่ยืนยันสถานะ';
+    element.className = `badge ${verified ? 'badge-green' : 'badge-blue'}`;
+  });
+
+  const emailStatus = document.getElementById('profileEmailVerificationStatus');
+  if (emailStatus) emailStatus.textContent = currentUser?.emailVerified ? 'ยืนยันแล้ว' : 'ยังไม่ยืนยัน';
+  const sendButton = document.getElementById('profileEmailVerificationSendButton');
+  const verifyButton = document.getElementById('profileEmailVerificationVerifyButton');
+  const otpInput = document.getElementById('profileEmailVerificationOtp');
+  if (sendButton) sendButton.disabled = Boolean(currentUser?.emailVerified);
+  if (verifyButton) verifyButton.disabled = Boolean(currentUser?.emailVerified);
+  if (otpInput) otpInput.disabled = Boolean(currentUser?.emailVerified);
+}
+
 function updateNav() {
   const linksEl = document.getElementById('navLinks');
   const rightEl = document.getElementById('navRight');
   const username = currentUser?.username || 'User';
-  const avatarInitial = username.charAt(0).toUpperCase();
   if (isAdmin) {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='admin-dashboard'?'active':''}" onclick="goAdmin('admin-dashboard')">📊 Dashboard</button>
@@ -59,7 +99,7 @@ function updateNav() {
     rightEl.innerHTML = `
       <span style="color:var(--muted);font-size:13px">💰 5,420 pts</span>
       <div class="dropdown">
-        <div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:18px;cursor:pointer" onclick="toggleDropdown()">${avatarInitial}</div>
+        <div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:18px;cursor:pointer;overflow:hidden" onclick="toggleDropdown()">${avatarContent(username, currentUser?.avatarUrl)}</div>
         <div class="dropdown-menu" id="userDropdown">
           <button class="dropdown-item" onclick="closeDropdown();loginAndGo('profile')">✏️ แก้ไขข้อมูล</button>
           <button class="dropdown-item" onclick="closeDropdown();loginAndGo('wallet')">💰 ฝาก/ถอน</button>
@@ -111,12 +151,31 @@ function applyCurrentUser(user) {
     const username = currentUser.username || 'User';
     setUserField('username', username);
     setUserField('email', currentUser.email || '');
-    setUserField('avatar', username.charAt(0).toUpperCase());
+    syncAvatarElements();
     // Populate read-only profile display fields
     const uInp = document.getElementById('profileUsername');
     const eInp = document.getElementById('profileEmail');
+    const firstNameInp = document.getElementById('profileFirstName');
+    const lastNameInp = document.getElementById('profileLastName');
+    const phoneInp = document.getElementById('profilePhone');
+    const dateOfBirthInp = document.getElementById('profileDateOfBirth');
+    const avatarFallback = document.getElementById('profileAvatarFallback');
+    const avatarImage = document.getElementById('profileAvatarImage');
     if (uInp) uInp.value = username;
     if (eInp) eInp.value = currentUser.email || '';
+    if (firstNameInp) firstNameInp.value = currentUser.firstName || 'ยังไม่ได้ระบุ';
+    if (lastNameInp) lastNameInp.value = currentUser.lastName || 'ยังไม่ได้ระบุ';
+    if (phoneInp) phoneInp.value = currentUser.phone || 'ยังไม่ได้ระบุ';
+    if (dateOfBirthInp) dateOfBirthInp.value = currentUser.dateOfBirth || 'ยังไม่ได้ระบุ';
+    if (avatarImage && avatarFallback) {
+      const avatarUrl = managedAvatarUrl(currentUser.avatarUrl);
+      const hasManagedAvatar = Boolean(avatarUrl);
+      avatarImage.style.display = hasManagedAvatar ? 'block' : 'none';
+      avatarFallback.style.display = hasManagedAvatar ? 'none' : 'flex';
+      if (hasManagedAvatar) avatarImage.src = avatarUrl;
+      else avatarImage.removeAttribute('src');
+    }
+    updateVerificationStatus();
   }
 
   updateNav();
@@ -468,10 +527,14 @@ async function register() {
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value;
     const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    const firstName = document.getElementById('registerFirstName').value.trim();
+    const lastName = document.getElementById('registerLastName').value.trim();
+    const phone = document.getElementById('registerPhone').value.trim();
+    const dateOfBirth = document.getElementById('registerDateOfBirth').value;
     const acceptedTerms = document.getElementById('registerTerms').checked;
 
-    if (!username || !email || !password || !confirmPassword) {
-        alert('กรุณากรอกชื่อผู้ใช้ อีเมล และรหัสผ่านให้ครบถ้วน');
+    if (!username || !email || !password || !confirmPassword || !firstName || !lastName || !phone || !dateOfBirth) {
+        alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
         return;
     }
 
@@ -496,6 +559,10 @@ async function register() {
                 username,
                 email,
                 password,
+                firstName,
+                lastName,
+                phone,
+                dateOfBirth,
             }),
         });
 
@@ -505,7 +572,7 @@ async function register() {
             csrfToken = data.data?.csrfToken || getCookieValue('gm_csrf');
             applyCurrentUser(data.data?.user || null);
             // Clear form fields after successful registration (security + UX)
-            ['registerUsername','registerEmail','registerPassword','registerConfirmPassword'].forEach(id => {
+            ['registerUsername','registerEmail','registerPassword','registerConfirmPassword','registerFirstName','registerLastName','registerPhone','registerDateOfBirth'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
@@ -546,6 +613,136 @@ function setProfileMsg(id, text, isError) {
 // updateProfile() and resetProfileForm() removed — personal info is read-only.
 // Backend PATCH /api/v1/user/username and /api/v1/user/email APIs are kept for
 // potential future admin use but are no longer called from the frontend.
+
+async function uploadAvatarFromProfile() {
+    const input = document.getElementById('profileAvatarInput');
+    const file = input?.files?.[0];
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > (2 * 1024 * 1024)) {
+        setProfileMsg('profileAvatarMsg', 'กรุณาเลือกรูป JPEG, PNG หรือ WebP ขนาดไม่เกิน 2 MiB', true);
+        return;
+    }
+
+    if (pendingAvatarPreviewUrl) URL.revokeObjectURL(pendingAvatarPreviewUrl);
+    pendingAvatarFile = file;
+    pendingAvatarPreviewUrl = URL.createObjectURL(file);
+    const avatarFallback = document.getElementById('profileAvatarFallback');
+    const avatarImage = document.getElementById('profileAvatarImage');
+    if (avatarImage && avatarFallback) {
+        avatarImage.src = pendingAvatarPreviewUrl;
+        avatarImage.style.display = 'block';
+        avatarFallback.style.display = 'none';
+    }
+    document.getElementById('profileAvatarConfirmButton').style.display = 'inline-flex';
+    document.getElementById('profileAvatarCancelButton').style.display = 'inline-flex';
+    setProfileMsg('profileAvatarMsg', 'ตรวจสอบตัวอย่าง แล้วกดยืนยันการเปลี่ยนรูป', false);
+}
+
+function clearPendingAvatarChange(restoreCurrentAvatar) {
+    if (pendingAvatarPreviewUrl) URL.revokeObjectURL(pendingAvatarPreviewUrl);
+    pendingAvatarPreviewUrl = null;
+    pendingAvatarFile = null;
+    const input = document.getElementById('profileAvatarInput');
+    if (input) input.value = '';
+    const confirmButton = document.getElementById('profileAvatarConfirmButton');
+    const cancelButton = document.getElementById('profileAvatarCancelButton');
+    if (confirmButton) confirmButton.style.display = 'none';
+    if (cancelButton) cancelButton.style.display = 'none';
+    if (restoreCurrentAvatar && currentUser) applyCurrentUser(currentUser);
+}
+
+function cancelAvatarChangeFromProfile() {
+    clearPendingAvatarChange(true);
+    setProfileMsg('profileAvatarMsg', 'ยกเลิกการเปลี่ยนรูปแล้ว', false);
+}
+
+async function confirmAvatarChangeFromProfile() {
+    const input = document.getElementById('profileAvatarInput');
+    const file = pendingAvatarFile;
+    if (!file) return;
+
+    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    if (!activeCsrfToken) {
+        setProfileMsg('profileAvatarMsg', 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        const response = await fetch('/api/v1/user/avatar', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'X-CSRF-Token': activeCsrfToken },
+            body: formData,
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            setProfileMsg('profileAvatarMsg', data.error?.message || 'อัปโหลดรูปโปรไฟล์ไม่สำเร็จ', true);
+            return;
+        }
+
+        clearPendingAvatarChange(false);
+        applyCurrentUser(data.data?.user || currentUser);
+        setProfileMsg('profileAvatarMsg', 'อัปโหลดรูปโปรไฟล์สำเร็จ', false);
+    } catch (error) {
+        console.error('Avatar upload failed:', error);
+        setProfileMsg('profileAvatarMsg', 'ไม่สามารถอัปโหลดรูปโปรไฟล์ได้ กรุณาลองใหม่', true);
+    }
+}
+
+async function sendEmailVerificationOtp() {
+    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    if (!activeCsrfToken) {
+        setProfileMsg('profileEmailVerificationMsg', 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        return;
+    }
+    try {
+        const response = await fetch('/api/v1/user/verification/email/send', {
+            method: 'POST', credentials: 'include', headers: { 'X-CSRF-Token': activeCsrfToken },
+        });
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            setProfileMsg('profileEmailVerificationMsg', data.error?.message || 'ส่งรหัสยืนยันไม่สำเร็จ', true);
+            return;
+        }
+        setProfileMsg('profileEmailVerificationMsg', 'ส่งรหัสยืนยันไปยังอีเมลของคุณแล้ว', false);
+    } catch (error) {
+        setProfileMsg('profileEmailVerificationMsg', 'ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่', true);
+    }
+}
+
+async function verifyEmailVerificationOtp() {
+    const otp = document.getElementById('profileEmailVerificationOtp')?.value.trim() || '';
+    if (!/^\d{6}$/.test(otp)) {
+        setProfileMsg('profileEmailVerificationMsg', 'กรุณากรอกรหัส OTP จำนวน 6 หลัก', true);
+        return;
+    }
+    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    if (!activeCsrfToken) {
+        setProfileMsg('profileEmailVerificationMsg', 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        return;
+    }
+    try {
+        const response = await fetch('/api/v1/user/verification/email/verify', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': activeCsrfToken },
+            body: JSON.stringify({ otp }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            setProfileMsg('profileEmailVerificationMsg', data.error?.message || 'ยืนยันอีเมลไม่สำเร็จ', true);
+            return;
+        }
+        applyCurrentUser(data.data?.user || currentUser);
+        document.getElementById('profileEmailVerificationOtp').value = '';
+        setProfileMsg('profileEmailVerificationMsg', 'ยืนยันอีเมลสำเร็จ', false);
+    } catch (error) {
+        setProfileMsg('profileEmailVerificationMsg', 'ไม่สามารถยืนยันอีเมลได้ กรุณาลองใหม่', true);
+    }
+}
 
 async function changePasswordFromProfile() {
     const currentPassword = document.getElementById('profileCurrentPassword')?.value || '';

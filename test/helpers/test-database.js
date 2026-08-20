@@ -1,10 +1,13 @@
 const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
 const mysql = require('mysql2/promise');
 const config = require('../../backend/src/config/env');
 const { pool } = require('../../backend/src/config/database');
 
 const TEST_DATABASE_NAME = 'gamemarket_test';
+const avatarDirectory = path.resolve(__dirname, '../../uploads/avatars');
+const avatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
 function assertTestDatabase() {
   if (config.env !== 'test' || config.db.name !== TEST_DATABASE_NAME) {
@@ -66,6 +69,7 @@ async function prepareTestDatabase() {
 async function cleanupTestUsers(emailPrefix) {
   assertTestDatabase();
   const emailPattern = `${emailPrefix}%`;
+  const [avatarRows] = await pool.execute('SELECT avatar_url FROM users WHERE email LIKE ?', [emailPattern]);
 
   await pool.execute(
     `DELETE refresh_tokens FROM refresh_tokens
@@ -80,12 +84,27 @@ async function cleanupTestUsers(emailPrefix) {
     [emailPattern],
   );
   await pool.execute(
+    `DELETE user_verification_otps FROM user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+     WHERE users.email LIKE ?`,
+    [emailPattern],
+  );
+  await pool.execute(
     `DELETE user_roles FROM user_roles
      INNER JOIN users ON users.id = user_roles.user_id
      WHERE users.email LIKE ?`,
     [emailPattern],
   );
   await pool.execute('DELETE FROM users WHERE email LIKE ?', [emailPattern]);
+
+  await Promise.all(avatarRows.map(async ({ avatar_url: avatarUrl }) => {
+    if (typeof avatarUrl !== 'string' || !avatarUrlPattern.test(avatarUrl)) return;
+    try {
+      await fsPromises.unlink(path.join(avatarDirectory, path.basename(avatarUrl)));
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+  }));
 }
 
 async function closeTestDatabasePool() {

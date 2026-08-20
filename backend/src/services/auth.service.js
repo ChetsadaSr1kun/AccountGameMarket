@@ -11,7 +11,22 @@ const { signAccessToken, signRefreshToken, verifyToken, hashOpaqueToken, createR
 const AppError = require('../utils/app-error');
 
 function publicUser(user) {
-  return { id: user.id, email: user.email, username: user.username, roles: user.roles, accountMode: user.accountMode, status: user.status };
+  return {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone,
+    dateOfBirth: user.dateOfBirth,
+    avatarUrl: user.avatarUrl,
+    emailVerified: Boolean(user.emailVerifiedAt),
+    phoneVerified: Boolean(user.phoneVerifiedAt),
+    accountVerified: Boolean(user.emailVerifiedAt && user.phoneVerifiedAt),
+    roles: user.roles,
+    accountMode: user.accountMode,
+    status: user.status,
+  };
 }
 
 function registrationPolicy(accountType) {
@@ -53,6 +68,10 @@ async function register(input, meta) {
     const userId = await userRepository.create(connection, {
       email: input.email,
       username: input.username,
+      firstName: input.firstName ?? null,
+      lastName: input.lastName ?? null,
+      phone: input.phone ?? null,
+      dateOfBirth: input.dateOfBirth,
       passwordHash,
       accountMode: policy.accountMode,
     });

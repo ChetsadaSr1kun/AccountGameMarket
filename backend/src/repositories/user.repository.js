@@ -6,6 +6,13 @@ function mapUser(row) {
     id: row.id,
     email: row.email,
     username: row.username,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    phone: row.phone,
+    dateOfBirth: row.date_of_birth,
+    avatarUrl: row.avatar_url,
+    emailVerifiedAt: row.email_verified_at,
+    phoneVerifiedAt: row.phone_verified_at,
     passwordHash: row.password_hash,
     accountMode: row.account_mode,
     status: row.status,
@@ -16,7 +23,9 @@ function mapUser(row) {
 }
 
 const authSelect = `
-  SELECT u.id, u.email, u.username, u.password_hash, u.account_mode, u.status,
+  SELECT u.id, u.email, u.username, u.first_name, u.last_name, u.phone,
+         u.date_of_birth, u.avatar_url, u.email_verified_at, u.phone_verified_at,
+         u.password_hash, u.account_mode, u.status,
          u.token_version, u.created_at,
          GROUP_CONCAT(DISTINCT r.code ORDER BY r.id SEPARATOR ',') AS role_codes
   FROM users u
@@ -39,10 +48,10 @@ async function findAuthUserById(userId, executor = pool) {
   return mapUser(rows[0]);
 }
 
-async function create(executor, { email, username, passwordHash, accountMode }) {
+async function create(executor, { email, username, firstName, lastName, phone, dateOfBirth, passwordHash, accountMode }) {
   const [result] = await executor.execute(
-    'INSERT INTO users (email, username, password_hash, account_mode) VALUES (?, ?, ?, ?)',
-    [email, username, passwordHash, accountMode],
+    'INSERT INTO users (email, username, first_name, last_name, phone, date_of_birth, password_hash, account_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [email, username, firstName, lastName, phone, dateOfBirth, passwordHash, accountMode],
   );
   return result.insertId;
 }
@@ -71,7 +80,15 @@ async function updateUsername(executor, userId, username) {
 }
 
 async function updateEmail(executor, userId, email) {
-  await executor.execute('UPDATE users SET email = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [email, userId]);
+  await executor.execute('UPDATE users SET email = ?, email_verified_at = NULL, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [email, userId]);
 }
 
-module.exports = { findByLogin, findByEmail, findAuthUserById, create, assignRoles, updatePassword, incrementTokenVersion, findByUsername, updateUsername, updateEmail };
+async function updateAvatarUrl(executor, userId, avatarUrl) {
+  await executor.execute('UPDATE users SET avatar_url = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [avatarUrl, userId]);
+}
+
+async function markEmailVerified(executor, userId) {
+  await executor.execute('UPDATE users SET email_verified_at = UTC_TIMESTAMP(3), updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [userId]);
+}
+
+module.exports = { findByLogin, findByEmail, findAuthUserById, create, assignRoles, updatePassword, incrementTokenVersion, findByUsername, updateUsername, updateEmail, updateAvatarUrl, markEmailVerified };

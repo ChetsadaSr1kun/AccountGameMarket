@@ -43,6 +43,7 @@ app.use('/api/v1/user', userRoutes);
 
 app.get('/', (req, res) => res.sendFile(path.join(projectRoot, 'index.html')));
 app.use('/assets', express.static(path.join(projectRoot, 'assets'), { index: false }));
+app.use('/uploads/avatars', express.static(path.join(projectRoot, 'uploads', 'avatars'), { dotfiles: 'deny', fallthrough: false, index: false, redirect: false }));
 
 app.use('/api', notFound);
 app.use(errorHandler);

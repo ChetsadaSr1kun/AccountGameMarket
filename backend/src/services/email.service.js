@@ -51,4 +51,29 @@ async function sendPasswordResetEmail({ email, resetUrl }) {
   });
 }
 
-module.exports = { sendPasswordResetEmail };
+/**
+ * Sends an account-verification code. The code is passed directly to the mail
+ * transport and is never logged, persisted in plaintext, or returned by an API.
+ */
+async function sendEmailVerificationOtp({ email, otp }) {
+  if (!config.emailEnabled) return;
+
+  await getTransporter().sendMail({
+    from: config.smtp.from,
+    to: email,
+    subject: 'รหัสยืนยันอีเมล GameMarket',
+    text: [
+      `รหัสยืนยันอีเมลของคุณคือ: ${otp}`,
+      '',
+      'รหัสนี้จะหมดอายุใน 10 นาที และใช้ได้เพียงครั้งเดียว',
+      'หากคุณไม่ได้ร้องขอรหัสนี้ กรุณาเพิกเฉยต่ออีเมลนี้',
+    ].join('\n'),
+    html: `
+      <p>รหัสยืนยันอีเมลของคุณคือ: <strong>${otp}</strong></p>
+      <p>รหัสนี้จะหมดอายุใน 10 นาที และใช้ได้เพียงครั้งเดียว</p>
+      <p style="color:#888;font-size:12px">หากคุณไม่ได้ร้องขอรหัสนี้ กรุณาเพิกเฉยต่ออีเมลนี้</p>
+    `.trim(),
+  });
+}
+
+module.exports = { sendPasswordResetEmail, sendEmailVerificationOtp };

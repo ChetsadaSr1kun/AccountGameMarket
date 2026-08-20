@@ -15,7 +15,22 @@ const authenticate = asyncHandler(async (req, res, next) => {
     throw new AppError('Your session has expired. Please sign in again.', 401, 'INVALID_SESSION');
   }
 
-  req.user = { id: user.id, email: user.email, username: user.username, roles: user.roles, accountMode: user.accountMode, tokenVersion: user.tokenVersion };
+  req.user = {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone,
+    dateOfBirth: user.dateOfBirth,
+    avatarUrl: user.avatarUrl,
+    emailVerified: Boolean(user.emailVerifiedAt),
+    phoneVerified: Boolean(user.phoneVerifiedAt),
+    accountVerified: Boolean(user.emailVerifiedAt && user.phoneVerifiedAt),
+    roles: user.roles,
+    accountMode: user.accountMode,
+    status: user.status,
+  };
   return next();
 });
 

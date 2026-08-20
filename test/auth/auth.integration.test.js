@@ -2,6 +2,8 @@ const { after, before, test } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('crypto');
 const request = require('supertest');
+const { pool } = require('../../backend/src/config/database');
+const { hashPassword } = require('../../backend/src/utils/password');
 
 if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== 'gamemarket_test') {
   throw new Error('Run authentication tests with npm test so the test database safety guard is active.');
@@ -25,6 +27,10 @@ function userPayload(label, overrides = {}) {
     email: `${emailPrefix}${label}@example.test`,
     username: `test_${runId.slice(0, 16)}_${labelId}`,
     password: 'TestPassword123',
+    firstName: 'Test',
+    lastName: 'User',
+    phone: '+66812345678',
+    dateOfBirth: '2000-01-01',
     accountType: 'CUSTOMER',
     ...overrides,
   };
@@ -43,10 +49,35 @@ function cookieHeader(cookies) {
   return cookies.map((value) => value.split(';', 1)[0]).join('; ');
 }
 
+function assertPersonalInfo(user, expected) {
+  assert.equal(user.firstName, expected.firstName);
+  assert.equal(user.lastName, expected.lastName);
+  assert.equal(user.phone, expected.phone);
+}
+
+function assertPersonalProfile(user, expected) {
+  assertPersonalInfo(user, expected);
+  assert.equal(user.dateOfBirth, expected.dateOfBirth);
+  assert.equal(user.avatarUrl, expected.avatarUrl);
+  assert.equal(user.emailVerified, expected.emailVerified ?? false);
+  assert.equal(user.phoneVerified, expected.phoneVerified ?? false);
+  assert.equal(user.accountVerified, expected.accountVerified ?? false);
+}
+
 async function registerUser(label, overrides) {
   const response = await api.post('/api/v1/auth/register').send(userPayload(label, overrides));
   assert.equal(response.status, 201);
   return response;
+}
+
+async function createLegacyUser(label) {
+  const payload = userPayload(label);
+  const passwordHash = await hashPassword(payload.password);
+  await pool.execute(
+    'INSERT INTO users (email, username, first_name, last_name, phone, date_of_birth, avatar_url, password_hash, account_mode) VALUES (?, ?, NULL, NULL, NULL, NULL, NULL, ?, ?)',
+    [payload.email, payload.username, passwordHash, 'CUSTOMER_ONLY'],
+  );
+  return payload;
 }
 
 before(async () => {
@@ -66,9 +97,41 @@ test('registers a valid user and returns authentication cookies', async () => {
   assert.equal(response.status, 201);
   assert.equal(response.body.data.user.email, payload.email);
   assert.equal(response.body.data.user.username, payload.username);
+  assertPersonalProfile(response.body.data.user, { firstName: 'Test', lastName: 'User', phone: '+66812345678', dateOfBirth: '2000-01-01', avatarUrl: null });
   assert.ok(cookieValue(cookiesFrom(response), 'gm_access'));
   assert.ok(cookieValue(cookiesFrom(response), 'gm_refresh'));
   assert.ok(cookieValue(cookiesFrom(response), 'gm_csrf'));
+});
+
+test('registers required personal information and birthday in the user response', async () => {
+  const personalInfo = { firstName: 'Test', lastName: 'User', phone: '+66812345678', dateOfBirth: '1999-12-31' };
+  const response = await api.post('/api/v1/auth/register').send(userPayload('register-personal-info', personalInfo));
+
+  assert.equal(response.status, 201);
+  assertPersonalProfile(response.body.data.user, { ...personalInfo, avatarUrl: null });
+});
+
+test('/auth/me returns persisted personal information', async () => {
+  const personalInfo = { firstName: 'Profile', lastName: 'Owner', phone: '+66823456789', dateOfBirth: '1998-02-28' };
+  const registration = await registerUser('me-personal-info', personalInfo);
+  const response = await api
+    .get('/api/v1/auth/me')
+    .set('Cookie', cookieHeader(cookiesFrom(registration)));
+
+  assert.equal(response.status, 200);
+  assertPersonalProfile(response.body.data.user, { ...personalInfo, avatarUrl: null });
+});
+
+test('/auth/me returns null personal information for a legacy user', async () => {
+  const payload = await createLegacyUser('me-no-personal-info');
+  const login = await api.post('/api/v1/auth/login').send({ emailOrUsername: payload.email, password: payload.password });
+  const response = await api
+    .get('/api/v1/auth/me')
+    .set('Cookie', cookieHeader(cookiesFrom(login)));
+
+  assert.equal(login.status, 200);
+  assert.equal(response.status, 200);
+  assertPersonalProfile(response.body.data.user, { firstName: null, lastName: null, phone: null, dateOfBirth: null, avatarUrl: null });
 });
 
 test('rejects a duplicate email', async () => {
@@ -116,6 +179,19 @@ test('logs in with valid credentials and returns authentication cookies', async 
   assert.ok(cookieValue(cookiesFrom(response), 'gm_access'));
   assert.ok(cookieValue(cookiesFrom(response), 'gm_refresh'));
   assert.ok(cookieValue(cookiesFrom(response), 'gm_csrf'));
+});
+
+test('login returns the same personal information user shape', async () => {
+  const personalInfo = { firstName: 'Login', lastName: 'User', phone: '+66834567890', dateOfBirth: '1997-03-15' };
+  const payload = userPayload('login-personal-info', personalInfo);
+  await registerUser('login-personal-info', personalInfo);
+  const response = await api.post('/api/v1/auth/login').send({
+    emailOrUsername: payload.email,
+    password: payload.password,
+  });
+
+  assert.equal(response.status, 200);
+  assertPersonalProfile(response.body.data.user, { ...personalInfo, avatarUrl: null });
 });
 
 test('rejects login with an incorrect password', async () => {
@@ -176,6 +252,84 @@ test('rotates a valid refresh token and rejects its reuse', async () => {
 
   assert.equal(reuseResponse.status, 401);
   assert.equal(reuseResponse.body.error.code, 'REFRESH_TOKEN_REUSED');
+});
+
+test('refresh returns the same personal information user shape', async () => {
+  const personalInfo = { firstName: 'Refresh', lastName: 'User', phone: '+66845678901', dateOfBirth: '1996-04-20' };
+  const registration = await registerUser('refresh-personal-info', personalInfo);
+  const response = await api
+    .post('/api/v1/auth/refresh')
+    .set('Cookie', cookieHeader(cookiesFrom(registration)));
+
+  assert.equal(response.status, 200);
+  assertPersonalProfile(response.body.data.user, { ...personalInfo, avatarUrl: null });
+});
+
+test('rejects registration without a first name', async () => {
+  const response = await api.post('/api/v1/auth/register').send(userPayload('missing-first-name', { firstName: '' }));
+
+  assert.equal(response.status, 422);
+  assert.ok(response.body.error.fields.firstName);
+});
+
+test('rejects registration without a last name', async () => {
+  const response = await api.post('/api/v1/auth/register').send(userPayload('missing-last-name', { lastName: '' }));
+
+  assert.equal(response.status, 422);
+  assert.ok(response.body.error.fields.lastName);
+});
+
+test('rejects registration without a phone number', async () => {
+  const response = await api.post('/api/v1/auth/register').send(userPayload('missing-phone', { phone: '' }));
+
+  assert.equal(response.status, 422);
+  assert.ok(response.body.error.fields.phone);
+});
+
+test('rejects registration without a date of birth', async () => {
+  const { dateOfBirth, ...payload } = userPayload('missing-date-of-birth');
+  const response = await api.post('/api/v1/auth/register').send(payload);
+
+  assert.equal(response.status, 422);
+  assert.ok(response.body.error.fields.dateOfBirth);
+});
+
+test('rejects an invalid date of birth during registration', async () => {
+  const response = await api.post('/api/v1/auth/register').send(userPayload('invalid-date-of-birth', { dateOfBirth: '2024-02-30' }));
+
+  assert.equal(response.status, 422);
+  assert.ok(response.body.error.fields.dateOfBirth);
+});
+
+test('rejects a future date of birth during registration', async () => {
+  const response = await api.post('/api/v1/auth/register').send(userPayload('future-date-of-birth', { dateOfBirth: '2999-01-01' }));
+
+  assert.equal(response.status, 422);
+  assert.ok(response.body.error.fields.dateOfBirth);
+});
+
+test('rejects first name longer than 100 characters during registration', async () => {
+  const response = await api.post('/api/v1/auth/register').send(userPayload('first-name-too-long', { firstName: 'a'.repeat(101) }));
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'VALIDATION_ERROR');
+  assert.ok(response.body.error.fields.firstName);
+});
+
+test('rejects last name longer than 100 characters during registration', async () => {
+  const response = await api.post('/api/v1/auth/register').send(userPayload('last-name-too-long', { lastName: 'a'.repeat(101) }));
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'VALIDATION_ERROR');
+  assert.ok(response.body.error.fields.lastName);
+});
+
+test('rejects an invalid phone number during registration', async () => {
+  const response = await api.post('/api/v1/auth/register').send(userPayload('invalid-phone', { phone: 'not-a-phone' }));
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'VALIDATION_ERROR');
+  assert.ok(response.body.error.fields.phone);
 });
 
 test('rejects refresh without a refresh cookie', async () => {

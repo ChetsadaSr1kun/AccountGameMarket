@@ -46,6 +46,7 @@ module.exports = {
     accessExpiresIn: '15m',
     refreshExpiresIn: '7d',
   },
+  verificationOtpSecret: readSecret('VERIFICATION_OTP_SECRET'),
   db: {
     host: process.env.DB_HOST || '127.0.0.1',
     port: Number(process.env.DB_PORT || 3306),

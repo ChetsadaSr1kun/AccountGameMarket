@@ -1,7 +1,12 @@
 const { after, before, test } = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("crypto");
+const fs = require("fs/promises");
+const path = require("path");
 const request = require("supertest");
+const { pool } = require("../../backend/src/config/database");
+const userRepository = require("../../backend/src/repositories/user.repository");
+const emailService = require("../../backend/src/services/email.service");
 
 if (process.env.NODE_ENV !== "test" || process.env.DB_NAME !== "gamemarket_test") {
   throw new Error("Run user tests with npm test so the test database safety guard is active.");
@@ -13,6 +18,9 @@ const { cleanupTestUsers, closeTestDatabasePool, prepareTestDatabase } = require
 const api = request(app);
 const runId = crypto.randomUUID().replaceAll("-", "");
 const emailPrefix = `usertest_${runId}_`;
+const avatarDirectory = path.resolve(__dirname, "../../uploads/avatars");
+const capturedVerificationOtps = new Map();
+const originalSendEmailVerificationOtp = emailService.sendEmailVerificationOtp;
 
 function userPayload(label, overrides = {}) {
   const labelId = crypto.createHash("sha256").update(label).digest("hex").slice(0, 8);
@@ -20,6 +28,10 @@ function userPayload(label, overrides = {}) {
     email: `${emailPrefix}${label}@example.test`,
     username: `ut_${runId.slice(0, 12)}_${labelId}`,
     password: "TestPassword123",
+    firstName: "Test",
+    lastName: "User",
+    phone: "+66812345678",
+    dateOfBirth: "2000-01-01",
     accountType: "CUSTOMER",
     ...overrides,
   };
@@ -27,6 +39,8 @@ function userPayload(label, overrides = {}) {
 
 function cookiesFrom(response) { return response.headers["set-cookie"] || []; }
 function cookieHeader(cookies) { return cookies.map((v) => v.split(";", 1)[0]).join("; "); }
+function avatarPath(avatarUrl) { return path.join(avatarDirectory, path.basename(avatarUrl)); }
+function jpegBuffer() { return Buffer.from([0xff, 0xd8, 0xff, 0xd9]); }
 
 async function registerAndLogin(label, overrides) {
   const payload = userPayload(label, overrides);
@@ -35,8 +49,49 @@ async function registerAndLogin(label, overrides) {
   return { cookies: cookiesFrom(reg), csrfToken: reg.body.data.csrfToken, payload };
 }
 
-before(async () => { await prepareTestDatabase(); await cleanupTestUsers(emailPrefix); });
-after(async () => { await cleanupTestUsers(emailPrefix); await closeTestDatabasePool(); });
+async function uploadAvatar(cookies, csrfToken, buffer = jpegBuffer(), options = {}) {
+  let requestBuilder = api.post("/api/v1/user/avatar");
+  if (cookies) requestBuilder = requestBuilder.set("Cookie", cookieHeader(cookies));
+  if (csrfToken) requestBuilder = requestBuilder.set("X-CSRF-Token", csrfToken);
+  return requestBuilder.attach("avatar", buffer, {
+    filename: options.filename || "avatar.jpg",
+    contentType: options.contentType || "image/jpeg",
+  });
+}
+
+async function sendEmailOtp(cookies, csrfToken) {
+  return api.post('/api/v1/user/verification/email/send')
+    .set('Cookie', cookieHeader(cookies))
+    .set('X-CSRF-Token', csrfToken)
+    .send({});
+}
+
+async function verifyEmailOtp(cookies, csrfToken, otp) {
+  return api.post('/api/v1/user/verification/email/verify')
+    .set('Cookie', cookieHeader(cookies))
+    .set('X-CSRF-Token', csrfToken)
+    .send({ otp });
+}
+
+function latestCapturedOtp(email) {
+  const codes = capturedVerificationOtps.get(email) || [];
+  return codes.at(-1);
+}
+
+before(async () => {
+  await prepareTestDatabase();
+  await cleanupTestUsers(emailPrefix);
+  emailService.sendEmailVerificationOtp = async ({ email, otp }) => {
+    const codes = capturedVerificationOtps.get(email) || [];
+    codes.push(otp);
+    capturedVerificationOtps.set(email, codes);
+  };
+});
+after(async () => {
+  emailService.sendEmailVerificationOtp = originalSendEmailVerificationOtp;
+  await cleanupTestUsers(emailPrefix);
+  await closeTestDatabasePool();
+});
 
 // ===================== UPDATE USERNAME =====================
 
@@ -126,4 +181,238 @@ test("rejects email update when unauthenticated", async () => {
   const r = await api.patch("/api/v1/user/email").set("X-CSRF-Token", "any").send({ newEmail: `${emailPrefix}em-unauth@example.test` });
   assert.equal(r.status, 401);
   assert.equal(r.body.error.code, "UNAUTHENTICATED");
+});
+
+// ===================== AVATAR UPLOAD =====================
+
+test("uploads an avatar and returns the updated safe user", async () => {
+  const { cookies, csrfToken } = await registerAndLogin("avatar-success");
+  const response = await uploadAvatar(cookies, csrfToken);
+
+  assert.equal(response.status, 200);
+  assert.match(response.body.data.user.avatarUrl, /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.jpg$/);
+  await fs.access(avatarPath(response.body.data.user.avatarUrl));
+
+  const staticResponse = await api.get(response.body.data.user.avatarUrl);
+  assert.equal(staticResponse.status, 200);
+});
+
+test("rejects an avatar with an invalid content signature", async () => {
+  const { cookies, csrfToken } = await registerAndLogin("avatar-invalid-type");
+  const response = await uploadAvatar(cookies, csrfToken, Buffer.from("not-an-image"));
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, "INVALID_AVATAR_FILE_TYPE");
+});
+
+test("rejects an avatar larger than 2 MiB", async () => {
+  const { cookies, csrfToken } = await registerAndLogin("avatar-too-large");
+  const response = await uploadAvatar(cookies, csrfToken, Buffer.alloc((2 * 1024 * 1024) + 1));
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, "AVATAR_FILE_TOO_LARGE");
+});
+
+test("rejects avatar upload when unauthenticated", async () => {
+  const response = await uploadAvatar(null, null);
+
+  assert.equal(response.status, 401);
+  assert.equal(response.body.error.code, "UNAUTHENTICATED");
+});
+
+test("rejects avatar upload without a CSRF token", async () => {
+  const { cookies } = await registerAndLogin("avatar-no-csrf");
+  const response = await uploadAvatar(cookies, null);
+
+  assert.equal(response.status, 403);
+  assert.equal(response.body.error.code, "CSRF_INVALID");
+});
+
+test("replaces an avatar only after the new avatar has been stored", async () => {
+  const { cookies, csrfToken } = await registerAndLogin("avatar-replace");
+  const firstResponse = await uploadAvatar(cookies, csrfToken);
+  const firstAvatarUrl = firstResponse.body.data.user.avatarUrl;
+  const secondResponse = await uploadAvatar(cookies, csrfToken, Buffer.from([0xff, 0xd8, 0xff, 0x00, 0xd9]));
+  const secondAvatarUrl = secondResponse.body.data.user.avatarUrl;
+
+  assert.equal(firstResponse.status, 200);
+  assert.equal(secondResponse.status, 200);
+  assert.notEqual(secondAvatarUrl, firstAvatarUrl);
+  await fs.access(avatarPath(secondAvatarUrl));
+  await assert.rejects(fs.access(avatarPath(firstAvatarUrl)), { code: "ENOENT" });
+});
+
+test("preserves the previous avatar and removes the new file when database update fails", async () => {
+  const { cookies, csrfToken, payload } = await registerAndLogin("avatar-rollback");
+  const initialResponse = await uploadAvatar(cookies, csrfToken);
+  const initialAvatarUrl = initialResponse.body.data.user.avatarUrl;
+  const filenamesBeforeFailure = new Set(await fs.readdir(avatarDirectory));
+  const originalUpdateAvatarUrl = userRepository.updateAvatarUrl;
+  userRepository.updateAvatarUrl = async () => { throw new Error("forced avatar database failure"); };
+
+  let failedResponse;
+  try {
+    failedResponse = await uploadAvatar(cookies, csrfToken, Buffer.from([0xff, 0xd8, 0xff, 0x01, 0xd9]));
+  } finally {
+    userRepository.updateAvatarUrl = originalUpdateAvatarUrl;
+  }
+
+  assert.equal(initialResponse.status, 200);
+  assert.equal(failedResponse.status, 500);
+  const [rows] = await pool.execute("SELECT avatar_url FROM users WHERE email = ?", [payload.email]);
+  assert.equal(rows[0].avatar_url, initialAvatarUrl);
+  assert.deepEqual(new Set(await fs.readdir(avatarDirectory)), filenamesBeforeFailure);
+  await fs.access(avatarPath(initialAvatarUrl));
+});
+
+// ===================== EMAIL VERIFICATION =====================
+
+test('sends a hashed email OTP without exposing it in the API response', async () => {
+  const { cookies, csrfToken, payload } = await registerAndLogin('verify-send');
+  const response = await sendEmailOtp(cookies, csrfToken);
+
+  assert.equal(response.status, 204);
+  assert.equal(response.text, '');
+  assert.match(latestCapturedOtp(payload.email), /^\d{6}$/);
+  const [rows] = await pool.execute(
+    `SELECT otp_hash, expires_at, used_at, attempts FROM user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+     WHERE users.email = ? AND channel = 'EMAIL'`,
+    [payload.email],
+  );
+  assert.equal(rows.length, 1);
+  assert.match(rows[0].otp_hash, /^[a-f0-9]{64}$/);
+  assert.notEqual(rows[0].otp_hash, latestCapturedOtp(payload.email));
+  assert.equal(rows[0].used_at, null);
+  assert.equal(rows[0].attempts, 0);
+});
+
+test('rejects an invalid email OTP', async () => {
+  const { cookies, csrfToken } = await registerAndLogin('verify-invalid');
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  const response = await verifyEmailOtp(cookies, csrfToken, '000000');
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'OTP_INVALID_OR_EXPIRED');
+});
+
+test('locks an email OTP after five invalid verification attempts', async () => {
+  const { cookies, csrfToken } = await registerAndLogin('verify-max-attempts');
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const response = await verifyEmailOtp(cookies, csrfToken, '000000');
+    assert.equal(response.status, 422);
+  }
+  const fifth = await verifyEmailOtp(cookies, csrfToken, '000000');
+  assert.equal(fifth.status, 429);
+  assert.equal(fifth.body.error.code, 'OTP_ATTEMPTS_EXCEEDED');
+});
+
+test('rejects an expired email OTP', async () => {
+  const { cookies, csrfToken, payload } = await registerAndLogin('verify-expired');
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  await pool.execute(
+    `UPDATE user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+       SET expires_at = DATE_SUB(UTC_TIMESTAMP(3), INTERVAL 1 SECOND)
+     WHERE users.email = ? AND channel = 'EMAIL'`,
+    [payload.email],
+  );
+  const response = await verifyEmailOtp(cookies, csrfToken, latestCapturedOtp(payload.email));
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'OTP_INVALID_OR_EXPIRED');
+});
+
+test('marks an email OTP as single-use', async () => {
+  const { cookies, csrfToken, payload } = await registerAndLogin('verify-reuse');
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  const otp = latestCapturedOtp(payload.email);
+  assert.equal((await verifyEmailOtp(cookies, csrfToken, otp)).status, 200);
+  const reuse = await verifyEmailOtp(cookies, csrfToken, otp);
+  assert.equal(reuse.status, 422);
+  assert.equal(reuse.body.error.code, 'OTP_INVALID_OR_EXPIRED');
+});
+
+test('invalidates the previous OTP when a new email OTP is sent', async () => {
+  const { cookies, csrfToken, payload } = await registerAndLogin('verify-resend');
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  const oldOtp = latestCapturedOtp(payload.email);
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  const newOtp = latestCapturedOtp(payload.email);
+  assert.notEqual(newOtp, oldOtp);
+  const oldResponse = await verifyEmailOtp(cookies, csrfToken, oldOtp);
+  assert.equal(oldResponse.status, 422);
+  assert.equal((await verifyEmailOtp(cookies, csrfToken, newOtp)).status, 200);
+});
+
+test('limits email OTP resend requests per authenticated user', async () => {
+  const { cookies, csrfToken } = await registerAndLogin('verify-send-limit');
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  const limited = await sendEmailOtp(cookies, csrfToken);
+  assert.equal(limited.status, 429);
+  assert.equal(limited.body.error.code, 'RATE_LIMITED');
+});
+
+test('limits email OTP verify requests per authenticated user', async () => {
+  const { cookies, csrfToken } = await registerAndLogin('verify-attempt-limit');
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const response = await verifyEmailOtp(cookies, csrfToken, '000000');
+    assert.equal(response.status, 422);
+  }
+  const limited = await verifyEmailOtp(cookies, csrfToken, '000000');
+  assert.equal(limited.status, 429);
+  assert.equal(limited.body.error.code, 'RATE_LIMITED');
+});
+
+test('returns verification state from verify and /auth/me while legacy NULL states remain unverified', async () => {
+  const legacy = await registerAndLogin('verify-legacy-null');
+  const legacyMe = await api.get('/api/v1/auth/me').set('Cookie', cookieHeader(legacy.cookies));
+  assert.equal(legacyMe.status, 200);
+  assert.deepEqual(
+    { emailVerified: legacyMe.body.data.user.emailVerified, phoneVerified: legacyMe.body.data.user.phoneVerified, accountVerified: legacyMe.body.data.user.accountVerified },
+    { emailVerified: false, phoneVerified: false, accountVerified: false },
+  );
+
+  const verified = await registerAndLogin('verify-success');
+  assert.equal((await sendEmailOtp(verified.cookies, verified.csrfToken)).status, 204);
+  const response = await verifyEmailOtp(verified.cookies, verified.csrfToken, latestCapturedOtp(verified.payload.email));
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    { emailVerified: response.body.data.user.emailVerified, phoneVerified: response.body.data.user.phoneVerified, accountVerified: response.body.data.user.accountVerified },
+    { emailVerified: true, phoneVerified: false, accountVerified: false },
+  );
+  const me = await api.get('/api/v1/auth/me').set('Cookie', cookieHeader(verified.cookies));
+  assert.equal(me.status, 200);
+  assert.equal(me.body.data.user.emailVerified, true);
+  assert.equal(me.body.data.user.phoneVerified, false);
+  assert.equal(me.body.data.user.accountVerified, false);
+});
+
+test('clears email verification when the existing email-update endpoint changes the email', async () => {
+  const verified = await registerAndLogin('verify-email-change');
+  assert.equal((await sendEmailOtp(verified.cookies, verified.csrfToken)).status, 204);
+  assert.equal((await verifyEmailOtp(verified.cookies, verified.csrfToken, latestCapturedOtp(verified.payload.email))).status, 200);
+  const updatedEmail = `${emailPrefix}verify-email-change-new@example.test`;
+  const response = await api.patch('/api/v1/user/email')
+    .set('Cookie', cookieHeader(verified.cookies))
+    .set('X-CSRF-Token', verified.csrfToken)
+    .send({ newEmail: updatedEmail });
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.user.emailVerified, false);
+  assert.equal(response.body.data.user.accountVerified, false);
+});
+
+test('invalidates a pending email OTP when the email address changes', async () => {
+  const registration = await registerAndLogin('verify-email-change-pending');
+  assert.equal((await sendEmailOtp(registration.cookies, registration.csrfToken)).status, 204);
+  const oldOtp = latestCapturedOtp(registration.payload.email);
+  const response = await api.patch('/api/v1/user/email')
+    .set('Cookie', cookieHeader(registration.cookies))
+    .set('X-CSRF-Token', registration.csrfToken)
+    .send({ newEmail: `${emailPrefix}verify-email-change-pending-new@example.test` });
+  assert.equal(response.status, 200);
+  const verifyOldOtp = await verifyEmailOtp(registration.cookies, registration.csrfToken, oldOtp);
+  assert.equal(verifyOldOtp.status, 422);
+  assert.equal(verifyOldOtp.body.error.code, 'OTP_INVALID_OR_EXPIRED');
 });

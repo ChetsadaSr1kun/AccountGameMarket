@@ -5,4 +5,5 @@ data/*.db
 data/*.db-shm
 data/*.db-wal
 uploads/private/
+uploads/avatars/
 logs/
