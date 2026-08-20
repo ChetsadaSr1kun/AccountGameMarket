@@ -141,6 +141,12 @@ function setUserField(field, value) {
   });
 }
 
+function formatRegisterPhoneInput() {
+  const input = document.getElementById('registerPhone');
+  if (!input) return;
+  input.value = GameMarketPhone.formatThaiPhone(input.value);
+}
+
 function applyCurrentUser(user) {
   currentUser = user;
   isLoggedIn = Boolean(currentUser);
@@ -165,7 +171,7 @@ function applyCurrentUser(user) {
     if (eInp) eInp.value = currentUser.email || '';
     if (firstNameInp) firstNameInp.value = currentUser.firstName || 'ยังไม่ได้ระบุ';
     if (lastNameInp) lastNameInp.value = currentUser.lastName || 'ยังไม่ได้ระบุ';
-    if (phoneInp) phoneInp.value = currentUser.phone || 'ยังไม่ได้ระบุ';
+    if (phoneInp) phoneInp.value = GameMarketPhone.formatThaiPhoneForDisplay(currentUser.phone);
     if (dateOfBirthInp) dateOfBirthInp.value = currentUser.dateOfBirth || 'ยังไม่ได้ระบุ';
     if (avatarImage && avatarFallback) {
       const avatarUrl = managedAvatarUrl(currentUser.avatarUrl);
@@ -529,7 +535,7 @@ async function register() {
     const confirmPassword = document.getElementById('registerConfirmPassword').value;
     const firstName = document.getElementById('registerFirstName').value.trim();
     const lastName = document.getElementById('registerLastName').value.trim();
-    const phone = document.getElementById('registerPhone').value.trim();
+    const phone = GameMarketPhone.digitsOnly(document.getElementById('registerPhone').value);
     const dateOfBirth = document.getElementById('registerDateOfBirth').value;
     const acceptedTerms = document.getElementById('registerTerms').checked;
 
@@ -637,6 +643,10 @@ async function uploadAvatarFromProfile() {
     document.getElementById('profileAvatarConfirmButton').style.display = 'inline-flex';
     document.getElementById('profileAvatarCancelButton').style.display = 'inline-flex';
     setProfileMsg('profileAvatarMsg', 'ตรวจสอบตัวอย่าง แล้วกดยืนยันการเปลี่ยนรูป', false);
+}
+
+function openProfileAvatarPicker() {
+    document.getElementById('profileAvatarInput')?.click();
 }
 
 function clearPendingAvatarChange(restoreCurrentAvatar) {

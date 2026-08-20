@@ -24,6 +24,14 @@ test('selecting an avatar creates a preview without calling the upload API', () 
   assert.doesNotMatch(selectBody, /fetch\('\/api\/v1\/user\/avatar'/);
 });
 
+test('the profile avatar button opens a hidden file picker without rendering Choose File UI', () => {
+  const openBody = functionBody('openProfileAvatarPicker', 'clearPendingAvatarChange');
+  assert.match(html, /class="profile-avatar-trigger"[^>]*onclick="openProfileAvatarPicker\(\)"/);
+  assert.match(openBody, /profileAvatarInput'\)\?\.click\(\)/);
+  assert.match(html, /id="profileAvatarInput" class="visually-hidden"/);
+  assert.doesNotMatch(html, /type="file" style="display:block/);
+});
+
 test('cancelling an avatar change clears the pending preview and restores the current user avatar', () => {
   const cancelBody = functionBody('cancelAvatarChangeFromProfile', 'confirmAvatarChangeFromProfile');
   assert.match(cancelBody, /clearPendingAvatarChange\(true\)/);

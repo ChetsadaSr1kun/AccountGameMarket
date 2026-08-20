@@ -30,7 +30,7 @@ function userPayload(label, overrides = {}) {
     password: "TestPassword123",
     firstName: "Test",
     lastName: "User",
-    phone: "+66812345678",
+    phone: "0812345678",
     dateOfBirth: "2000-01-01",
     accountType: "CUSTOMER",
     ...overrides,

@@ -29,7 +29,7 @@ function userPayload(label, overrides = {}) {
     password: 'TestPassword123',
     firstName: 'Test',
     lastName: 'User',
-    phone: '+66812345678',
+    phone: '0812345678',
     dateOfBirth: '2000-01-01',
     accountType: 'CUSTOMER',
     ...overrides,
@@ -97,14 +97,14 @@ test('registers a valid user and returns authentication cookies', async () => {
   assert.equal(response.status, 201);
   assert.equal(response.body.data.user.email, payload.email);
   assert.equal(response.body.data.user.username, payload.username);
-  assertPersonalProfile(response.body.data.user, { firstName: 'Test', lastName: 'User', phone: '+66812345678', dateOfBirth: '2000-01-01', avatarUrl: null });
+  assertPersonalProfile(response.body.data.user, { firstName: 'Test', lastName: 'User', phone: '0812345678', dateOfBirth: '2000-01-01', avatarUrl: null });
   assert.ok(cookieValue(cookiesFrom(response), 'gm_access'));
   assert.ok(cookieValue(cookiesFrom(response), 'gm_refresh'));
   assert.ok(cookieValue(cookiesFrom(response), 'gm_csrf'));
 });
 
 test('registers required personal information and birthday in the user response', async () => {
-  const personalInfo = { firstName: 'Test', lastName: 'User', phone: '+66812345678', dateOfBirth: '1999-12-31' };
+  const personalInfo = { firstName: 'Test', lastName: 'User', phone: '0812345678', dateOfBirth: '1999-12-31' };
   const response = await api.post('/api/v1/auth/register').send(userPayload('register-personal-info', personalInfo));
 
   assert.equal(response.status, 201);
@@ -112,7 +112,7 @@ test('registers required personal information and birthday in the user response'
 });
 
 test('/auth/me returns persisted personal information', async () => {
-  const personalInfo = { firstName: 'Profile', lastName: 'Owner', phone: '+66823456789', dateOfBirth: '1998-02-28' };
+  const personalInfo = { firstName: 'Profile', lastName: 'Owner', phone: '0823456789', dateOfBirth: '1998-02-28' };
   const registration = await registerUser('me-personal-info', personalInfo);
   const response = await api
     .get('/api/v1/auth/me')
@@ -182,7 +182,7 @@ test('logs in with valid credentials and returns authentication cookies', async 
 });
 
 test('login returns the same personal information user shape', async () => {
-  const personalInfo = { firstName: 'Login', lastName: 'User', phone: '+66834567890', dateOfBirth: '1997-03-15' };
+  const personalInfo = { firstName: 'Login', lastName: 'User', phone: '0834567890', dateOfBirth: '1997-03-15' };
   const payload = userPayload('login-personal-info', personalInfo);
   await registerUser('login-personal-info', personalInfo);
   const response = await api.post('/api/v1/auth/login').send({
@@ -255,7 +255,7 @@ test('rotates a valid refresh token and rejects its reuse', async () => {
 });
 
 test('refresh returns the same personal information user shape', async () => {
-  const personalInfo = { firstName: 'Refresh', lastName: 'User', phone: '+66845678901', dateOfBirth: '1996-04-20' };
+  const personalInfo = { firstName: 'Refresh', lastName: 'User', phone: '0845678901', dateOfBirth: '1996-04-20' };
   const registration = await registerUser('refresh-personal-info', personalInfo);
   const response = await api
     .post('/api/v1/auth/refresh')
@@ -330,6 +330,26 @@ test('rejects an invalid phone number during registration', async () => {
   assert.equal(response.status, 422);
   assert.equal(response.body.error.code, 'VALIDATION_ERROR');
   assert.ok(response.body.error.fields.phone);
+});
+
+test('normalizes a formatted Thai phone number before validation and persists digits only', async () => {
+  const payload = userPayload('canonical-phone', { phone: '081-234-5678' });
+  const response = await api.post('/api/v1/auth/register').send(payload);
+
+  assert.equal(response.status, 201);
+  assert.equal(response.body.data.user.phone, '0812345678');
+  const [rows] = await pool.execute('SELECT phone FROM users WHERE email = ?', [payload.email]);
+  assert.equal(rows[0].phone, '0812345678');
+});
+
+test('rejects non-digit phone content and phone numbers longer than ten digits', async () => {
+  const nonDigit = await api.post('/api/v1/auth/register').send(userPayload('phone-non-digit', { phone: '08123A5678' }));
+  const tooLong = await api.post('/api/v1/auth/register').send(userPayload('phone-too-long', { phone: '08123456789' }));
+
+  assert.equal(nonDigit.status, 422);
+  assert.ok(nonDigit.body.error.fields.phone);
+  assert.equal(tooLong.status, 422);
+  assert.ok(tooLong.body.error.fields.phone);
 });
 
 test('rejects refresh without a refresh cookie', async () => {

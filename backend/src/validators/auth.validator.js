@@ -1,10 +1,14 @@
 const { z } = require('zod');
+const { normalizeThaiPhone } = require('../utils/phone');
 
 const email = z.string().trim().toLowerCase().email('Email is invalid.').max(254);
 const username = z.string().trim().min(3).max(30).regex(/^[A-Za-z0-9_]+$/, 'Username may contain only letters, numbers, and underscores.');
 const password = z.string().min(8, 'Password must be at least 8 characters.').max(72, 'Password must be 72 characters or fewer.').regex(/[a-z]/, 'Password must include a lowercase letter.').regex(/[A-Z]/, 'Password must include an uppercase letter.').regex(/[0-9]/, 'Password must include a number.');
 const name = z.string().trim().min(1, 'Name is required.').max(100, 'Name must be 100 characters or fewer.');
-const phone = z.string().trim().min(1, 'Phone is required.').max(32, 'Phone must be 32 characters or fewer.').regex(/^\+?[0-9][0-9\s()-]{7,31}$/, 'Phone number is invalid.');
+const phone = z.preprocess(
+  normalizeThaiPhone,
+  z.string().regex(/^0\d{9}$/, 'Phone must be a 10-digit Thai mobile number.'),
+);
 const dateOfBirth = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must use YYYY-MM-DD.').refine((value) => {
   const [year, month, day] = value.split('-').map(Number);
   const parsed = new Date(Date.UTC(year, month - 1, day));
