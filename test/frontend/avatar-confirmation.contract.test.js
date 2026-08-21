@@ -52,3 +52,25 @@ test('a successful avatar response is applied through the current-user source of
   assert.match(script, /function updateNav\(\)/);
   assert.match(script, /avatarContent\(username, currentUser\?\.avatarUrl\)/);
 });
+
+test('profile provides readonly Phone OTP controls with CSRF-protected phone endpoints', () => {
+  const sendBody = functionBody('sendPhoneVerificationOtp', 'verifyPhoneVerificationOtp');
+  const verifyBody = functionBody('verifyPhoneVerificationOtp', 'changePasswordFromProfile');
+  assert.match(html, /id="profilePhone"[^>]*readonly disabled/);
+  assert.match(html, /id="profilePhoneVerificationSendButton"[^>]*onclick="sendPhoneVerificationOtp\(\)"/);
+  assert.match(html, /id="profilePhoneVerificationOtp"[^>]*maxlength="6"/);
+  assert.match(html, /id="profilePhoneVerificationVerifyButton"[^>]*onclick="verifyPhoneVerificationOtp\(\)"/);
+  assert.match(sendBody, /fetch\('\/api\/v1\/user\/verification\/phone\/send'/);
+  assert.match(verifyBody, /fetch\('\/api\/v1\/user\/verification\/phone\/verify'/);
+  assert.doesNotMatch(sendBody, /JSON\.stringify/);
+  assert.match(verifyBody, /JSON\.stringify\(\{ otp \}\)/);
+});
+
+test('Phone OTP UI keeps codes out of browser storage and applies successful verification user state', () => {
+  const sendBody = functionBody('sendPhoneVerificationOtp', 'verifyPhoneVerificationOtp');
+  const verifyBody = functionBody('verifyPhoneVerificationOtp', 'changePasswordFromProfile');
+  assert.match(script, /function startPhoneOtpCooldown\(\)/);
+  assert.match(script, /60 \* 1000/);
+  assert.match(verifyBody, /applyCurrentUser\(data\.data\?\.user \|\| currentUser\)/);
+  assert.doesNotMatch(`${sendBody}${verifyBody}`, /(localStorage|sessionStorage)/);
+});

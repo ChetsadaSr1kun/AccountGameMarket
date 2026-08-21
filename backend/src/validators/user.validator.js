@@ -18,5 +18,6 @@ const updateUsernameSchema = z.object({ newUsername });
 const updateEmailSchema = z.object({ newEmail });
 const verificationOtp = z.string().regex(/^\d{6}$/, 'OTP must contain exactly 6 digits.');
 const verifyEmailOtpSchema = z.object({ otp: verificationOtp });
+const verifyPhoneOtpSchema = z.object({ otp: verificationOtp });
 
-module.exports = { updateUsernameSchema, updateEmailSchema, verifyEmailOtpSchema };
+module.exports = { updateUsernameSchema, updateEmailSchema, verifyEmailOtpSchema, verifyPhoneOtpSchema };

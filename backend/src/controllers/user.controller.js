@@ -2,6 +2,7 @@
 
 const userService = require("../services/user.service");
 const emailVerificationService = require("../services/email-verification.service");
+const phoneVerificationService = require("../services/phone-verification.service");
 const { success } = require("../utils/response");
 const asyncHandler = require("../utils/async-handler");
 
@@ -30,4 +31,14 @@ const verifyEmailVerificationOtp = asyncHandler(async (req, res) => {
   return success(res, 200, { user });
 });
 
-module.exports = { updateUsername, updateEmail, updateAvatar, sendEmailVerificationOtp, verifyEmailVerificationOtp };
+const sendPhoneVerificationOtp = asyncHandler(async (req, res) => {
+  await phoneVerificationService.sendPhoneOtp(req.user.id);
+  return res.status(204).end();
+});
+
+const verifyPhoneVerificationOtp = asyncHandler(async (req, res) => {
+  const user = await phoneVerificationService.verifyPhoneOtp(req.user.id, req.validatedBody.otp);
+  return success(res, 200, { user });
+});
+
+module.exports = { updateUsername, updateEmail, updateAvatar, sendEmailVerificationOtp, verifyEmailVerificationOtp, sendPhoneVerificationOtp, verifyPhoneVerificationOtp };

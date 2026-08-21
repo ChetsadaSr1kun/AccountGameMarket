@@ -91,4 +91,8 @@ async function markEmailVerified(executor, userId) {
   await executor.execute('UPDATE users SET email_verified_at = UTC_TIMESTAMP(3), updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [userId]);
 }
 
-module.exports = { findByLogin, findByEmail, findAuthUserById, create, assignRoles, updatePassword, incrementTokenVersion, findByUsername, updateUsername, updateEmail, updateAvatarUrl, markEmailVerified };
+async function markPhoneVerified(executor, userId) {
+  await executor.execute('UPDATE users SET phone_verified_at = UTC_TIMESTAMP(3), updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [userId]);
+}
+
+module.exports = { findByLogin, findByEmail, findAuthUserById, create, assignRoles, updatePassword, incrementTokenVersion, findByUsername, updateUsername, updateEmail, updateAvatarUrl, markEmailVerified, markPhoneVerified };

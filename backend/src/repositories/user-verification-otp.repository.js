@@ -20,7 +20,7 @@ async function create(executor, { userId, channel, otpHash, expiresAt }) {
 
 async function findLatestActiveForUpdate(executor, userId, channel) {
   const [rows] = await executor.execute(
-    `SELECT id, otp_hash, expires_at, attempts
+    `SELECT id, otp_hash, expires_at, attempts, created_at
        FROM user_verification_otps
       WHERE user_id = ? AND channel = ? AND used_at IS NULL AND invalidated_at IS NULL
       ORDER BY id DESC

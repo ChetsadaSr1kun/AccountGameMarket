@@ -7,6 +7,8 @@ let csrfToken = null;
 let resetToken = null;
 let pendingAvatarFile = null;
 let pendingAvatarPreviewUrl = null;
+let phoneOtpCooldownEndsAt = 0;
+let phoneOtpCooldownTimer = null;
 
 const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
@@ -57,6 +59,39 @@ function syncAvatarElements() {
   });
 }
 
+function updatePhoneOtpControls() {
+  const sendButton = document.getElementById('profilePhoneVerificationSendButton');
+  const verifyButton = document.getElementById('profilePhoneVerificationVerifyButton');
+  const otpInput = document.getElementById('profilePhoneVerificationOtp');
+  const isVerified = Boolean(currentUser?.phoneVerified);
+  const secondsRemaining = Math.max(0, Math.ceil((phoneOtpCooldownEndsAt - Date.now()) / 1000));
+
+  if (sendButton) {
+    sendButton.disabled = isVerified || secondsRemaining > 0;
+    sendButton.textContent = secondsRemaining > 0 ? `ส่งรหัสใหม่ (${secondsRemaining}s)` : 'ส่ง / ส่งรหัสใหม่';
+  }
+  if (verifyButton) verifyButton.disabled = isVerified;
+  if (otpInput) otpInput.disabled = isVerified;
+
+  if (secondsRemaining === 0 && phoneOtpCooldownTimer) {
+    clearInterval(phoneOtpCooldownTimer);
+    phoneOtpCooldownTimer = null;
+  }
+}
+
+function startPhoneOtpCooldown() {
+  phoneOtpCooldownEndsAt = Date.now() + (60 * 1000);
+  if (phoneOtpCooldownTimer) clearInterval(phoneOtpCooldownTimer);
+  phoneOtpCooldownTimer = setInterval(updatePhoneOtpControls, 1000);
+  updatePhoneOtpControls();
+}
+
+function clearPhoneOtpCooldown() {
+  phoneOtpCooldownEndsAt = 0;
+  if (phoneOtpCooldownTimer) clearInterval(phoneOtpCooldownTimer);
+  phoneOtpCooldownTimer = null;
+}
+
 function updateVerificationStatus() {
   const verified = Boolean(currentUser?.accountVerified);
   document.querySelectorAll('[data-account-verification]').forEach((element) => {
@@ -72,6 +107,10 @@ function updateVerificationStatus() {
   if (sendButton) sendButton.disabled = Boolean(currentUser?.emailVerified);
   if (verifyButton) verifyButton.disabled = Boolean(currentUser?.emailVerified);
   if (otpInput) otpInput.disabled = Boolean(currentUser?.emailVerified);
+
+  const phoneStatus = document.getElementById('profilePhoneVerificationStatus');
+  if (phoneStatus) phoneStatus.textContent = currentUser?.phoneVerified ? 'ยืนยันแล้ว' : 'ยังไม่ยืนยัน';
+  updatePhoneOtpControls();
 }
 
 function updateNav() {
@@ -751,6 +790,61 @@ async function verifyEmailVerificationOtp() {
         setProfileMsg('profileEmailVerificationMsg', 'ยืนยันอีเมลสำเร็จ', false);
     } catch (error) {
         setProfileMsg('profileEmailVerificationMsg', 'ไม่สามารถยืนยันอีเมลได้ กรุณาลองใหม่', true);
+    }
+}
+
+async function sendPhoneVerificationOtp() {
+    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    if (!activeCsrfToken) {
+        setProfileMsg('profilePhoneVerificationMsg', 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        return;
+    }
+    try {
+        const response = await fetch('/api/v1/user/verification/phone/send', {
+            method: 'POST', credentials: 'include', headers: { 'X-CSRF-Token': activeCsrfToken },
+        });
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            setProfileMsg('profilePhoneVerificationMsg', data.error?.message || 'ส่งรหัสยืนยันทาง SMS ไม่สำเร็จ', true);
+            return;
+        }
+        const otpInput = document.getElementById('profilePhoneVerificationOtp');
+        if (otpInput) otpInput.value = '';
+        startPhoneOtpCooldown();
+        setProfileMsg('profilePhoneVerificationMsg', 'ส่งรหัสยืนยันทาง SMS แล้ว', false);
+    } catch (error) {
+        setProfileMsg('profilePhoneVerificationMsg', 'ไม่สามารถส่งรหัสยืนยันทาง SMS ได้ กรุณาลองใหม่', true);
+    }
+}
+
+async function verifyPhoneVerificationOtp() {
+    const otp = document.getElementById('profilePhoneVerificationOtp')?.value.trim() || '';
+    if (!/^\d{6}$/.test(otp)) {
+        setProfileMsg('profilePhoneVerificationMsg', 'กรุณากรอกรหัส OTP จำนวน 6 หลัก', true);
+        return;
+    }
+    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    if (!activeCsrfToken) {
+        setProfileMsg('profilePhoneVerificationMsg', 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        return;
+    }
+    try {
+        const response = await fetch('/api/v1/user/verification/phone/verify', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': activeCsrfToken },
+            body: JSON.stringify({ otp }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            setProfileMsg('profilePhoneVerificationMsg', data.error?.message || 'ยืนยันเบอร์โทรศัพท์ไม่สำเร็จ', true);
+            return;
+        }
+        clearPhoneOtpCooldown();
+        applyCurrentUser(data.data?.user || currentUser);
+        document.getElementById('profilePhoneVerificationOtp').value = '';
+        setProfileMsg('profilePhoneVerificationMsg', 'ยืนยันเบอร์โทรศัพท์สำเร็จ', false);
+    } catch (error) {
+        setProfileMsg('profilePhoneVerificationMsg', 'ไม่สามารถยืนยันเบอร์โทรศัพท์ได้ กรุณาลองใหม่', true);
     }
 }
 

@@ -15,3 +15,4 @@ if (process.env.DB_NAME && process.env.DB_NAME !== testDatabaseName) {
 process.env.NODE_ENV = 'test';
 process.env.DB_NAME = testDatabaseName;
 process.env.EMAIL_ENABLED = 'false';
+process.env.SMS_MODE = 'disabled';

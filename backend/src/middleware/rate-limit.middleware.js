@@ -21,4 +21,6 @@ module.exports = {
   forgotPasswordLimit: limit('Too many reset requests. Please try again later.', 60 * 60 * 1000, 3),
   emailVerificationSendLimit: authenticatedUserLimit('Too many verification emails. Please try again later.', 15 * 60 * 1000, 3),
   emailVerificationVerifyLimit: authenticatedUserLimit('Too many verification attempts. Please try again later.', 15 * 60 * 1000, 10),
+  phoneVerificationSendLimit: authenticatedUserLimit('Too many verification SMS requests. Please try again later.', 15 * 60 * 1000, 3),
+  phoneVerificationVerifyLimit: authenticatedUserLimit('Too many phone verification attempts. Please try again later.', 15 * 60 * 1000, 10),
 };

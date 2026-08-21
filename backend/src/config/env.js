@@ -22,6 +22,13 @@ if (!['SPLIT', 'UNIFIED'].includes(accountMode)) {
 }
 
 const emailEnabled = process.env.EMAIL_ENABLED === 'true';
+const smsMode = (process.env.SMS_MODE || 'disabled').toLowerCase();
+if (!['disabled', 'development', 'provider'].includes(smsMode)) {
+  throw new Error('SMS_MODE must be disabled, development, or provider.');
+}
+if (isProduction && smsMode === 'development') {
+  throw new Error('SMS_MODE=development is not permitted in production.');
+}
 
 // Validate SMTP config at startup when email is enabled.
 // Fail fast so misconfiguration is caught before any email is attempted.
@@ -62,5 +69,9 @@ module.exports = {
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
     from: process.env.EMAIL_FROM || '',
+  },
+  sms: {
+    mode: smsMode,
+    developmentInboxDirectory: path.resolve(process.cwd(), process.env.SMS_DEV_INBOX_DIR || 'tmp/sms-inbox'),
   },
 };

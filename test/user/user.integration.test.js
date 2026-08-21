@@ -7,6 +7,7 @@ const request = require("supertest");
 const { pool } = require("../../backend/src/config/database");
 const userRepository = require("../../backend/src/repositories/user.repository");
 const emailService = require("../../backend/src/services/email.service");
+const smsService = require("../../backend/src/services/sms.service");
 
 if (process.env.NODE_ENV !== "test" || process.env.DB_NAME !== "gamemarket_test") {
   throw new Error("Run user tests with npm test so the test database safety guard is active.");
@@ -21,6 +22,8 @@ const emailPrefix = `usertest_${runId}_`;
 const avatarDirectory = path.resolve(__dirname, "../../uploads/avatars");
 const capturedVerificationOtps = new Map();
 const originalSendEmailVerificationOtp = emailService.sendEmailVerificationOtp;
+const capturedPhoneOtps = new Map();
+const originalSendPhoneVerificationOtp = smsService.sendPhoneVerificationOtp;
 
 function userPayload(label, overrides = {}) {
   const labelId = crypto.createHash("sha256").update(label).digest("hex").slice(0, 8);
@@ -73,9 +76,38 @@ async function verifyEmailOtp(cookies, csrfToken, otp) {
     .send({ otp });
 }
 
+async function sendPhoneOtp(cookies, csrfToken) {
+  return api.post('/api/v1/user/verification/phone/send')
+    .set('Cookie', cookieHeader(cookies))
+    .set('X-CSRF-Token', csrfToken)
+    .send({});
+}
+
+async function verifyPhoneOtp(cookies, csrfToken, otp) {
+  return api.post('/api/v1/user/verification/phone/verify')
+    .set('Cookie', cookieHeader(cookies))
+    .set('X-CSRF-Token', csrfToken)
+    .send({ otp });
+}
+
 function latestCapturedOtp(email) {
   const codes = capturedVerificationOtps.get(email) || [];
   return codes.at(-1);
+}
+
+function latestCapturedPhoneOtp(phone) {
+  const codes = capturedPhoneOtps.get(phone) || [];
+  return codes.at(-1);
+}
+
+async function agePhoneOtp(email) {
+  await pool.execute(
+    `UPDATE user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+       SET user_verification_otps.created_at = DATE_SUB(UTC_TIMESTAMP(3), INTERVAL 61 SECOND)
+     WHERE users.email = ? AND channel = 'PHONE' AND used_at IS NULL AND invalidated_at IS NULL`,
+    [email],
+  );
 }
 
 before(async () => {
@@ -86,9 +118,15 @@ before(async () => {
     codes.push(otp);
     capturedVerificationOtps.set(email, codes);
   };
+  smsService.sendPhoneVerificationOtp = async ({ phone, otp }) => {
+    const codes = capturedPhoneOtps.get(phone) || [];
+    codes.push(otp);
+    capturedPhoneOtps.set(phone, codes);
+  };
 });
 after(async () => {
   emailService.sendEmailVerificationOtp = originalSendEmailVerificationOtp;
+  smsService.sendPhoneVerificationOtp = originalSendPhoneVerificationOtp;
   await cleanupTestUsers(emailPrefix);
   await closeTestDatabasePool();
 });
@@ -415,4 +453,182 @@ test('invalidates a pending email OTP when the email address changes', async () 
   const verifyOldOtp = await verifyEmailOtp(registration.cookies, registration.csrfToken, oldOtp);
   assert.equal(verifyOldOtp.status, 422);
   assert.equal(verifyOldOtp.body.error.code, 'OTP_INVALID_OR_EXPIRED');
+});
+
+// ===================== PHONE VERIFICATION =====================
+
+test('sends a hashed PHONE OTP without exposing it in the API response', async () => {
+  const { cookies, csrfToken, payload } = await registerAndLogin('phone-send');
+  const response = await sendPhoneOtp(cookies, csrfToken);
+
+  assert.equal(response.status, 204);
+  assert.equal(response.text, '');
+  assert.match(latestCapturedPhoneOtp(payload.phone), /^\d{6}$/);
+  const [rows] = await pool.execute(
+    `SELECT otp_hash, expires_at, used_at, attempts FROM user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+     WHERE users.email = ? AND channel = 'PHONE'`,
+    [payload.email],
+  );
+  assert.equal(rows.length, 1);
+  assert.match(rows[0].otp_hash, /^[a-f0-9]{64}$/);
+  assert.notEqual(rows[0].otp_hash, latestCapturedPhoneOtp(payload.phone));
+  assert.equal(rows[0].used_at, null);
+  assert.equal(rows[0].attempts, 0);
+});
+
+test('rejects phone OTP send without authentication or a valid CSRF token', async () => {
+  const unauthenticated = await api.post('/api/v1/user/verification/phone/send').set('X-CSRF-Token', 'any').send({});
+  const { cookies } = await registerAndLogin('phone-no-csrf');
+  const noCsrf = await api.post('/api/v1/user/verification/phone/send').set('Cookie', cookieHeader(cookies)).send({});
+
+  assert.equal(unauthenticated.status, 401);
+  assert.equal(unauthenticated.body.error.code, 'UNAUTHENTICATED');
+  assert.equal(noCsrf.status, 403);
+  assert.equal(noCsrf.body.error.code, 'CSRF_INVALID');
+});
+
+test('rejects an invalid and an expired PHONE OTP', async () => {
+  const invalid = await registerAndLogin('phone-invalid');
+  assert.equal((await sendPhoneOtp(invalid.cookies, invalid.csrfToken)).status, 204);
+  const invalidResponse = await verifyPhoneOtp(invalid.cookies, invalid.csrfToken, '000000');
+  assert.equal(invalidResponse.status, 422);
+  assert.equal(invalidResponse.body.error.code, 'OTP_INVALID_OR_EXPIRED');
+
+  const expired = await registerAndLogin('phone-expired');
+  assert.equal((await sendPhoneOtp(expired.cookies, expired.csrfToken)).status, 204);
+  await pool.execute(
+    `UPDATE user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+       SET expires_at = DATE_SUB(UTC_TIMESTAMP(3), INTERVAL 1 SECOND)
+     WHERE users.email = ? AND channel = 'PHONE'`,
+    [expired.payload.email],
+  );
+  const expiredResponse = await verifyPhoneOtp(expired.cookies, expired.csrfToken, latestCapturedPhoneOtp(expired.payload.phone));
+  assert.equal(expiredResponse.status, 422);
+  assert.equal(expiredResponse.body.error.code, 'OTP_INVALID_OR_EXPIRED');
+});
+
+test('PHONE OTP is single-use and locks after five invalid attempts', async () => {
+  const reuse = await registerAndLogin('phone-reuse');
+  assert.equal((await sendPhoneOtp(reuse.cookies, reuse.csrfToken)).status, 204);
+  const otp = latestCapturedPhoneOtp(reuse.payload.phone);
+  assert.equal((await verifyPhoneOtp(reuse.cookies, reuse.csrfToken, otp)).status, 200);
+  const reused = await verifyPhoneOtp(reuse.cookies, reuse.csrfToken, otp);
+  assert.equal(reused.status, 422);
+  assert.equal(reused.body.error.code, 'OTP_INVALID_OR_EXPIRED');
+
+  const attempts = await registerAndLogin('phone-max-attempts');
+  assert.equal((await sendPhoneOtp(attempts.cookies, attempts.csrfToken)).status, 204);
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    assert.equal((await verifyPhoneOtp(attempts.cookies, attempts.csrfToken, '000000')).status, 422);
+  }
+  const fifth = await verifyPhoneOtp(attempts.cookies, attempts.csrfToken, '000000');
+  assert.equal(fifth.status, 429);
+  assert.equal(fifth.body.error.code, 'OTP_ATTEMPTS_EXCEEDED');
+});
+
+test('PHONE resend observes cooldown and invalidates the previous OTP after cooldown', async () => {
+  const { cookies, csrfToken, payload } = await registerAndLogin('phone-resend');
+  assert.equal((await sendPhoneOtp(cookies, csrfToken)).status, 204);
+  const oldOtp = latestCapturedPhoneOtp(payload.phone);
+  const cooldown = await sendPhoneOtp(cookies, csrfToken);
+  assert.equal(cooldown.status, 429);
+  assert.equal(cooldown.body.error.code, 'OTP_RESEND_COOLDOWN');
+  await agePhoneOtp(payload.email);
+  assert.equal((await sendPhoneOtp(cookies, csrfToken)).status, 204);
+  const newOtp = latestCapturedPhoneOtp(payload.phone);
+  assert.notEqual(newOtp, oldOtp);
+  assert.equal((await verifyPhoneOtp(cookies, csrfToken, oldOtp)).status, 422);
+  assert.equal((await verifyPhoneOtp(cookies, csrfToken, newOtp)).status, 200);
+});
+
+test('enforces PHONE send and verify rate limits separately', async () => {
+  const sendLimited = await registerAndLogin('phone-send-limit');
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    assert.equal((await sendPhoneOtp(sendLimited.cookies, sendLimited.csrfToken)).status, 204);
+    if (attempt < 2) await agePhoneOtp(sendLimited.payload.email);
+  }
+  const sendLimit = await sendPhoneOtp(sendLimited.cookies, sendLimited.csrfToken);
+  assert.equal(sendLimit.status, 429);
+  assert.equal(sendLimit.body.error.code, 'RATE_LIMITED');
+
+  const verifyLimited = await registerAndLogin('phone-verify-limit');
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    assert.equal((await verifyPhoneOtp(verifyLimited.cookies, verifyLimited.csrfToken, '000000')).status, 422);
+  }
+  const verifyLimit = await verifyPhoneOtp(verifyLimited.cookies, verifyLimited.csrfToken, '000000');
+  assert.equal(verifyLimit.status, 429);
+  assert.equal(verifyLimit.body.error.code, 'RATE_LIMITED');
+});
+
+test('PHONE verification updates safe user state through /auth/me, login, and refresh', async () => {
+  const registration = await registerAndLogin('phone-success-state');
+  assert.equal((await sendPhoneOtp(registration.cookies, registration.csrfToken)).status, 204);
+  const verified = await verifyPhoneOtp(registration.cookies, registration.csrfToken, latestCapturedPhoneOtp(registration.payload.phone));
+  assert.equal(verified.status, 200);
+  assert.deepEqual(
+    { emailVerified: verified.body.data.user.emailVerified, phoneVerified: verified.body.data.user.phoneVerified, accountVerified: verified.body.data.user.accountVerified },
+    { emailVerified: false, phoneVerified: true, accountVerified: false },
+  );
+  const me = await api.get('/api/v1/auth/me').set('Cookie', cookieHeader(registration.cookies));
+  assert.equal(me.status, 200);
+  assert.equal(me.body.data.user.phoneVerified, true);
+  const login = await api.post('/api/v1/auth/login').send({ emailOrUsername: registration.payload.email, password: registration.payload.password });
+  assert.equal(login.status, 200);
+  assert.equal(login.body.data.user.phoneVerified, true);
+  const refresh = await api.post('/api/v1/auth/refresh').set('Cookie', cookieHeader(cookiesFrom(login)));
+  assert.equal(refresh.status, 200);
+  assert.equal(refresh.body.data.user.phoneVerified, true);
+});
+
+test('account verification requires both email and PHONE verification while NULL timestamps stay false', async () => {
+  const legacy = await registerAndLogin('phone-legacy-null');
+  const legacyMe = await api.get('/api/v1/auth/me').set('Cookie', cookieHeader(legacy.cookies));
+  assert.deepEqual(
+    { emailVerified: legacyMe.body.data.user.emailVerified, phoneVerified: legacyMe.body.data.user.phoneVerified, accountVerified: legacyMe.body.data.user.accountVerified },
+    { emailVerified: false, phoneVerified: false, accountVerified: false },
+  );
+
+  const emailOnly = await registerAndLogin('phone-email-only');
+  assert.equal((await sendEmailOtp(emailOnly.cookies, emailOnly.csrfToken)).status, 204);
+  const emailOnlyResponse = await verifyEmailOtp(emailOnly.cookies, emailOnly.csrfToken, latestCapturedOtp(emailOnly.payload.email));
+  assert.deepEqual(
+    { emailVerified: emailOnlyResponse.body.data.user.emailVerified, phoneVerified: emailOnlyResponse.body.data.user.phoneVerified, accountVerified: emailOnlyResponse.body.data.user.accountVerified },
+    { emailVerified: true, phoneVerified: false, accountVerified: false },
+  );
+
+  const both = await registerAndLogin('phone-both');
+  assert.equal((await sendEmailOtp(both.cookies, both.csrfToken)).status, 204);
+  assert.equal((await verifyEmailOtp(both.cookies, both.csrfToken, latestCapturedOtp(both.payload.email))).status, 200);
+  assert.equal((await sendPhoneOtp(both.cookies, both.csrfToken)).status, 204);
+  const bothResponse = await verifyPhoneOtp(both.cookies, both.csrfToken, latestCapturedPhoneOtp(both.payload.phone));
+  assert.deepEqual(
+    { emailVerified: bothResponse.body.data.user.emailVerified, phoneVerified: bothResponse.body.data.user.phoneVerified, accountVerified: bothResponse.body.data.user.accountVerified },
+    { emailVerified: true, phoneVerified: true, accountVerified: true },
+  );
+});
+
+test('invalidates a PHONE OTP and retains verification state when SMS delivery fails', async () => {
+  const registration = await registerAndLogin('phone-delivery-failure');
+  const originalSender = smsService.sendPhoneVerificationOtp;
+  smsService.sendPhoneVerificationOtp = async () => { throw new Error('forced SMS delivery failure'); };
+  let response;
+  try {
+    response = await sendPhoneOtp(registration.cookies, registration.csrfToken);
+  } finally {
+    smsService.sendPhoneVerificationOtp = originalSender;
+  }
+  assert.equal(response.status, 503);
+  assert.equal(response.body.error.code, 'SMS_DELIVERY_FAILED');
+  const [otpRows] = await pool.execute(
+    `SELECT used_at, invalidated_at FROM user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+     WHERE users.email = ? AND channel = 'PHONE'`,
+    [registration.payload.email],
+  );
+  assert.equal(otpRows.length, 1);
+  assert.notEqual(otpRows[0].invalidated_at, null);
+  const [userRows] = await pool.execute('SELECT phone_verified_at FROM users WHERE email = ?', [registration.payload.email]);
+  assert.equal(userRows[0].phone_verified_at, null);
 });
