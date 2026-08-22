@@ -1,4 +1,5 @@
 const { z } = require("zod");
+const { normalizeThaiPhone } = require('../utils/phone');
 
 const newUsername = z
   .string()
@@ -16,8 +17,13 @@ const newEmail = z
 
 const updateUsernameSchema = z.object({ newUsername });
 const updateEmailSchema = z.object({ newEmail });
+const newPhone = z.preprocess(
+  normalizeThaiPhone,
+  z.string().regex(/^0\d{9}$/, 'Phone must be a 10-digit Thai mobile number.'),
+);
+const updatePhoneSchema = z.object({ newPhone });
 const verificationOtp = z.string().regex(/^\d{6}$/, 'OTP must contain exactly 6 digits.');
 const verifyEmailOtpSchema = z.object({ otp: verificationOtp });
 const verifyPhoneOtpSchema = z.object({ otp: verificationOtp });
 
-module.exports = { updateUsernameSchema, updateEmailSchema, verifyEmailOtpSchema, verifyPhoneOtpSchema };
+module.exports = { updateUsernameSchema, updateEmailSchema, updatePhoneSchema, verifyEmailOtpSchema, verifyPhoneOtpSchema };

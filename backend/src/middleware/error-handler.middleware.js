@@ -10,6 +10,10 @@ function errorHandler(error, req, res, next) { // eslint-disable-line no-unused-
   const statusCode = error.statusCode || 500;
   if (statusCode >= 500) console.error(error);
   const body = { error: { code: error.code || 'INTERNAL_ERROR', message: statusCode >= 500 && config.isProduction ? 'An unexpected error occurred.' : error.message } };
+  if (Number.isInteger(error.retryAfterSeconds) && error.retryAfterSeconds > 0) {
+    res.set('Retry-After', String(error.retryAfterSeconds));
+    body.error.retryAfterSeconds = error.retryAfterSeconds;
+  }
   if (error.fields) body.error.fields = error.fields;
   return res.status(statusCode).json(body);
 }

@@ -7,8 +7,10 @@ let csrfToken = null;
 let resetToken = null;
 let pendingAvatarFile = null;
 let pendingAvatarPreviewUrl = null;
-let phoneOtpCooldownEndsAt = 0;
-let phoneOtpCooldownTimer = null;
+const otpCooldowns = {
+  email: { endsAt: 0, timer: null },
+  phone: { endsAt: 0, timer: null },
+};
 
 const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
@@ -59,37 +61,40 @@ function syncAvatarElements() {
   });
 }
 
-function updatePhoneOtpControls() {
-  const sendButton = document.getElementById('profilePhoneVerificationSendButton');
-  const verifyButton = document.getElementById('profilePhoneVerificationVerifyButton');
-  const otpInput = document.getElementById('profilePhoneVerificationOtp');
-  const isVerified = Boolean(currentUser?.phoneVerified);
-  const secondsRemaining = Math.max(0, Math.ceil((phoneOtpCooldownEndsAt - Date.now()) / 1000));
-
+function updateOtpControls(channel) {
+  const isEmail = channel === 'email';
+  const sendButton = document.getElementById(isEmail ? 'profileEmailVerificationSendButton' : 'profilePhoneVerificationSendButton');
+  const verifyButton = document.getElementById(isEmail ? 'profileEmailVerificationVerifyButton' : 'profilePhoneVerificationVerifyButton');
+  const otpInput = document.getElementById(isEmail ? 'profileEmailVerificationOtp' : 'profilePhoneVerificationOtp');
+  const isVerified = Boolean(isEmail ? currentUser?.emailVerified : currentUser?.phoneVerified);
+  const state = otpCooldowns[channel];
+  const secondsRemaining = Math.max(0, Math.ceil((state.endsAt - Date.now()) / 1000));
   if (sendButton) {
     sendButton.disabled = isVerified || secondsRemaining > 0;
-    sendButton.textContent = secondsRemaining > 0 ? `ส่งรหัสใหม่ (${secondsRemaining}s)` : 'ส่ง / ส่งรหัสใหม่';
+    sendButton.textContent = secondsRemaining > 0 ? `ส่งใหม่ได้ใน ${secondsRemaining} วินาที` : 'ส่งรหัส OTP';
   }
   if (verifyButton) verifyButton.disabled = isVerified;
   if (otpInput) otpInput.disabled = isVerified;
-
-  if (secondsRemaining === 0 && phoneOtpCooldownTimer) {
-    clearInterval(phoneOtpCooldownTimer);
-    phoneOtpCooldownTimer = null;
+  if (secondsRemaining === 0 && state.timer) {
+    clearInterval(state.timer);
+    state.timer = null;
   }
 }
 
-function startPhoneOtpCooldown() {
-  phoneOtpCooldownEndsAt = Date.now() + (60 * 1000);
-  if (phoneOtpCooldownTimer) clearInterval(phoneOtpCooldownTimer);
-  phoneOtpCooldownTimer = setInterval(updatePhoneOtpControls, 1000);
-  updatePhoneOtpControls();
+function startOtpCooldown(channel, seconds = 60) {
+  const state = otpCooldowns[channel];
+  state.endsAt = Date.now() + (seconds * 1000);
+  if (state.timer) clearInterval(state.timer);
+  state.timer = setInterval(() => updateOtpControls(channel), 1000);
+  updateOtpControls(channel);
 }
 
-function clearPhoneOtpCooldown() {
-  phoneOtpCooldownEndsAt = 0;
-  if (phoneOtpCooldownTimer) clearInterval(phoneOtpCooldownTimer);
-  phoneOtpCooldownTimer = null;
+function clearOtpCooldown(channel) {
+  const state = otpCooldowns[channel];
+  state.endsAt = 0;
+  if (state.timer) clearInterval(state.timer);
+  state.timer = null;
+  updateOtpControls(channel);
 }
 
 function updateVerificationStatus() {
@@ -100,17 +105,17 @@ function updateVerificationStatus() {
   });
 
   const emailStatus = document.getElementById('profileEmailVerificationStatus');
-  if (emailStatus) emailStatus.textContent = currentUser?.emailVerified ? 'ยืนยันแล้ว' : 'ยังไม่ยืนยัน';
-  const sendButton = document.getElementById('profileEmailVerificationSendButton');
-  const verifyButton = document.getElementById('profileEmailVerificationVerifyButton');
-  const otpInput = document.getElementById('profileEmailVerificationOtp');
-  if (sendButton) sendButton.disabled = Boolean(currentUser?.emailVerified);
-  if (verifyButton) verifyButton.disabled = Boolean(currentUser?.emailVerified);
-  if (otpInput) otpInput.disabled = Boolean(currentUser?.emailVerified);
+  if (emailStatus) emailStatus.textContent = currentUser?.emailVerified ? 'ยืนยันแล้ว' : 'ยังไม่ได้ยืนยัน';
 
   const phoneStatus = document.getElementById('profilePhoneVerificationStatus');
-  if (phoneStatus) phoneStatus.textContent = currentUser?.phoneVerified ? 'ยืนยันแล้ว' : 'ยังไม่ยืนยัน';
-  updatePhoneOtpControls();
+  if (phoneStatus) phoneStatus.textContent = currentUser?.phoneVerified ? 'ยืนยันแล้ว' : 'ยังไม่ได้ยืนยัน';
+  ['email', 'phone'].forEach((channel) => {
+    const channelVerified = channel === 'email' ? currentUser?.emailVerified : currentUser?.phoneVerified;
+    document.querySelectorAll(`[data-verification-pending="${channel}"]`).forEach((element) => { element.style.display = channelVerified ? 'none' : ''; });
+    document.querySelectorAll(`[data-verification-success="${channel}"]`).forEach((element) => { element.style.display = channelVerified ? '' : 'none'; });
+    document.querySelectorAll(`[data-verification-change="${channel}"]`).forEach((element) => { element.style.display = channelVerified ? 'none' : ''; });
+    updateOtpControls(channel);
+  });
 }
 
 function updateNav() {
@@ -211,6 +216,8 @@ function applyCurrentUser(user) {
     if (firstNameInp) firstNameInp.value = currentUser.firstName || 'ยังไม่ได้ระบุ';
     if (lastNameInp) lastNameInp.value = currentUser.lastName || 'ยังไม่ได้ระบุ';
     if (phoneInp) phoneInp.value = GameMarketPhone.formatThaiPhoneForDisplay(currentUser.phone);
+    const verificationPhoneValue = document.getElementById('profilePhoneVerificationValue');
+    if (verificationPhoneValue) verificationPhoneValue.textContent = GameMarketPhone.formatThaiPhoneForDisplay(currentUser.phone);
     if (dateOfBirthInp) dateOfBirthInp.value = currentUser.dateOfBirth || 'ยังไม่ได้ระบุ';
     if (avatarImage && avatarFallback) {
       const avatarUrl = managedAvatarUrl(currentUser.avatarUrl);
@@ -517,8 +524,8 @@ function renderListingCard(listingId) {
 
 async function login() {
 
-    const emailOrUsername = document
-        .getElementById("loginEmail")
+    const username = document
+        .getElementById("loginUsername")
         .value
         .trim();
 
@@ -526,8 +533,8 @@ async function login() {
         .getElementById("loginPassword")
         .value;
 
-    if (!emailOrUsername || !password) {
-        alert("กรุณากรอกอีเมลและรหัสผ่าน");
+    if (!username || !password) {
+        alert("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
         return;
     }
 
@@ -540,7 +547,7 @@ async function login() {
             },
             credentials: "include",
             body: JSON.stringify({
-                emailOrUsername,
+                username,
                 password
             })
         });
@@ -754,9 +761,13 @@ async function sendEmailVerificationOtp() {
         });
         if (!response.ok) {
             const data = await response.json().catch(() => ({}));
+            if (data.error?.code === 'OTP_RESEND_COOLDOWN' && data.error?.retryAfterSeconds) startOtpCooldown('email', data.error.retryAfterSeconds);
             setProfileMsg('profileEmailVerificationMsg', data.error?.message || 'ส่งรหัสยืนยันไม่สำเร็จ', true);
             return;
         }
+        const otpInput = document.getElementById('profileEmailVerificationOtp');
+        if (otpInput) otpInput.value = '';
+        startOtpCooldown('email');
         setProfileMsg('profileEmailVerificationMsg', 'ส่งรหัสยืนยันไปยังอีเมลของคุณแล้ว', false);
     } catch (error) {
         setProfileMsg('profileEmailVerificationMsg', 'ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่', true);
@@ -785,6 +796,7 @@ async function verifyEmailVerificationOtp() {
             setProfileMsg('profileEmailVerificationMsg', data.error?.message || 'ยืนยันอีเมลไม่สำเร็จ', true);
             return;
         }
+        clearOtpCooldown('email');
         applyCurrentUser(data.data?.user || currentUser);
         document.getElementById('profileEmailVerificationOtp').value = '';
         setProfileMsg('profileEmailVerificationMsg', 'ยืนยันอีเมลสำเร็จ', false);
@@ -805,12 +817,13 @@ async function sendPhoneVerificationOtp() {
         });
         if (!response.ok) {
             const data = await response.json().catch(() => ({}));
+            if (data.error?.code === 'OTP_RESEND_COOLDOWN' && data.error?.retryAfterSeconds) startOtpCooldown('phone', data.error.retryAfterSeconds);
             setProfileMsg('profilePhoneVerificationMsg', data.error?.message || 'ส่งรหัสยืนยันทาง SMS ไม่สำเร็จ', true);
             return;
         }
         const otpInput = document.getElementById('profilePhoneVerificationOtp');
         if (otpInput) otpInput.value = '';
-        startPhoneOtpCooldown();
+        startOtpCooldown('phone');
         setProfileMsg('profilePhoneVerificationMsg', 'ส่งรหัสยืนยันทาง SMS แล้ว', false);
     } catch (error) {
         setProfileMsg('profilePhoneVerificationMsg', 'ไม่สามารถส่งรหัสยืนยันทาง SMS ได้ กรุณาลองใหม่', true);
@@ -839,7 +852,7 @@ async function verifyPhoneVerificationOtp() {
             setProfileMsg('profilePhoneVerificationMsg', data.error?.message || 'ยืนยันเบอร์โทรศัพท์ไม่สำเร็จ', true);
             return;
         }
-        clearPhoneOtpCooldown();
+        clearOtpCooldown('phone');
         applyCurrentUser(data.data?.user || currentUser);
         document.getElementById('profilePhoneVerificationOtp').value = '';
         setProfileMsg('profilePhoneVerificationMsg', 'ยืนยันเบอร์โทรศัพท์สำเร็จ', false);
@@ -847,6 +860,72 @@ async function verifyPhoneVerificationOtp() {
         setProfileMsg('profilePhoneVerificationMsg', 'ไม่สามารถยืนยันเบอร์โทรศัพท์ได้ กรุณาลองใหม่', true);
     }
 }
+
+function openVerificationTargetModal(channel) {
+    const isEmail = channel === 'email';
+    const modal = document.getElementById(isEmail ? 'changeEmailModal' : 'changePhoneModal');
+    const input = document.getElementById(isEmail ? 'changeEmailInput' : 'changePhoneInput');
+    const currentInput = document.getElementById(isEmail ? 'changeEmailCurrent' : 'changePhoneCurrent');
+    if (!modal || !input || !currentUser) return;
+    const currentValue = isEmail ? (currentUser.email || '') : GameMarketPhone.formatThaiPhoneForDisplay(currentUser.phone);
+    if (currentInput) currentInput.value = currentValue;
+    input.value = currentValue;
+    document.getElementById(isEmail ? 'changeEmailModalMsg' : 'changePhoneModalMsg').textContent = '';
+    modal.hidden = false;
+    input.focus();
+}
+
+function closeVerificationTargetModal(channel) {
+    const modal = document.getElementById(channel === 'email' ? 'changeEmailModal' : 'changePhoneModal');
+    if (modal) modal.hidden = true;
+}
+
+function formatChangePhoneInput() {
+    const input = document.getElementById('changePhoneInput');
+    if (input) input.value = GameMarketPhone.formatThaiPhone(input.value);
+}
+
+async function saveVerificationTarget(channel) {
+    const isEmail = channel === 'email';
+    const input = document.getElementById(isEmail ? 'changeEmailInput' : 'changePhoneInput');
+    const messageId = isEmail ? 'changeEmailModalMsg' : 'changePhoneModalMsg';
+    const value = isEmail ? input?.value.trim() : GameMarketPhone.digitsOnly(input?.value);
+    if (!value) {
+        setProfileMsg(messageId, 'กรุณากรอกข้อมูลให้ครบ', true);
+        return;
+    }
+    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    if (!activeCsrfToken) {
+        setProfileMsg(messageId, 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        return;
+    }
+    try {
+        const response = await fetch(`/api/v1/user/${isEmail ? 'email' : 'phone'}`, {
+            method: 'PATCH', credentials: 'include',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': activeCsrfToken },
+            body: JSON.stringify(isEmail ? { newEmail: value } : { newPhone: value }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            setProfileMsg(messageId, data.error?.message || 'บันทึกข้อมูลไม่สำเร็จ', true);
+            return;
+        }
+        clearOtpCooldown(channel);
+        const otpInput = document.getElementById(isEmail ? 'profileEmailVerificationOtp' : 'profilePhoneVerificationOtp');
+        if (otpInput) otpInput.value = '';
+        setProfileMsg(isEmail ? 'profileEmailVerificationMsg' : 'profilePhoneVerificationMsg', 'ข้อมูลถูกเปลี่ยนแล้ว กรุณายืนยันอีกครั้ง', false);
+        applyCurrentUser(data.data?.user || currentUser);
+        closeVerificationTargetModal(channel);
+    } catch (error) {
+        setProfileMsg(messageId, 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่', true);
+    }
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    closeVerificationTargetModal('email');
+    closeVerificationTargetModal('phone');
+});
 
 async function changePasswordFromProfile() {
     const currentPassword = document.getElementById('profileCurrentPassword')?.value || '';

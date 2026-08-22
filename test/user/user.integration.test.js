@@ -110,6 +110,16 @@ async function agePhoneOtp(email) {
   );
 }
 
+async function ageEmailOtp(email) {
+  await pool.execute(
+    `UPDATE user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+       SET user_verification_otps.created_at = DATE_SUB(UTC_TIMESTAMP(3), INTERVAL 61 SECOND)
+     WHERE users.email = ? AND channel = 'EMAIL' AND used_at IS NULL AND invalidated_at IS NULL`,
+    [email],
+  );
+}
+
 before(async () => {
   await prepareTestDatabase();
   await cleanupTestUsers(emailPrefix);
@@ -219,6 +229,42 @@ test("rejects email update when unauthenticated", async () => {
   const r = await api.patch("/api/v1/user/email").set("X-CSRF-Token", "any").send({ newEmail: `${emailPrefix}em-unauth@example.test` });
   assert.equal(r.status, 401);
   assert.equal(r.body.error.code, "UNAUTHENTICATED");
+});
+
+// ===================== UPDATE PHONE =====================
+
+test('updates a phone number as canonical digits and clears PHONE verification plus pending OTPs', async () => {
+  const registration = await registerAndLogin('phone-change-pending');
+  assert.equal((await sendPhoneOtp(registration.cookies, registration.csrfToken)).status, 204);
+  const oldOtp = latestCapturedPhoneOtp(registration.payload.phone);
+  const response = await api.patch('/api/v1/user/phone')
+    .set('Cookie', cookieHeader(registration.cookies))
+    .set('X-CSRF-Token', registration.csrfToken)
+    .send({ newPhone: '082-345-6789' });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.user.phone, '0823456789');
+  assert.equal(response.body.data.user.phoneVerified, false);
+  const oldOtpResponse = await verifyPhoneOtp(registration.cookies, registration.csrfToken, oldOtp);
+  assert.equal(oldOtpResponse.status, 422);
+  assert.equal(oldOtpResponse.body.error.code, 'OTP_INVALID_OR_EXPIRED');
+});
+
+test('requires authentication, CSRF, and a valid changed phone number', async () => {
+  const unauthenticated = await api.patch('/api/v1/user/phone').set('X-CSRF-Token', 'any').send({ newPhone: '0823456789' });
+  assert.equal(unauthenticated.status, 401);
+
+  const registration = await registerAndLogin('phone-change-invalid');
+  const missingCsrf = await api.patch('/api/v1/user/phone')
+    .set('Cookie', cookieHeader(registration.cookies))
+    .send({ newPhone: '0823456789' });
+  assert.equal(missingCsrf.status, 403);
+
+  const invalid = await api.patch('/api/v1/user/phone')
+    .set('Cookie', cookieHeader(registration.cookies))
+    .set('X-CSRF-Token', registration.csrfToken)
+    .send({ newPhone: 'not-a-phone' });
+  assert.equal(invalid.status, 422);
 });
 
 // ===================== AVATAR UPLOAD =====================
@@ -374,6 +420,7 @@ test('invalidates the previous OTP when a new email OTP is sent', async () => {
   const { cookies, csrfToken, payload } = await registerAndLogin('verify-resend');
   assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
   const oldOtp = latestCapturedOtp(payload.email);
+  await ageEmailOtp(payload.email);
   assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
   const newOtp = latestCapturedOtp(payload.email);
   assert.notEqual(newOtp, oldOtp);
@@ -382,10 +429,24 @@ test('invalidates the previous OTP when a new email OTP is sent', async () => {
   assert.equal((await verifyEmailOtp(cookies, csrfToken, newOtp)).status, 200);
 });
 
+test('EMAIL resend observes a server-side cooldown with a retry-after value', async () => {
+  const { cookies, csrfToken, payload } = await registerAndLogin('verify-resend-cooldown');
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  const cooldown = await sendEmailOtp(cookies, csrfToken);
+  assert.equal(cooldown.status, 429);
+  assert.equal(cooldown.body.error.code, 'OTP_RESEND_COOLDOWN');
+  assert.ok(cooldown.body.error.retryAfterSeconds >= 1);
+  assert.ok(Number(cooldown.headers['retry-after']) >= 1);
+  await ageEmailOtp(payload.email);
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+});
+
 test('limits email OTP resend requests per authenticated user', async () => {
-  const { cookies, csrfToken } = await registerAndLogin('verify-send-limit');
+  const { cookies, csrfToken, payload } = await registerAndLogin('verify-send-limit');
   assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  await ageEmailOtp(payload.email);
   assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  await ageEmailOtp(payload.email);
   assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
   const limited = await sendEmailOtp(cookies, csrfToken);
   assert.equal(limited.status, 429);
@@ -427,7 +488,7 @@ test('returns verification state from verify and /auth/me while legacy NULL stat
   assert.equal(me.body.data.user.accountVerified, false);
 });
 
-test('clears email verification when the existing email-update endpoint changes the email', async () => {
+test('rejects changing an email after it has been verified', async () => {
   const verified = await registerAndLogin('verify-email-change');
   assert.equal((await sendEmailOtp(verified.cookies, verified.csrfToken)).status, 204);
   assert.equal((await verifyEmailOtp(verified.cookies, verified.csrfToken, latestCapturedOtp(verified.payload.email))).status, 200);
@@ -436,9 +497,8 @@ test('clears email verification when the existing email-update endpoint changes 
     .set('Cookie', cookieHeader(verified.cookies))
     .set('X-CSRF-Token', verified.csrfToken)
     .send({ newEmail: updatedEmail });
-  assert.equal(response.status, 200);
-  assert.equal(response.body.data.user.emailVerified, false);
-  assert.equal(response.body.data.user.accountVerified, false);
+  assert.equal(response.status, 403);
+  assert.equal(response.body.error.code, 'EMAIL_ALREADY_VERIFIED');
 });
 
 test('invalidates a pending email OTP when the email address changes', async () => {
@@ -574,12 +634,24 @@ test('PHONE verification updates safe user state through /auth/me, login, and re
   const me = await api.get('/api/v1/auth/me').set('Cookie', cookieHeader(registration.cookies));
   assert.equal(me.status, 200);
   assert.equal(me.body.data.user.phoneVerified, true);
-  const login = await api.post('/api/v1/auth/login').send({ emailOrUsername: registration.payload.email, password: registration.payload.password });
+  const login = await api.post('/api/v1/auth/login').send({ username: registration.payload.username, password: registration.payload.password });
   assert.equal(login.status, 200);
   assert.equal(login.body.data.user.phoneVerified, true);
   const refresh = await api.post('/api/v1/auth/refresh').set('Cookie', cookieHeader(cookiesFrom(login)));
   assert.equal(refresh.status, 200);
   assert.equal(refresh.body.data.user.phoneVerified, true);
+});
+
+test('rejects changing a phone number after it has been verified', async () => {
+  const verified = await registerAndLogin('verify-phone-change');
+  assert.equal((await sendPhoneOtp(verified.cookies, verified.csrfToken)).status, 204);
+  assert.equal((await verifyPhoneOtp(verified.cookies, verified.csrfToken, latestCapturedPhoneOtp(verified.payload.phone))).status, 200);
+  const response = await api.patch('/api/v1/user/phone')
+    .set('Cookie', cookieHeader(verified.cookies))
+    .set('X-CSRF-Token', verified.csrfToken)
+    .send({ newPhone: '0823456789' });
+  assert.equal(response.status, 403);
+  assert.equal(response.body.error.code, 'PHONE_ALREADY_VERIFIED');
 });
 
 test('account verification requires both email and PHONE verification while NULL timestamps stay false', async () => {

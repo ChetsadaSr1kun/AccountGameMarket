@@ -81,6 +81,9 @@ async function updateUsername(userId, newUsername) {
 async function updateEmail(userId, newEmail) {
   // Reject if the same as current
   const currentUser = await userRepository.findAuthUserById(userId);
+  if (currentUser?.emailVerifiedAt) {
+    throw new AppError("Verified email cannot be changed.", 403, "EMAIL_ALREADY_VERIFIED");
+  }
   if (currentUser && currentUser.email === newEmail) {
     throw new AppError("New email must differ from the current one.", 422, "VALIDATION_ERROR");
   }
@@ -98,6 +101,23 @@ async function updateEmail(userId, newEmail) {
 
   const updated = await userRepository.findAuthUserById(userId);
   return publicUser(updated);
+}
+
+async function updatePhone(userId, newPhone) {
+  const currentUser = await userRepository.findAuthUserById(userId);
+  if (currentUser?.phoneVerifiedAt) {
+    throw new AppError("Verified phone number cannot be changed.", 403, "PHONE_ALREADY_VERIFIED");
+  }
+  if (currentUser && currentUser.phone === newPhone) {
+    throw new AppError('New phone number must differ from the current one.', 422, 'VALIDATION_ERROR');
+  }
+
+  await withTransaction(async (connection) => {
+    await userRepository.updatePhone(connection, userId, newPhone);
+    await verificationOtpRepository.invalidateActiveForUserChannel(connection, userId, 'PHONE');
+  });
+
+  return publicUser(await userRepository.findAuthUserById(userId));
 }
 
 async function updateAvatar(userId, file) {
@@ -137,4 +157,4 @@ async function updateAvatar(userId, file) {
   return publicUser(updatedUser);
 }
 
-module.exports = { publicUser, updateUsername, updateEmail, updateAvatar };
+module.exports = { publicUser, updateUsername, updateEmail, updatePhone, updateAvatar };

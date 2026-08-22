@@ -62,7 +62,7 @@ async function register(input, meta) {
   return withTransaction(async (connection) => {
     const existing = await userRepository.findByEmail(input.email);
     if (existing) throw new AppError('Email or username is already in use.', 409, 'DUPLICATE_USER');
-    const existingUsername = await userRepository.findByLogin(input.username);
+    const existingUsername = await userRepository.findByUsername(input.username);
     if (existingUsername) throw new AppError('Email or username is already in use.', 409, 'DUPLICATE_USER');
 
     const userId = await userRepository.create(connection, {
@@ -86,11 +86,11 @@ async function register(input, meta) {
 }
 
 async function login(input, meta) {
-  const user = await userRepository.findByLogin(input.emailOrUsername);
-  if (!user || user.status !== 'ACTIVE') throw new AppError('Email/username or password is incorrect.', 401, 'INVALID_CREDENTIALS');
+  const user = await userRepository.findAuthUserByUsername(input.username);
+  if (!user || user.status !== 'ACTIVE') throw new AppError('Username or password is incorrect.', 401, 'INVALID_CREDENTIALS');
 
   const passwordMatches = await verifyPassword(user.passwordHash, input.password);
-  if (!passwordMatches) throw new AppError('Email/username or password is incorrect.', 401, 'INVALID_CREDENTIALS');
+  if (!passwordMatches) throw new AppError('Username or password is incorrect.', 401, 'INVALID_CREDENTIALS');
 
   return withTransaction(async (connection) => ({ user: publicUser(user), ...(await issueSession(user, meta, connection)) }));
 }

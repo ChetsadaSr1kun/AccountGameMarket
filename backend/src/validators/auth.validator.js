@@ -16,7 +16,7 @@ const dateOfBirth = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must 
 }, 'Date of birth is invalid.').refine((value) => value <= new Date().toISOString().slice(0, 10), 'Date of birth cannot be in the future.');
 
 const registerSchema = z.object({ email, username, password, firstName: name, lastName: name, phone, dateOfBirth, accountType: z.enum(['CUSTOMER', 'SELLER']).optional() });
-const loginSchema = z.object({ emailOrUsername: z.string().trim().min(3).max(254), password: z.string().min(1).max(72) });
+const loginSchema = z.object({ username, password: z.string().min(1).max(72) });
 const forgotPasswordSchema = z.object({ email });
 const resetPasswordSchema = z.object({ token: z.string().min(32).max(256), newPassword: password });
 const changePasswordSchema = z.object({ currentPassword: z.string().min(1).max(72), newPassword: password });

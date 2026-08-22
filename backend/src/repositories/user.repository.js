@@ -75,12 +75,21 @@ async function findByUsername(username) {
   return rows[0] || null;
 }
 
+async function findAuthUserByUsername(username) {
+  const [rows] = await pool.execute(`${authSelect} WHERE u.username = ? GROUP BY u.id LIMIT 1`, [username]);
+  return mapUser(rows[0]);
+}
+
 async function updateUsername(executor, userId, username) {
   await executor.execute('UPDATE users SET username = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [username, userId]);
 }
 
 async function updateEmail(executor, userId, email) {
   await executor.execute('UPDATE users SET email = ?, email_verified_at = NULL, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [email, userId]);
+}
+
+async function updatePhone(executor, userId, phone) {
+  await executor.execute('UPDATE users SET phone = ?, phone_verified_at = NULL, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [phone, userId]);
 }
 
 async function updateAvatarUrl(executor, userId, avatarUrl) {
@@ -95,4 +104,4 @@ async function markPhoneVerified(executor, userId) {
   await executor.execute('UPDATE users SET phone_verified_at = UTC_TIMESTAMP(3), updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [userId]);
 }
 
-module.exports = { findByLogin, findByEmail, findAuthUserById, create, assignRoles, updatePassword, incrementTokenVersion, findByUsername, updateUsername, updateEmail, updateAvatarUrl, markEmailVerified, markPhoneVerified };
+module.exports = { findByLogin, findByEmail, findAuthUserById, findAuthUserByUsername, create, assignRoles, updatePassword, incrementTokenVersion, findByUsername, updateUsername, updateEmail, updatePhone, updateAvatarUrl, markEmailVerified, markPhoneVerified };

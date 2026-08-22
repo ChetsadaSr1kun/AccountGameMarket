@@ -23,6 +23,13 @@ function canonicalPhone(phone) {
   return typeof normalized === 'string' && /^0\d{9}$/.test(normalized) ? normalized : null;
 }
 
+function resendCooldownError(createdAt) {
+  const retryAfterSeconds = Math.max(1, Math.ceil((RESEND_COOLDOWN_MS - (Date.now() - dateTimeMs(createdAt))) / 1000));
+  const error = new AppError('Please wait before requesting another OTP.', 429, 'OTP_RESEND_COOLDOWN');
+  error.retryAfterSeconds = retryAfterSeconds;
+  return error;
+}
+
 async function sendPhoneOtp(userId) {
   const user = await userRepository.findAuthUserById(userId);
   if (!user) throw new AppError('User not found.', 404, 'USER_NOT_FOUND');
@@ -35,7 +42,7 @@ async function sendPhoneOtp(userId) {
   const result = await withTransaction(async (connection) => {
     const activeOtp = await otpRepository.findLatestActiveForUpdate(connection, userId, CHANNEL);
     if (activeOtp && Date.now() - dateTimeMs(activeOtp.created_at) < RESEND_COOLDOWN_MS) {
-      return { error: new AppError('Please wait before requesting another OTP.', 429, 'OTP_RESEND_COOLDOWN') };
+      return { error: resendCooldownError(activeOtp.created_at) };
     }
 
     await otpRepository.invalidateActiveForUserChannel(connection, userId, CHANNEL);

@@ -10,10 +10,18 @@ const { generateOtp, hashOtp, matchesOtp } = require('../utils/verification-otp'
 
 const CHANNEL = 'EMAIL';
 const OTP_EXPIRY_MS = 10 * 60 * 1000;
+const RESEND_COOLDOWN_MS = 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 function expiresAtMs(expiresAt) {
   return Date.parse(`${String(expiresAt).replace(' ', 'T')}Z`);
+}
+
+function resendCooldownError(createdAt) {
+  const retryAfterSeconds = Math.max(1, Math.ceil((RESEND_COOLDOWN_MS - (Date.now() - expiresAtMs(createdAt))) / 1000));
+  const error = new AppError('Please wait before requesting another OTP.', 429, 'OTP_RESEND_COOLDOWN');
+  error.retryAfterSeconds = retryAfterSeconds;
+  return error;
 }
 
 async function sendEmailOtp(userId) {
@@ -22,20 +30,27 @@ async function sendEmailOtp(userId) {
   if (user.emailVerifiedAt) throw new AppError('Email is already verified.', 409, 'EMAIL_ALREADY_VERIFIED');
 
   const otp = generateOtp();
-  const otpId = await withTransaction(async (connection) => {
+  const result = await withTransaction(async (connection) => {
+    const activeOtp = await otpRepository.findLatestActiveForUpdate(connection, userId, CHANNEL);
+    if (activeOtp && Date.now() - expiresAtMs(activeOtp.created_at) < RESEND_COOLDOWN_MS) {
+      return { error: resendCooldownError(activeOtp.created_at) };
+    }
     await otpRepository.invalidateActiveForUserChannel(connection, userId, CHANNEL);
-    return otpRepository.create(connection, {
+    const otpId = await otpRepository.create(connection, {
       userId,
       channel: CHANNEL,
       otpHash: hashOtp(otp),
       expiresAt: new Date(Date.now() + OTP_EXPIRY_MS),
     });
+    return { otpId };
   });
+
+  if (result.error) throw result.error;
 
   try {
     await emailService.sendEmailVerificationOtp({ email: user.email, otp });
   } catch (error) {
-    await withTransaction((connection) => otpRepository.invalidateById(connection, otpId));
+    await withTransaction((connection) => otpRepository.invalidateById(connection, result.otpId));
     throw new AppError('Unable to send verification email. Please try again later.', 503, 'EMAIL_DELIVERY_FAILED');
   }
 }

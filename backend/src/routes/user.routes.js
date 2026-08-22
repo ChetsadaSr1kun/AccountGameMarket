@@ -14,6 +14,7 @@ const router = express.Router();
 // All user profile routes require authentication and a valid CSRF token.
 router.patch("/username", authenticate, requireCsrf, validate(schemas.updateUsernameSchema), controller.updateUsername);
 router.patch("/email",    authenticate, requireCsrf, validate(schemas.updateEmailSchema),    controller.updateEmail);
+router.patch("/phone",    authenticate, requireCsrf, validate(schemas.updatePhoneSchema),    controller.updatePhone);
 router.post("/avatar", authenticate, requireCsrf, uploadAvatar, controller.updateAvatar);
 router.post("/verification/email/send", authenticate, requireCsrf, emailVerificationSendLimit, controller.sendEmailVerificationOtp);
 router.post("/verification/email/verify", authenticate, requireCsrf, emailVerificationVerifyLimit, validate(schemas.verifyEmailOtpSchema), controller.verifyEmailVerificationOtp);

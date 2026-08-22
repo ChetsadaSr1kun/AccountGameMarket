@@ -16,6 +16,11 @@ const updateEmail = asyncHandler(async (req, res) => {
   return success(res, 200, { user });
 });
 
+const updatePhone = asyncHandler(async (req, res) => {
+  const user = await userService.updatePhone(req.user.id, req.validatedBody.newPhone);
+  return success(res, 200, { user });
+});
+
 const updateAvatar = asyncHandler(async (req, res) => {
   const user = await userService.updateAvatar(req.user.id, req.file);
   return success(res, 200, { user });
@@ -41,4 +46,4 @@ const verifyPhoneVerificationOtp = asyncHandler(async (req, res) => {
   return success(res, 200, { user });
 });
 
-module.exports = { updateUsername, updateEmail, updateAvatar, sendEmailVerificationOtp, verifyEmailVerificationOtp, sendPhoneVerificationOtp, verifyPhoneVerificationOtp };
+module.exports = { updateUsername, updateEmail, updatePhone, updateAvatar, sendEmailVerificationOtp, verifyEmailVerificationOtp, sendPhoneVerificationOtp, verifyPhoneVerificationOtp };

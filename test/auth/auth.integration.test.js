@@ -124,7 +124,7 @@ test('/auth/me returns persisted personal information', async () => {
 
 test('/auth/me returns null personal information for a legacy user', async () => {
   const payload = await createLegacyUser('me-no-personal-info');
-  const login = await api.post('/api/v1/auth/login').send({ emailOrUsername: payload.email, password: payload.password });
+  const login = await api.post('/api/v1/auth/login').send({ username: payload.username, password: payload.password });
   const response = await api
     .get('/api/v1/auth/me')
     .set('Cookie', cookieHeader(cookiesFrom(login)));
@@ -166,11 +166,11 @@ test('rejects a registration password that fails requirements', async () => {
   assert.equal(response.body.error.code, 'VALIDATION_ERROR');
 });
 
-test('logs in with valid credentials and returns authentication cookies', async () => {
+test('logs in with a username and returns authentication cookies', async () => {
   const payload = userPayload('login-success');
   await registerUser('login-success');
   const response = await api.post('/api/v1/auth/login').send({
-    emailOrUsername: payload.email,
+    username: payload.username,
     password: payload.password,
   });
 
@@ -181,12 +181,24 @@ test('logs in with valid credentials and returns authentication cookies', async 
   assert.ok(cookieValue(cookiesFrom(response), 'gm_csrf'));
 });
 
+test('rejects an email address as a login identifier', async () => {
+  const payload = userPayload('login-email-rejected');
+  await registerUser('login-email-rejected');
+  const response = await api.post('/api/v1/auth/login').send({
+    username: payload.email,
+    password: payload.password,
+  });
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'VALIDATION_ERROR');
+});
+
 test('login returns the same personal information user shape', async () => {
   const personalInfo = { firstName: 'Login', lastName: 'User', phone: '0834567890', dateOfBirth: '1997-03-15' };
   const payload = userPayload('login-personal-info', personalInfo);
   await registerUser('login-personal-info', personalInfo);
   const response = await api.post('/api/v1/auth/login').send({
-    emailOrUsername: payload.email,
+    username: payload.username,
     password: payload.password,
   });
 
@@ -198,7 +210,7 @@ test('rejects login with an incorrect password', async () => {
   const payload = userPayload('wrong-password');
   await registerUser('wrong-password');
   const response = await api.post('/api/v1/auth/login').send({
-    emailOrUsername: payload.email,
+    username: payload.username,
     password: 'WrongPassword123',
   });
 
@@ -206,9 +218,9 @@ test('rejects login with an incorrect password', async () => {
   assert.equal(response.body.error.code, 'INVALID_CREDENTIALS');
 });
 
-test('rejects login for a user that does not exist', async () => {
+test('rejects login for a username that does not exist', async () => {
   const response = await api.post('/api/v1/auth/login').send({
-    emailOrUsername: `${emailPrefix}missing@example.test`,
+    username: 'missing_username',
     password: 'TestPassword123',
   });
 
@@ -398,14 +410,14 @@ test('enforces the login rate limit for an isolated test IP address', async () =
     const response = await api
       .post('/api/v1/auth/login')
       .set('X-Forwarded-For', rateLimitIp)
-      .send({ emailOrUsername: 'ab', password: 'x' });
+      .send({ username: 'ab', password: 'x' });
     assert.equal(response.status, 422);
   }
 
   const blockedResponse = await api
     .post('/api/v1/auth/login')
     .set('X-Forwarded-For', rateLimitIp)
-    .send({ emailOrUsername: 'ab', password: 'x' });
+    .send({ username: 'ab', password: 'x' });
 
   assert.equal(blockedResponse.status, 429);
   assert.equal(blockedResponse.body.error.code, 'RATE_LIMITED');
