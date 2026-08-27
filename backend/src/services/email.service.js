@@ -20,6 +20,27 @@ function getTransporter() {
   return _transporter;
 }
 
+async function sendMail(message) {
+  if (config.resend.apiKey) {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.resend.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...message, from: config.resend.from }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw new Error(`Resend API failed (${response.status}): ${body}`);
+    }
+    return response.json().catch(() => ({}));
+  }
+
+  return getTransporter().sendMail(message);
+}
+
 /**
  * Sends a password reset email containing the one-time reset link.
  * The raw reset token is embedded in `resetUrl` only — it is never logged or stored separately.
@@ -30,7 +51,7 @@ function getTransporter() {
 async function sendPasswordResetEmail({ email, resetUrl }) {
   if (!config.emailEnabled) return;
 
-  await getTransporter().sendMail({
+  await sendMail({
     from: config.smtp.from,
     to: email,
     subject: 'รีเซ็ตรหัสผ่าน GameMarket',
@@ -58,7 +79,7 @@ async function sendPasswordResetEmail({ email, resetUrl }) {
 async function sendEmailVerificationOtp({ email, otp }) {
   if (!config.emailEnabled) return;
 
-  await getTransporter().sendMail({
+  await sendMail({
     from: config.smtp.from,
     to: email,
     subject: 'รหัสยืนยันอีเมล GameMarket',

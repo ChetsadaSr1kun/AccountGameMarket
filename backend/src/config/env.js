@@ -70,6 +70,10 @@ module.exports = {
     pass: process.env.SMTP_PASS || '',
     from: process.env.EMAIL_FROM || '',
   },
+  resend: {
+    apiKey: process.env.RESEND_API_KEY || '',
+    from: process.env.RESEND_FROM || 'onboarding@resend.dev',
+  },
   sms: {
     mode: smsMode,
     developmentInboxDirectory: path.resolve(process.cwd(), process.env.SMS_DEV_INBOX_DIR || 'tmp/sms-inbox'),
