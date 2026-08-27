@@ -130,7 +130,7 @@ async function openOrderDetail(id) {
     const order = body.data?.order || body.order;
     const amount = Number(order?.amount || 0).toLocaleString('th-TH');
     const createdAt = order?.createdAt ? new Date(order.createdAt).toLocaleString('th-TH') : '-';
-    const statusText = order?.status === 'PENDING' ? '⏳ รอชำระเงิน' : productDetailEscape(order?.status || '-');
+    const statusText = order?.status === 'PENDING' ? 'PENDING' : order?.status === 'COMPLETED' ? 'COMPLETED' : productDetailEscape(order?.status || '-');
     content.innerHTML = `
       <button class="btn btn-ghost btn-sm" onclick="goPage('listings-user')" style="margin-bottom:20px">← กลับไปหน้ารายการสินค้า</button>
       <div class="card" style="max-width:820px;margin:0 auto;padding:32px">
@@ -151,8 +151,6 @@ async function openOrderDetail(id) {
           ? `<button class="btn btn-primary btn-full btn-lg" type="button" onclick="payOrderFromWallet(${order.id})">💳 ชำระเงินด้วย Wallet</button>`
           : `<div class="notice success" style="margin-bottom:14px">✓ ชำระเงินสำเร็จแล้ว คุณสามารถเปิดดูข้อมูลบัญชีเกมได้</div>
              <button class="btn btn-primary btn-full btn-lg" type="button" onclick="loadOrderCredentials(${order.id})">🔐 แสดงข้อมูลบัญชีเกม</button>
-             ${order?.status === 'PAID' ? `<button class="btn btn-success btn-full btn-lg" style="margin-top:12px" type="button" onclick="confirmOrderReceived(${order.id})">✅ ยืนยันว่าได้รับสินค้าแล้ว</button>
-             <div style="text-align:center;color:var(--muted);font-size:12px;margin-top:10px">หากไม่ดำเนินการ ระบบจะโอนพ้อยท์ให้ผู้ขายอัตโนมัติเมื่อครบ 24 ชั่วโมง</div>` : ''}
              <div id="order-credentials-content" style="margin-top:16px"></div>`}
       </div>`;
   } catch (error) {
@@ -210,30 +208,6 @@ async function copyCredential(index) {
   }
 }
 
-async function confirmOrderReceived(id) {
-  const orderId = Number(id);
-  if (!Number.isInteger(orderId) || orderId <= 0) return;
-  const csrf = orderCsrfToken();
-  if (!csrf) { alert('ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่'); return; }
-  const confirmed = window.confirm('ยืนยันว่าได้รับสินค้าและสามารถเข้าสู่บัญชีได้เรียบร้อยแล้วหรือไม่?\nเมื่อยืนยัน เงินจะถูกโอนให้ผู้ขายทันที');
-  if (!confirmed) return;
-  try {
-    const response = await fetch(`/api/v1/orders/${orderId}/confirm-received`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'X-CSRF-Token': csrf },
-    });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body.error?.message || 'ไม่สามารถยืนยันการรับสินค้าได้');
-    alert('ยืนยันการรับสินค้าเรียบร้อยแล้ว เงินถูกโอนให้ผู้ขายแล้ว');
-    await openOrderDetail(orderId);
-    if (typeof window.loadWallet === 'function') window.loadWallet();
-  } catch (error) {
-    console.error('confirmOrderReceived failed:', error);
-    alert(error.message || 'ไม่สามารถยืนยันการรับสินค้าได้');
-  }
-}
-
 async function payOrderFromWallet(id) {
   const orderId = Number(id);
   if (!Number.isInteger(orderId) || orderId <= 0) return;
@@ -261,7 +235,6 @@ window.openProductDetail = openProductDetail;
 window.selectProductDetailImage = selectProductDetailImage;
 window.startProductPurchase = startProductPurchase;
 window.payOrderFromWallet = payOrderFromWallet;
-window.confirmOrderReceived = confirmOrderReceived;
 window.loadOrderCredentials = loadOrderCredentials;
 window.toggleCredential = toggleCredential;
 window.copyCredential = copyCredential;

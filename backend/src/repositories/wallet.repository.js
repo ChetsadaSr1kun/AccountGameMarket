@@ -11,13 +11,14 @@ async function findByUserId(userId, executor = pool) {
 }
 
 async function listTransactions(userId, limit = 20, executor = pool) {
+  const safeLimit = Math.min(100, Math.max(1, Number.parseInt(limit, 10) || 20));
   const [rows] = await executor.execute(`SELECT wt.id, wt.type, wt.amount, wt.balance_after, wt.reference_type,
     wt.reference_id, wt.note, wt.created_at, tr.payment_method
     FROM wallet_transactions wt
     LEFT JOIN wallet_topup_requests tr
       ON wt.reference_type = 'WALLET_TOPUP' AND tr.id = wt.reference_id
     WHERE wt.wallet_user_id = ?
-    ORDER BY wt.id DESC LIMIT ?`, [userId, limit]);
+    ORDER BY wt.id DESC LIMIT ${safeLimit}`, [userId]);
   return rows.map((row) => ({
     id: Number(row.id),
     type: row.type,

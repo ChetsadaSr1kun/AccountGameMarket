@@ -20,15 +20,6 @@ const payOrder = asyncHandler(async (req, res) => {
   return success(res, 200, { order });
 });
 
-const confirmOrderReceived = asyncHandler(async (req, res) => {
-  const orderId = Number(req.params.id);
-  if (!Number.isInteger(orderId) || orderId <= 0) {
-    return res.status(400).json({ error: { code: 'INVALID_ORDER_ID', message: 'A valid order id is required.' } });
-  }
-  const order = await orderService.confirmOrderReceived(req.user.id, orderId);
-  return success(res, 200, { order });
-});
-
 const listOrders = asyncHandler(async (req, res) => {
   const orders = await orderService.listOrders(req.user.id);
   return success(res, 200, { orders });
@@ -44,4 +35,4 @@ const getOrderCredentials = asyncHandler(async (req, res) => {
   return success(res, 200, { credentials });
 });
 
-module.exports = { createOrder, payOrder, confirmOrderReceived, listOrders, getOrder, getOrderCredentials };
+module.exports = { createOrder, payOrder, listOrders, getOrder, getOrderCredentials };

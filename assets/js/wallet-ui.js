@@ -171,11 +171,8 @@ async function refreshWalletNavBalance() {
     const wallet = body.data?.wallet || body.wallet;
     if (wallet) {
       const balance = Number(wallet.balance || 0).toLocaleString('th-TH');
-      const held = Number(wallet.held?.heldAmount || 0);
-      const next = wallet.held?.nextReleaseAt ? new Date(wallet.held.nextReleaseAt).getTime() : 0;
       const pendingWithdrawal = Number(wallet.withdrawal?.pendingAmount || 0);
-      navBalanceEl.innerHTML = `<span>💰 ${balance} pts</span>${held > 0 ? ` <span id="walletHeldBalance" style="color:#8b94a7;margin-left:8px;cursor:help">⏳ ${held.toLocaleString('th-TH')} pts</span>` : ''}${pendingWithdrawal > 0 ? ` <span id="walletPendingWithdrawal" style="color:#8b94a7;margin-left:8px;cursor:help">🔒 ${pendingWithdrawal.toLocaleString('th-TH')} pts</span>` : ''}`;
-      if (held > 0 && next) startHeldCountdown(next);
+      navBalanceEl.innerHTML = `<span>💰 ${balance} pts</span>${pendingWithdrawal > 0 ? ` <span id="walletPendingWithdrawal" style="color:#8b94a7;margin-left:8px;cursor:help">🔒 ${pendingWithdrawal.toLocaleString('th-TH')} pts</span>` : ''}`;
       attachPendingWithdrawalTooltip(pendingWithdrawal);
     }
   } catch (error) {
@@ -183,46 +180,4 @@ async function refreshWalletNavBalance() {
   }
 }
 
-function attachPendingWithdrawalTooltip(amount) {
-  const el = document.getElementById('walletPendingWithdrawal');
-  if (!el || !amount) return;
-  el.title = `กำลังถอน ${Number(amount).toLocaleString('th-TH')} pts • รอ Admin ตรวจสอบ`;
-}
-
 window.refreshWalletNavBalance = refreshWalletNavBalance;
-
-function startHeldCountdown(releaseAt) {
-  const el = document.getElementById('walletHeldBalance');
-  if (!el) return;
-  if (window.__heldCountdownTimer) clearInterval(window.__heldCountdownTimer);
-  const tooltipId = 'walletHeldTooltip';
-  let tooltip = document.getElementById(tooltipId);
-  if (!tooltip) {
-    tooltip = document.createElement('span');
-    tooltip.id = tooltipId;
-    tooltip.style.cssText = 'position:fixed;display:none;z-index:99999;padding:8px 10px;border-radius:8px;background:#111827;color:#fff;border:1px solid #374151;font-size:12px;line-height:1.35;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.25);pointer-events:none;';
-    document.body.appendChild(tooltip);
-  }
-  const updateTooltip = () => {
-    const rect = el.getBoundingClientRect();
-    tooltip.style.left = `${Math.max(8, rect.left + rect.width / 2 - 70)}px`;
-    tooltip.style.top = `${rect.bottom + 8}px`;
-  };
-  const tick = () => {
-    const left = Math.max(0, releaseAt - Date.now());
-    const h = Math.floor(left / 3600000);
-    const m = Math.floor((left % 3600000) / 60000);
-    const sec = Math.floor((left % 60000) / 1000);
-    const time = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-    el.title = left > 0 ? `เงินพักไว้ • เหลือ ${time}` : 'กำลังโอนเข้าบัญชี';
-    if (tooltip.style.display === 'block') {
-      tooltip.textContent = left > 0 ? `เงินพักไว้ • เหลือ ${time}` : 'กำลังโอนเข้าบัญชี';
-      updateTooltip();
-    }
-    if (!left) refreshWalletNavBalance();
-  };
-  el.onmouseenter = () => { tooltip.textContent = `เงินพักไว้ • เหลือ ${Math.max(0, releaseAt - Date.now()) > 0 ? 'กำลังคำนวณ...' : 'กำลังโอนเข้าบัญชี'}`; tooltip.style.display = 'block'; updateTooltip(); tick(); };
-  el.onmouseleave = () => { tooltip.style.display = 'none'; };
-  tick();
-  window.__heldCountdownTimer = setInterval(tick, 1000);
-}
