@@ -171,9 +171,7 @@ async function refreshWalletNavBalance() {
     const wallet = body.data?.wallet || body.wallet;
     if (wallet) {
       const balance = Number(wallet.balance || 0).toLocaleString('th-TH');
-      const pendingWithdrawal = Number(wallet.withdrawal?.pendingAmount || 0);
-      navBalanceEl.innerHTML = `<span>💰 ${balance} pts</span>${pendingWithdrawal > 0 ? ` <span id="walletPendingWithdrawal" style="color:#8b94a7;margin-left:8px;cursor:help">🔒 ${pendingWithdrawal.toLocaleString('th-TH')} pts</span>` : ''}`;
-      attachPendingWithdrawalTooltip(pendingWithdrawal);
+      navBalanceEl.innerHTML = `<span>💰 ${balance} pts</span>`;
     }
   } catch (error) {
     console.error('refreshWalletNavBalance failed:', error);
