@@ -338,6 +338,8 @@ html {
   box-shadow:0 10px 24px rgba(0,0,0,.16);
 }
 .history-link-card:active{transform:translateY(0)}
+.history-trade-action{display:flex;align-items:center;justify-content:flex-end;min-width:0}
+.history-trade-action .btn{white-space:nowrap}
 button.history-link-card{
   font: inherit;
   color: var(--text);
@@ -354,3 +356,123 @@ button.history-link-card .btn{
 .forgot-msg:not(:empty){padding:12px 14px}
 .forgot-msg--success{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);color:#5fe3b5}
 .forgot-msg--error{background:rgba(255,91,91,.08);border:1px solid rgba(255,91,91,.3);color:#ff9d9d}
+
+/* Hide development page navigation bar in production UI */
+.devnav { display: none !important; }
+
+/* Product detail must remain visible after navigation */
+#pg-product-detail.active { display: block !important; visibility: visible !important; opacity: 1 !important; }
+#pg-product-detail .page-wrap { display: block !important; min-height: 400px; }
+#product-detail-content { display: block !important; visibility: visible !important; }
+
+/* ===== Review Modal ===== */
+.modal-overlay{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(5,9,18,.72);backdrop-filter:blur(4px)}
+.modal-card{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:24px;color:var(--text);box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.review-modal-card{max-height:min(720px,calc(100vh - 40px));overflow:auto}
+.review-modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+.review-modal-title{font-family:'Kanit',sans-serif;font-size:21px;font-weight:700}
+.review-modal-product{margin-top:4px;color:var(--muted);font-size:13px}
+.review-label{margin:0 0 8px;font-size:13px;font-weight:600;color:var(--text)}
+.review-label span{font-weight:400;color:var(--muted)}
+.review-stars{display:flex;gap:8px;margin:4px 0 20px}
+.review-stars button{border:0;background:transparent;color:#d1d5db;font-size:38px;line-height:1;padding:0;cursor:pointer;transition:transform .15s ease,color .15s ease}
+.review-stars button:hover{transform:scale(1.08);color:var(--gold)}
+#reviewComment{width:100%;min-height:120px;box-sizing:border-box;resize:vertical;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font-family:'Sarabun',sans-serif;font-size:14px;outline:none}
+#reviewComment:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accentDim)}
+#reviewComment::placeholder{color:var(--dim)}
+.review-message{min-height:18px;margin-top:10px;font-size:13px;color:var(--danger)}
+.review-modal-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:18px}.review-modal-actions .btn{min-height:42px;padding:10px 18px;font-size:14px;line-height:1.4;white-space:nowrap}.review-modal-actions #reviewSubmitBtn{min-width:112px}
+@media (max-width:600px){.modal-overlay{padding:12px}.modal-card{padding:18px}.review-modal-title{font-size:19px}.review-stars button{font-size:32px}}
+/* ===== Seller Rating Profile ===== */
+.profile-seller-rating{min-height:54px}
+.seller-rating-overview{display:flex;align-items:center;gap:14px;padding:4px 0 16px}
+.seller-rating-score{font-family:'Kanit',sans-serif;font-size:34px;font-weight:800;color:var(--gold);line-height:1}
+.seller-rating-stars,.seller-review-stars{display:flex;gap:2px;color:var(--dim);font-size:16px;line-height:1}
+.seller-rating-star.is-filled{color:var(--gold)}
+.seller-rating-count{margin-top:6px;color:var(--muted);font-size:12px}
+.seller-review-list{display:flex;flex-direction:column;gap:10px}
+.seller-review-item{padding:13px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card2)}
+.seller-review-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.seller-review-head strong{font-size:13px}
+.seller-review-head time{color:var(--dim);font-size:11px;white-space:nowrap}
+.seller-review-item p{margin-top:8px;color:#c3cee1;font-size:13px;line-height:1.65;white-space:pre-wrap}
+.seller-review-no-comment{color:var(--dim)!important}
+.seller-rating-empty,.seller-rating-loading{padding:12px 0;color:var(--muted);font-size:13px}
+@media(max-width:720px){.seller-review-head{gap:8px}.seller-rating-score{font-size:30px}}
+
+/* ===== Public Seller Profile ===== */
+.seller-public-page{max-width:1040px;margin:0 auto;padding:36px 36px 60px}
+.seller-public-hero{display:flex;align-items:center;gap:22px;padding:26px;background:linear-gradient(145deg,#171f31,#121a2a);border:1px solid var(--border2);border-radius:20px;margin-bottom:18px}
+.seller-public-avatar{width:88px;height:88px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:#fff;overflow:hidden;flex-shrink:0}
+.seller-public-avatar-img{width:100%;height:100%;object-fit:cover;display:block}
+.seller-public-main h1{font-family:'Kanit',sans-serif;font-size:30px;margin:0 0 7px}.seller-public-rating{font-size:16px}.seller-public-meta{color:var(--muted);font-size:13px;margin-top:7px}
+.seller-public-star{color:var(--border2);margin-right:1px}.seller-public-star.is-filled{color:var(--gold)}
+.seller-public-stats{margin-bottom:18px}.seller-public-stats .card{text-align:center}.seller-public-stats strong{display:block;font-family:'Kanit',sans-serif;font-size:28px;margin-bottom:2px}.seller-public-stats span{color:var(--muted);font-size:13px}
+.seller-public-section{margin-top:18px}.seller-public-section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px}.seller-public-section-head h2{margin:0;font-size:21px}.seller-public-section-head p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.seller-public-review{padding:14px 0;border-bottom:1px solid var(--border)}.seller-public-review:last-child{border-bottom:0}.seller-public-review-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.seller-public-review-head time{margin-left:auto;color:var(--muted);font-size:12px}.seller-public-review p{margin:7px 0 0;color:#cbd5e1;line-height:1.7}
+.seller-public-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.seller-public-products h3{font-size:15px;margin:10px 0 8px}.seller-public-products .card{padding:16px}.seller-public-empty{padding:24px;text-align:center;color:var(--muted);grid-column:1/-1}
+@media(max-width:720px){.seller-public-page{padding:24px 16px 48px}.seller-public-hero{align-items:flex-start}.seller-public-products{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.seller-public-hero{flex-direction:column;align-items:center;text-align:center}.seller-public-products{grid-template-columns:1fr}.seller-public-review-head time{margin-left:0;width:100%}}
+
+.seller-name-link,.product-detail-seller-link{border:0;background:transparent;padding:0;color:var(--accent2);font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+.seller-name-link:hover,.product-detail-seller-link:hover{text-decoration:underline;color:var(--accent)}
+
+/* ===== Seller Review Filters ===== */
+.seller-review-filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 18px}
+.seller-review-filter{display:inline-flex;align-items:center;justify-content:center;min-width:66px;height:36px;padding:0 13px;border:1px solid var(--border2);border-radius:9px;background:var(--card2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;line-height:1;cursor:pointer;transition:all .18s ease}
+.seller-review-filter:hover{border-color:var(--accent);color:var(--text);background:var(--accentDim)}
+.seller-review-filter.is-active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(59,130,246,.22)}
+@media(max-width:600px){.seller-review-filters{gap:6px}.seller-review-filter{min-width:58px;padding:0 10px}}
+
+/* ===== Seller Reply ===== */
+.seller-review-filters{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+.seller-review-filter{border:1px solid var(--border2);background:var(--card2);color:var(--muted);border-radius:9px;padding:7px 12px;font:600 13px 'Sarabun',sans-serif;cursor:pointer;transition:.2s}
+.seller-review-filter:hover{border-color:var(--accent);color:var(--text)}
+.seller-review-filter.is-active{background:var(--accentDim);border-color:var(--accent);color:var(--accent2)}
+.seller-public-reply{margin-top:12px;padding:11px 13px;border-left:3px solid var(--accent);background:var(--card2);border-radius:0 10px 10px 0}
+.seller-public-reply strong{color:var(--accent2);font-size:13px}
+.seller-public-reply p{margin:5px 0 0!important;color:var(--text)!important}
+.seller-public-reply time{display:block;margin-top:5px;color:var(--dim);font-size:11px}
+.seller-reply-btn{margin-top:10px;border:1px solid var(--border2);background:transparent;color:var(--accent2);border-radius:8px;padding:6px 11px;font:600 12px 'Sarabun',sans-serif;cursor:pointer}
+.seller-reply-btn:hover{background:var(--accentDim);border-color:var(--accent)}
+.seller-reply-modal{width:min(520px,calc(100vw - 24px))}
+#sellerReplyInput{width:100%;min-height:120px;resize:vertical;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font:14px/1.6 'Sarabun',sans-serif;outline:none}
+#sellerReplyInput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accentDim)}
+
+/* ===== Review Report ===== */
+.seller-report-btn{display:inline-flex;align-items:center;margin-top:10px;padding:5px 10px;border:1px solid rgba(239,68,68,.28);border-radius:8px;background:rgba(239,68,68,.08);color:#fca5a5;font:500 12px 'Sarabun',sans-serif;cursor:pointer}
+.seller-report-btn:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.45);color:#fecaca}
+.review-report-modal{width:min(100%,520px);max-height:calc(100vh - 40px);overflow:auto}
+.review-report-reasons{display:grid;gap:8px;margin:4px 0 18px}
+.review-report-reasons label{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card2);color:var(--muted);font-size:13px;cursor:pointer}
+.review-report-reasons label:hover{border-color:var(--border2);color:var(--text)}
+.review-report-reasons input{accent-color:var(--accent)}
+#reviewReportDescription{width:100%;box-sizing:border-box;resize:vertical;min-height:100px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font:14px 'Sarabun',sans-serif;outline:none}
+#reviewReportDescription:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accentDim)}
+
+/* ===== Transaction Report Modal ===== */
+.transaction-report-modal{width:min(680px,calc(100vw - 40px));max-height:calc(100vh - 40px);overflow:auto;padding:30px 32px}
+.transaction-report-modal .review-modal-title{font-size:24px}
+.transaction-report-modal .review-modal-product{font-size:14px}
+.transaction-report-modal .review-label{font-size:14px;margin-top:2px}
+.transaction-report-modal .review-report-reasons{gap:10px;margin-bottom:22px}
+.transaction-report-modal .review-report-reasons label{min-height:48px;box-sizing:border-box;padding:12px 15px;font-size:14px}
+#transactionReportDescription{width:100%;min-height:120px;box-sizing:border-box;resize:vertical;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px 14px;font:14px/1.6 'Sarabun',sans-serif;outline:none}
+#transactionReportDescription:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accentDim)}
+#transactionReportDescription::placeholder{color:var(--dim)}
+.transaction-report-modal .review-modal-actions{margin-top:20px;gap:10px}
+.transaction-report-modal .review-modal-actions .btn{min-height:44px;padding:10px 22px;font-size:14px}
+@media(max-width:600px){.transaction-report-modal{width:calc(100vw - 24px);padding:22px 18px}.transaction-report-modal .review-modal-title{font-size:21px}.transaction-report-modal .review-report-reasons label{font-size:13px}}
+/* ===== Admin Transaction Detail ===== */
+.admin-transaction-detail-modal{width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;padding:30px 32px}
+.admin-report-detail-status{display:flex;gap:8px;flex-wrap:wrap;margin:-8px 0 20px}
+.admin-report-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.admin-report-detail-grid>div{padding:13px 15px;border:1px solid var(--border);border-radius:12px;background:var(--card2)}
+.admin-report-detail-grid span{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+.admin-report-detail-grid strong{font-size:14px;color:var(--text);font-weight:600}
+.admin-detail-block{margin-top:14px}
+.admin-detail-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px}
+.admin-detail-description{min-height:90px;padding:13px 15px;border:1px solid var(--border);border-radius:12px;background:var(--card2);color:#d6def6;line-height:1.7;font-size:13px;white-space:pre-wrap}
+#adminTransactionDetailNote{width:100%;min-height:100px;box-sizing:border-box;resize:vertical;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:12px 14px;font:14px/1.6 'Sarabun',sans-serif;outline:none}
+#adminTransactionDetailNote:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accentDim)}
+@media(max-width:600px){.admin-transaction-detail-modal{width:calc(100vw - 20px);padding:22px 18px}.admin-report-detail-grid{grid-template-columns:1fr}}

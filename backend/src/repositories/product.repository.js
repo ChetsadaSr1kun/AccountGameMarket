@@ -39,6 +39,15 @@ async function findByIdForSeller(sellerId, productId, executor = pool) {
   return mapProduct(rows[0]);
 }
 
+async function listAttributeValues(productId, executor = pool) {
+  const [rows] = await executor.execute(
+    `SELECT game_attribute_id, game_attribute_option_id, value_text, value_number, value_boolean
+     FROM product_attribute_values WHERE product_id = ?`,
+    [productId],
+  );
+  return rows;
+}
+
 async function findGame(gameId, executor = pool) {
   const [rows] = await executor.execute(
     "SELECT id, name, slug, status FROM games WHERE id = ? LIMIT 1",
@@ -116,6 +125,6 @@ async function deleteByIdForSeller(productId, sellerId, executor = pool) {
 }
 
 module.exports = {
-  listBySeller, findByIdForSeller, findGame, findAttributesByIds, findOptionsByIds,
+  listBySeller, findByIdForSeller, listAttributeValues, findGame, findAttributesByIds, findOptionsByIds,
   create, update, replaceAttributeValues, deleteByIdForSeller,
 };

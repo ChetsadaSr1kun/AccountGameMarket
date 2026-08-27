@@ -14,30 +14,82 @@ const otpCooldowns = {
 
 const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
-const adminPages = ['admin-dashboard','admin-games','admin-chat-log','admin-withdraw','admin-report','admin-suspended-users'];
+const adminPages = ['admin-dashboard','admin-games','admin-seller-verifications','admin-chat-log','admin-withdraw','admin-topup','admin-report','admin-suspended-users'];
 const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat',
-  'order-confirm','order-otp','order-success','order-info','review','user-report',
-  'seller-verify','add-listing','edit-listing','my-listings'];
-const guestPages = ['home','login','register','forgot','otp-reset','reset-success','listings','product'];
+  'order-confirm','order-otp','order-success','order-info','order-detail','review','user-report',
+  'seller-verify','add-listing','edit-listing','my-listings','seller-profile'];
+const guestPages = ['home','login','register','forgot','otp-reset','reset-success','listings','product','product-detail'];
 
 // ===================== NAVIGATION =====================
 function goPage(pageId) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Approved sellers should go directly to the create-listing page.
+  if (pageId === 'seller-verify' && currentUser?.roles?.includes('SELLER')) pageId = 'add-listing';
+
+  if (adminPages.includes(pageId) && (!isLoggedIn || !isAdmin)) {
+    clearClientAuthState();
+    pageId = 'login';
+  } else if (userPages.includes(pageId) && !isLoggedIn) {
+    pageId = 'login';
+  }
+
+  document.querySelectorAll('.page').forEach((p) => {
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
+
   const pg = document.getElementById('pg-' + pageId);
-  if (pg) { pg.classList.add('active'); currentPage = pageId; }
+  if (!pg) {
+    console.error(`Page not found: ${pageId}`);
+    return;
+  }
+
+  pg.classList.add('active');
+  // Force the selected page visible even if a stale or legacy CSS rule overrides .page.active.
+  pg.style.setProperty('display', 'block', 'important');
+  currentPage = pageId;
   updateNav();
   updateDevBtns();
   renderAdminSidebars();
+  if (pageId === 'seller-verify') window.loadSellerVerificationStatus?.();
+  if (pageId === 'add-listing') {
+    if (!window.editingProductId) window.resetCreateProductEditorMode?.();
+    window.loadCreateProductGames?.();
+    const attributes = document.getElementById('create-product-attributes');
+    if (attributes && !window.editingProductId) attributes.innerHTML = 'เลือกเกมเพื่อโหลดรายละเอียด';
+  }
+  if (pageId === 'my-listings') window.loadMyProducts?.();
+  if (pageId === 'profile') window.loadProfileSellerRating?.();
+  if (pageId === 'wallet' || pageId === 'history') {
+    window.loadWallet?.();
+    if (pageId === 'history') window.loadTradeHistory?.();
+    if (pageId === 'wallet') window.loadWalletTopupRequests?.();
+  }
+  if (pageId === 'admin-seller-verifications') window.loadAdminSellerVerificationRequests?.();
+  if (pageId === 'admin-topup') window.loadAdminTopupRequests?.();
+  if (pageId === 'admin-withdraw') window.loadAdminWithdrawalRequests?.();
+  if (pageId === 'admin-report') window.loadAdminTransactionReports?.();
+  if (pageId === 'admin-dashboard') window.loadAdminDashboardSummary?.();
+  if (pageId === 'admin-games') window.adminInitGames?.();
+  if (pageId === 'admin-suspended-users') window.adminLoadSuspendedUsers?.();
+  if (pageId === 'admin-chat-log') window.loadAdminChatLog?.();
+  if (pageId === 'chat') window.loadChatPage?.();
   window.scrollTo(0,0);
 }
 
 function loginAndGo(pageId) {
-  isLoggedIn = true; isAdmin = false;
+  if (!isLoggedIn || isAdmin) {
+    goPage(isAdmin ? 'admin-dashboard' : 'login');
+    return;
+  }
   goPage(pageId);
 }
 
 function goAdmin(pageId) {
-  isLoggedIn = true; isAdmin = true;
+  if (!isLoggedIn || !isAdmin) {
+    clearClientAuthState();
+    goPage('login');
+    return;
+  }
   goPage(pageId);
 }
 
@@ -126,12 +178,20 @@ function updateNav() {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='admin-dashboard'?'active':''}" onclick="goAdmin('admin-dashboard')">📊 Dashboard</button>
       <button class="nav-btn ${currentPage==='admin-games'?'active':''}" onclick="goAdmin('admin-games')">🎮 หมวดหมู่</button>
+      <button class="nav-btn ${currentPage==='admin-seller-verifications'?'active':''}" onclick="goAdmin('admin-seller-verifications')">🪪 ตรวจสอบผู้ขาย</button>
       <button class="nav-btn ${currentPage==='admin-chat-log'?'active':''}" onclick="goAdmin('admin-chat-log')">💬 ประวัติแชท</button>
       <button class="nav-btn ${currentPage==='admin-withdraw'?'active':''}" onclick="goAdmin('admin-withdraw')">💸 ถอนเงิน</button>
       <button class="nav-btn ${currentPage==='admin-report'?'active':''}" onclick="goAdmin('admin-report')">🚨 รายงาน</button>
       <button class="nav-btn ${currentPage==='admin-suspended-users'?'active':''}" onclick="goAdmin('admin-suspended-users')">⛔ ผู้ใช้ถูกระงับ</button>
     `;
     rightEl.innerHTML = `<span style="color:var(--muted);font-size:13px">Admin Panel</span><button class="btn btn-secondary btn-sm" onclick="logout()">ออกจากระบบ</button>`;
+    const adminPage = document.getElementById('pg-' + currentPage);
+    if (adminPage && adminPages.includes(currentPage)) {
+      adminPage.classList.add('active');
+      adminPage.style.setProperty('display', 'block', 'important');
+      adminPage.style.setProperty('visibility', 'visible', 'important');
+      adminPage.style.setProperty('opacity', '1', 'important');
+    }
   } else if (isLoggedIn) {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='home-user'?'active':''}" onclick="loginAndGo('home-user')">หน้าแรก</button>
@@ -141,7 +201,7 @@ function updateNav() {
       <button class="nav-btn ${currentPage==='wallet'?'active':''}" onclick="loginAndGo('wallet')">💰 กระเป๋าตัง</button>
     `;
     rightEl.innerHTML = `
-      <span style="color:var(--muted);font-size:13px">💰 5,420 pts</span>
+      <span id="walletNavBalance" style="color:var(--muted);font-size:13px">💰 0 pts</span>
       <div class="dropdown">
         <div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:18px;cursor:pointer;overflow:hidden" onclick="toggleDropdown()">${avatarContent(username, currentUser?.avatarUrl)}</div>
         <div class="dropdown-menu" id="userDropdown">
@@ -154,6 +214,7 @@ function updateNav() {
         </div>
       </div>
     `;
+    window.refreshWalletNavBalance?.();
   } else {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='home'?'active':''}" onclick="goPage('home')">หน้าแรก</button>
@@ -231,6 +292,14 @@ function applyCurrentUser(user) {
   }
 
   updateNav();
+
+  // Restore the correct SPA page after authentication is recovered.
+  const isAdminPage = adminPages.includes(currentPage);
+  if (isAdmin && !isAdminPage) {
+    goPage('admin-dashboard');
+  } else if (!isAdmin && isLoggedIn && isAdminPage) {
+    goPage('home-user');
+  }
 }
 
 function clearClientAuthState() {
@@ -343,11 +412,13 @@ const adminNavItems = [
   ['admin-games','🎮','หมวดหมู่เกม'],
   ['admin-chat-log','💬','ประวัติแชท'],
   ['admin-withdraw','💸','อนุมัติถอนเงิน'],
+  ['admin-topup','➕','อนุมัติเติมพ้อยท์'],
+  ['admin-seller-verifications','🪪','ตรวจสอบผู้ขาย'],
   ['admin-report','🚨','รายงาน'],
   ['admin-suspended-users','⛔','รายชื่อผู้ใช้ที่ถูกระงับ'],
 ];
 function renderAdminSidebars() {
-  ['','2','3','4','5','6'].forEach(sfx => {
+  ['','2','3','4','5','6','7','8'].forEach(sfx => {
     const el = document.getElementById('adminSidebar'+sfx);
     if (!el) return;
     el.innerHTML = `
@@ -373,12 +444,31 @@ function updateDevBtns() {
 // ===================== TABS =====================
 function switchTab(btn, contentId) {
   const tabGroup = btn.closest('.card') || btn.closest('.page');
-  tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const tabButtons = [...tabGroup.querySelectorAll('.tab-btn')];
+
+  tabButtons.forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const tabContents = tabGroup.querySelectorAll('[id]');
-  tabContents.forEach(tc => { tc.style.display = 'none'; });
+
+  // ซ่อนเฉพาะ content ของแท็บ ไม่ใช่ทุก element ที่มี id
+  // เพื่อไม่ให้ input และ element ภายในแท็บถูกซ่อนไปด้วย
+  const tabIds = tabButtons
+    .map((b) => {
+      const match = (b.getAttribute('onclick') || '').match(/switchTab\(this,'([^']+)'\)/);
+      return match ? match[1] : null;
+    })
+    .filter(Boolean);
+
+  tabIds.forEach((id) => {
+    const content = document.getElementById(id);
+    if (content) content.style.display = 'none';
+  });
+
   const target = document.getElementById(contentId);
   if (target) target.style.display = 'block';
+
+  if (contentId === 'hist-tx' && typeof window.loadHistoryWalletTransactions === 'function') {
+    window.loadHistoryWalletTransactions();
+  }
 }
 
 // ===================== OTP =====================
@@ -1132,3 +1222,53 @@ restoreSession();
         goPage('otp-reset');
     }
 }());
+
+// ===================== PUBLIC MARKETPLACE LISTINGS =====================
+function publicListingEscape(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function publicListingCard(product) {
+  const image = product.primaryImageUrl
+    ? `<img src="${publicListingEscape(product.primaryImageUrl)}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px"/>`
+    : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">🎮</div>`;
+  return `<div class="card card-hover" onclick="openProductDetail(${Number(product.id)})" style="cursor:pointer">
+    ${image}<span class="badge badge-gray" style="margin-bottom:8px">${publicListingEscape(product.game?.name || '-')}</span>
+    <div style="font-weight:600;font-size:14px;margin-bottom:4px">${publicListingEscape(product.title)}</div>
+    <div style="color:var(--muted);font-size:12px;margin-bottom:10px">ผู้ขาย: ${publicListingEscape(product.seller?.username || '-')}</div>
+    <div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">${Number(product.price || 0).toLocaleString('th-TH')} ฿</span><span style="font-size:12px;color:var(--muted)">ดูรายละเอียด →</span></div>
+  </div>`;
+}
+
+async function loadMarketplaceListings(pageId) {
+  const page = document.getElementById(`pg-${pageId}`);
+  if (!page) return;
+  const grids = page.querySelectorAll('.grid3');
+  const target = grids[grids.length - 1];
+  if (!target) return;
+  target.innerHTML = '<div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้า...</div>';
+  try {
+    const response = await fetch('/api/v1/products?pageSize=50', { credentials: 'include' });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error?.message || 'โหลดรายการสินค้าไม่สำเร็จ');
+    const data = body.data || body;
+    const count = Array.from(page.querySelectorAll('span')).find(el => /^พบ \d+ รายการ$/.test(el.textContent.trim()));
+    if (count) count.textContent = `พบ ${data.total || 0} รายการ`;
+    target.innerHTML = data.items?.length
+      ? data.items.map(publicListingCard).join('')
+      : '<div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">ยังไม่มีสินค้าที่เปิดขาย</div>';
+  } catch (error) {
+    console.error('loadMarketplaceListings failed:', error);
+    target.innerHTML = `<div class="notice danger" style="grid-column:1/-1">${publicListingEscape(error.message || 'โหลดรายการสินค้าไม่สำเร็จ')}</div>`;
+  }
+}
+
+const originalGoPageForMarketplace = goPage;
+goPage = function(pageId) {
+  originalGoPageForMarketplace(pageId);
+  const resolved = (pageId === 'seller-verify' && currentUser?.roles?.includes('SELLER')) ? 'add-listing' : pageId;
+  if (resolved === 'listings' || resolved === 'listings-user') loadMarketplaceListings(resolved);
+};
+window.loadMarketplaceListings = loadMarketplaceListings;
+
+

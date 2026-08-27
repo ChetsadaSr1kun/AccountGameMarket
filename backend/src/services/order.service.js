@@ -1,0 +1,115 @@
+const orderRepository = require('../repositories/order.repository');
+const { withTransaction } = require('../utils/transaction');
+const AppError = require('../utils/app-error');
+const { loadCredentials } = require('./product.service');
+
+async function createOrder(user, productId) {
+  if (!user.accountVerified) {
+    throw new AppError('Please verify your email and phone number before purchasing.', 403, 'ACCOUNT_NOT_VERIFIED');
+  }
+
+  return withTransaction(async (connection) => {
+    const product = await orderRepository.findProductForPurchase(productId, connection);
+    if (!product) throw new AppError('Product not found.', 404, 'PRODUCT_NOT_FOUND');
+    if (product.status !== 'ACTIVE') throw new AppError('This product is no longer available.', 409, 'PRODUCT_NOT_AVAILABLE');
+    if (Number(product.seller_id) === Number(user.id)) throw new AppError('You cannot purchase your own product.', 400, 'OWN_PRODUCT');
+
+    const existing = await orderRepository.findPendingByBuyerAndProduct(user.id, productId, connection);
+    if (existing) return existing;
+
+    const orderId = await orderRepository.create({
+      productId: Number(product.id), buyerId: Number(user.id), sellerId: Number(product.seller_id), amount: Number(product.price),
+    }, connection);
+    return orderRepository.findByIdForUser(orderId, user.id, connection);
+  });
+}
+
+async function payOrder(user, orderId) {
+  if (!user.accountVerified) {
+    throw new AppError('Please verify your email and phone number before purchasing.', 403, 'ACCOUNT_NOT_VERIFIED');
+  }
+
+  return withTransaction(async (connection) => {
+    const order = await orderRepository.findByIdForPayment(orderId, user.id, connection);
+    if (!order) throw new AppError('Order not found.', 404, 'ORDER_NOT_FOUND');
+    if (order.status !== 'PENDING') throw new AppError('This order cannot be paid.', 409, 'ORDER_NOT_PAYABLE');
+    if (order.product_status !== 'ACTIVE') throw new AppError('This product is no longer available.', 409, 'PRODUCT_NOT_AVAILABLE');
+
+    const [walletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [user.id]);
+    const balance = walletRows[0] ? Number(walletRows[0].balance) : 0;
+    const amount = Number(order.amount);
+    const [withdrawalRows] = await connection.execute(`SELECT COALESCE(SUM(amount),0) AS pending_withdrawal
+      FROM withdrawal_requests WHERE user_id=? AND status='PENDING'`, [user.id]);
+    const pendingWithdrawal = Number(withdrawalRows[0]?.pending_withdrawal || 0);
+    const availableBalance = balance - pendingWithdrawal;
+    if (availableBalance < amount) throw new AppError('Insufficient available wallet balance. Some points are currently reserved for a pending withdrawal.', 400, 'INSUFFICIENT_AVAILABLE_BALANCE');
+
+    const newBalance = balance - amount;
+    await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newBalance, user.id]);
+    await connection.execute(`INSERT INTO wallet_transactions
+      (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note)
+      VALUES (?,'PURCHASE',?,?,?,?,?)`, [user.id, amount, newBalance, 'ORDER', order.id, `ชำระค่าสินค้า Order #${order.id}`]);
+    await orderRepository.markPaidAndProductSold(order.id, order.product_id, connection);
+    return orderRepository.findByIdForUser(order.id, user.id, connection);
+  });
+}
+
+
+async function confirmOrderReceived(userId, orderId) {
+  return withTransaction(async (connection) => {
+    const order = await orderRepository.findByIdForConfirmation(orderId, userId, connection);
+    if (!order) throw new AppError('Order not found.', 404, 'ORDER_NOT_FOUND');
+    if (order.status === 'COMPLETED') throw new AppError('This order has already been completed.', 409, 'ORDER_ALREADY_COMPLETED');
+    if (order.status !== 'PAID') throw new AppError('This order cannot be confirmed yet.', 409, 'ORDER_NOT_CONFIRMABLE');
+
+    await connection.execute('INSERT INTO wallets (user_id, balance) VALUES (?, 0) ON DUPLICATE KEY UPDATE user_id=user_id', [order.sellerId]);
+    const [walletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [order.sellerId]);
+    const newBalance = Number(walletRows[0].balance) + Number(order.amount);
+    await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newBalance, order.sellerId]);
+    await connection.execute("INSERT INTO wallet_transactions (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note) VALUES (?,'SALE',?,?,?,?,?)", [order.sellerId, order.amount, newBalance, 'ORDER', order.id, 'ผู้ซื้อยืนยันว่าได้รับสินค้าแล้ว']);
+    await orderRepository.markCompleted(order.id, connection);
+    return orderRepository.findByIdForUser(order.id, userId, connection);
+  });
+}
+
+async function releaseExpiredSellerFunds() {
+  return withTransaction(async (connection) => {
+    const orders = await orderRepository.findExpiredHeldOrders(connection);
+    for (const order of orders) {
+      await connection.execute('INSERT INTO wallets (user_id, balance) VALUES (?, 0) ON DUPLICATE KEY UPDATE user_id=user_id', [order.sellerId]);
+      const [walletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [order.sellerId]);
+      const newBalance = Number(walletRows[0].balance) + Number(order.amount);
+      await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newBalance, order.sellerId]);
+      await connection.execute("INSERT INTO wallet_transactions (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note) VALUES (?,'SALE',?,?,?,?,?)", [order.sellerId, order.amount, newBalance, 'ORDER', order.id, 'รับเงินจากการขาย ครบกำหนดพักเงิน 24 ชั่วโมง']);
+      await orderRepository.markCompleted(order.id, connection);
+    }
+    return orders.length;
+  });
+}
+
+async function listOrders(userId) {
+  return orderRepository.listByUser(userId);
+}
+
+async function getOrder(userId, orderId) {
+  const order = await orderRepository.findByIdForUser(orderId, userId);
+  if (!order) throw new AppError('Order not found.', 404, 'ORDER_NOT_FOUND');
+  return order;
+}
+
+async function getOrderCredentials(userId, orderId) {
+  const order = await orderRepository.findByIdForUser(orderId, userId);
+  if (!order) throw new AppError('Order not found.', 404, 'ORDER_NOT_FOUND');
+  if (order.status !== 'PAID') throw new AppError('Account credentials are available after successful payment only.', 403, 'ORDER_NOT_PAID');
+
+  const productId = order.productId ?? order.product_id;
+  if (!Number.isInteger(Number(productId)) || Number(productId) <= 0) {
+    throw new AppError('Invalid product information for this order.', 500, 'INVALID_ORDER_PRODUCT');
+  }
+
+  const credentials = await loadCredentials(Number(productId));
+  if (!credentials) throw new AppError('Account credentials are not available.', 404, 'CREDENTIALS_NOT_FOUND');
+  return credentials;
+}
+
+module.exports = { createOrder, payOrder, listOrders, getOrder, getOrderCredentials, confirmOrderReceived, releaseExpiredSellerFunds };

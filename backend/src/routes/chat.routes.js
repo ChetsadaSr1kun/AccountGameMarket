@@ -1,0 +1,12 @@
+﻿const express=require('express');
+const router=express.Router();
+const c=require('../controllers/chat.controller');
+const {authenticate,authorize}=require('../middleware/auth.middleware');
+const {requireCsrf}=require('../middleware/csrf.middleware');
+router.use(authenticate);
+router.get('/',c.list);
+router.post('/',requireCsrf,c.open);
+router.get('/admin/logs',authorize('ADMIN'),c.adminList);
+router.get('/:id',c.detail);
+router.post('/:id/messages',requireCsrf,c.send);
+module.exports=router;

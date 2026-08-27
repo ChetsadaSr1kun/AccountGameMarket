@@ -8,7 +8,7 @@
     "dev": "node --watch backend/src/server.js",
     "db:migrate": "node scripts/run-migrations.js",
     "db:create-admin": "node scripts/create-admin.js",
-    "test": "node --require ./test/helpers/test-environment.js --test --test-concurrency=1 test/auth/auth.integration.test.js test/user/user.integration.test.js test/marketplace/marketplace.foundation.integration.test.js test/marketplace/product.api.integration.test.js test/frontend/avatar-confirmation.contract.test.js test/frontend/phone-format.test.js test/services/sms.service.test.js"
+    "test": "node --require ./test/helpers/test-environment.js --test --test-concurrency=1 test/auth/auth.integration.test.js test/user/user.integration.test.js test/marketplace/marketplace.foundation.integration.test.js test/marketplace/product.api.integration.test.js test/marketplace/game-admin.integration.test.js test/marketplace/transaction-report.security.integration.test.js test/marketplace/transaction-report.user-flow.integration.test.js test/frontend/avatar-confirmation.contract.test.js test/frontend/phone-format.test.js test/services/sms.service.test.js"
   },
   "repository": {
     "type": "git",

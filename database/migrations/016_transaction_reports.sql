@@ -1,0 +1,22 @@
+CREATE TABLE transaction_reports (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  order_id BIGINT UNSIGNED NOT NULL,
+  reporter_id BIGINT UNSIGNED NOT NULL,
+  reported_id BIGINT UNSIGNED NOT NULL,
+  reason VARCHAR(40) NOT NULL,
+  description VARCHAR(500) NULL,
+  status ENUM('PENDING','REVIEWED','DISMISSED','RESOLVED') NOT NULL DEFAULT 'PENDING',
+  admin_note VARCHAR(500) NULL,
+  resolved_at DATETIME NULL,
+  resolved_by BIGINT UNSIGNED NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_transaction_report (order_id, reporter_id),
+  KEY idx_transaction_reports_status (status),
+  KEY idx_transaction_reports_order (order_id),
+  CONSTRAINT fk_transaction_reports_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_transaction_reports_reporter FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_transaction_reports_reported FOREIGN KEY (reported_id) REFERENCES users(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_transaction_reports_resolver FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -37,6 +37,13 @@ async function register(label, overrides = {}) {
   return { payload, cookies: cookiesFrom(response) };
 }
 
+async function promoteRegisteredUserToSeller(email) {
+  const [users] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
+  const [roles] = await pool.execute("SELECT id FROM roles WHERE code = 'SELLER'");
+  await pool.execute('INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)', [users[0].id, roles[0].id]);
+  await pool.execute("UPDATE users SET account_mode = 'UNIFIED' WHERE id = ?", [users[0].id]);
+}
+
 async function createUserDirect(email, username, accountMode = 'SELLER_ONLY') {
   const passwordHash = await hashPassword('TestPassword123');
   const [result] = await pool.execute(
@@ -69,6 +76,8 @@ before(async () => {
   await cleanup();
   const seller = await register('seller');
   const sellerB = await register('seller_b');
+  await promoteRegisteredUserToSeller(seller.payload.email);
+  await promoteRegisteredUserToSeller(sellerB.payload.email);
   sellerCookies = seller.cookies;
   sellerBCookies = sellerB.cookies;
 });

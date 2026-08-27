@@ -29,12 +29,9 @@ function publicUser(user) {
   };
 }
 
-function registrationPolicy(accountType) {
-  if (config.accountMode === 'UNIFIED') {
-    return { accountMode: 'UNIFIED', roles: ['CUSTOMER', 'SELLER'] };
-  }
-
-  if (accountType === 'SELLER') return { accountMode: 'SELLER_ONLY', roles: ['SELLER'] };
+function registrationPolicy() {
+  // Every public registration starts as a buyer/customer.
+  // SELLER is granted only after account verification and admin approval.
   return { accountMode: 'CUSTOMER_ONLY', roles: ['CUSTOMER'] };
 }
 

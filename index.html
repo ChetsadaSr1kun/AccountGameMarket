@@ -7,6 +7,7 @@
 <title>GameMarket — ตลาดซื้อขายไอดีเกม</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&amp;family=Sarabun:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/product-detail.css">
 </head>
 <body>
 <!-- ===================== NAVBAR ===================== -->
@@ -58,6 +59,7 @@
 <button class="devbtn" onclick="goAdmin('admin-chat-log')">💬 แชทLog</button>
 <button class="devbtn" onclick="goAdmin('admin-withdraw')">💸 ถอนเงิน</button>
 <button class="devbtn" onclick="goAdmin('admin-report')">🚨 รายงาน</button>
+<button class="devbtn" onclick="goAdmin('admin-seller-verifications')">🪪 ตรวจสอบผู้ขาย</button>
 </div>
 <!-- ===================== PAGES ===================== -->
 <div id="pages">
@@ -816,6 +818,13 @@
 </div>
 </div>
 </div>
+<!-- ======== PAGE: ORDER DETAIL ======== -->
+<div class="page" id="pg-order-detail">
+  <div class="container" style="padding-top:36px;padding-bottom:60px">
+    <div id="order-detail-content"></div>
+  </div>
+</div>
+
 <!-- ======== PAGE: PROFILE ======== -->
 <div class="page" id="pg-profile">
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:820px">
@@ -841,6 +850,10 @@
 <!-- Right column -->
 <div>
 <!-- Personal info — read-only -->
+<div class="card" style="margin-bottom:16px">
+<h4 style="font-weight:700;margin-bottom:12px">⭐ คะแนนผู้ขาย</h4>
+<div id="profileSellerRating" class="profile-seller-rating">กำลังโหลดคะแนน...</div>
+</div>
 <div class="card" style="margin-bottom:16px">
 <h4 style="font-weight:700;margin-bottom:20px">ข้อมูลส่วนตัว</h4>
 <div class="grid2" style="gap:12px">
@@ -919,7 +932,8 @@
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:900px">
 <div class="sec-header"><div class="sec-title">💰 ฝาก / ถอน พ้อยท์</div><div class="sec-sub">จัดการยอดพ้อยท์ในบัญชีของคุณ</div></div>
 <div class="grid3" style="margin-bottom:28px">
-<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--accent)">5,420</div><div class="stat-label">พ้อยท์คงเหลือ</div></div>
+<div class="card stat-card"><div style="font-size:24px">💰</div><div id="walletBalance" class="stat-val" style="color:var(--accent)">0</div><div class="stat-label">พ้อยท์ที่ใช้ได้</div></div>
+<div id="walletPendingWithdrawalCard" class="card stat-card" style="display:none"><div style="font-size:24px">🔒</div><div id="walletPendingWithdrawalAmount" class="stat-val" style="color:#8b94a7">0</div><div class="stat-label">กำลังถอน</div><div style="font-size:12px;color:var(--muted);margin-top:4px">รอ Admin ตรวจสอบ</div></div>
 <div class="card stat-card"><div style="font-size:24px">📥</div><div class="stat-val" style="color:var(--success)">10,000</div><div class="stat-label">ฝากทั้งหมด</div></div>
 <div class="card stat-card"><div style="font-size:24px">📤</div><div class="stat-val" style="color:var(--warn)">4,580</div><div class="stat-label">ถอนทั้งหมด</div></div>
 </div>
@@ -932,34 +946,25 @@
 <div style="max-width:480px">
 <h4 style="font-weight:700;margin-bottom:16px">เลือกช่องทางชำระเงิน</h4>
 <div class="grid2" style="gap:10px;margin-bottom:18px">
-<div class="card" style="padding:14px;cursor:pointer;text-align:center;font-size:14px;border:1px solid var(--accent)">💳 บัตรเครดิต/เดบิต</div>
-<div class="card" style="padding:14px;cursor:pointer;text-align:center;font-size:14px">🏦 โอนผ่านธนาคาร</div>
-<div class="card" style="padding:14px;cursor:pointer;text-align:center;font-size:14px">📱 พร้อมเพย์</div>
-<div class="card" style="padding:14px;cursor:pointer;text-align:center;font-size:14px">💰 TrueMoney</div>
+<div class="card" data-wallet-payment-method style="padding:14px;cursor:pointer;text-align:center;font-size:14px;border:1px solid var(--accent)" onclick="selectWalletPaymentMethod('CARD',this)">💳 บัตรเครดิต/เดบิต</div>
+<div class="card" data-wallet-payment-method style="padding:14px;cursor:pointer;text-align:center;font-size:14px" onclick="selectWalletPaymentMethod('BANK',this)">🏦 โอนผ่านธนาคาร</div>
+<div class="card" data-wallet-payment-method style="padding:14px;cursor:pointer;text-align:center;font-size:14px" onclick="selectWalletPaymentMethod('PROMPTPAY',this)">📱 พร้อมเพย์</div>
+<div class="card" data-wallet-payment-method style="padding:14px;cursor:pointer;text-align:center;font-size:14px" onclick="selectWalletPaymentMethod('TRUEMONEY',this)">💰 TrueMoney</div>
 </div>
-<div class="inp-group"><label class="inp-label">จำนวนพ้อยท์ที่ต้องการฝาก</label><input class="inp" placeholder="กรอกจำนวน (ขั้นต่ำ 100)"/></div>
+<div class="inp-group"><label class="inp-label">จำนวนพ้อยท์ที่ต้องการฝาก</label><input id="walletTopupAmount" class="inp" type="number" min="10" placeholder="กรอกจำนวน (ขั้นต่ำ 10)"/></div>
 <div class="flex gap-8" style="margin-bottom:18px">
-<button class="btn btn-secondary btn-sm">100</button>
-<button class="btn btn-secondary btn-sm">500</button>
-<button class="btn btn-secondary btn-sm">1,000</button>
-<button class="btn btn-secondary btn-sm">2,000</button>
+<button class="btn btn-secondary btn-sm" onclick="setWalletTopupAmount(10)">10</button>
+<button class="btn btn-secondary btn-sm" onclick="setWalletTopupAmount(100)">100</button>
+<button class="btn btn-secondary btn-sm" onclick="setWalletTopupAmount(500)">500</button>
+<button class="btn btn-secondary btn-sm" onclick="setWalletTopupAmount(1000)">1,000</button>
+<button class="btn btn-secondary btn-sm" onclick="setWalletTopupAmount(2000)">2,000</button>
 </div>
-<button class="btn btn-primary btn-md btn-full">✅ ดำเนินการชำระเงิน</button>
-</div>
-</div>
-<div id="wallet-withdraw" style="display:none">
-<div style="max-width:480px">
-<h4 style="font-weight:700;margin-bottom:16px">ถอนพ้อยท์ไปยังบัญชีธนาคาร</h4>
-<div class="inp-group"><label class="inp-label">ธนาคาร</label><select class="inp"><option>เลือกธนาคาร</option><option>SCB</option><option>KBank</option><option>BBL</option><option>KTB</option></select></div>
-<div class="inp-group"><label class="inp-label">เลขบัญชีธนาคาร</label><input class="inp" placeholder="กรอกเลขบัญชี"/></div>
-<div class="inp-group"><label class="inp-label">จำนวนพ้อยท์ที่ต้องการถอน</label><input class="inp" placeholder="พ้อยท์คงเหลือ: 5,420"/></div>
-<div class="notice warn" style="margin-bottom:16px">⚠️ การถอนจะถูกตรวจสอบโดย Admin ภายใน 1–3 วันทำการ</div>
-<button class="btn btn-primary btn-md btn-full">📤 ส่งคำขอถอนพ้อยท์</button>
+<div id="walletTopupMessage" style="margin-bottom:12px"></div>
+<button class="btn btn-primary btn-md btn-full" onclick="createWalletTopupRequest()">➕ สร้างคำขอเติมพ้อยท์</button>
 </div>
 </div>
-</div>
-</div>
-</div>
+<div id="wallet-withdraw" style="display:none"><div style="max-width:480px"><h4 style="font-weight:700;margin-bottom:8px">ถอนพ้อยท์</h4><div style="font-size:12px;color:var(--muted);margin-bottom:16px">ถอนขั้นต่ำ 100 พ้อยท์ • คำขอจะถูกตรวจสอบโดย Admin</div><div class="inp-group"><label class="inp-label">ช่องทางรับเงิน</label><select id="withdrawPaymentMethod" class="inp"><option value="BANK">🏦 บัญชีธนาคาร</option><option value="PROMPTPAY">📱 พร้อมเพย์</option><option value="TRUEMONEY">💰 TrueMoney</option></select></div><div class="inp-group"><label class="inp-label">ชื่อเจ้าของบัญชี</label><input id="withdrawAccountName" class="inp" placeholder="กรอกชื่อ-นามสกุล"/></div><div class="inp-group"><label class="inp-label">เลขบัญชี / หมายเลขรับเงิน</label><input id="withdrawAccountNumber" class="inp" inputmode="numeric" placeholder="กรอกข้อมูลสำหรับรับเงิน"/></div><div class="inp-group"><label class="inp-label">จำนวนพ้อยท์ที่ต้องการถอน</label><input id="withdrawAmount" class="inp" type="number" min="100" placeholder="ขั้นต่ำ 100 พ้อยท์"/></div><div class="flex gap-8" style="margin-bottom:16px"><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount(100)">100</button><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount(500)">500</button><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount(1000)">1,000</button><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount('max')">สูงสุด</button></div><div id="withdrawMessage" style="margin-bottom:12px"></div><div class="notice warn" style="margin-bottom:16px">⚠️ หลังส่งคำขอ พ้อยท์จะถูกหักจากยอดคงเหลือทันที และรอการตรวจสอบจาก Admin</div><button class="btn btn-primary btn-md btn-full" onclick="createWithdrawalRequest()">📤 ส่งคำขอถอนพ้อยท์</button></div></div></div>
+</div></div>
 <!-- ======== PAGE: HISTORY ======== -->
 <div class="page" id="pg-history">
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:900px">
@@ -970,59 +975,11 @@
 <button class="tab-btn" onclick="switchTab(this,'hist-tx')">💳 ประวัติฝาก/ถอน</button>
 </div>
 <div id="hist-trade">
-<div style="font-size:12px;color:var(--muted);margin:10px 0 14px 2px">กดปุ่ม “ดูข้อมูลสินค้า” ในรายการซื้อ เพื่อไปยังหน้าข้อมูลสินค้าที่ได้รับ</div>
-
-<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:14px 18px">
-<span class="badge badge-green">ซื้อ</span>
-<div style="flex:1">
-  <div style="font-weight:600;font-size:14px">บัญชี Valorant Immortal 3</div>
-  <div style="color:var(--muted);font-size:12px">ผู้ขาย: AimPro • 09/03/2026</div>
-</div>
-<button class="btn btn-ghost btn-sm" onclick="goPage('order-info')">📋 ดูข้อมูลสินค้า</button>
-<div class="kanit" style="font-weight:700;color:var(--danger)">-1,500 ฿</div>
-<span class="badge badge-green">สำเร็จ</span>
-</div>
-
-<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:14px 18px">
-<span class="badge badge-blue">ขาย</span>
-<div style="flex:1">
-  <div style="font-weight:600;font-size:14px">บัญชี ROV Diamond</div>
-  <div style="color:var(--muted);font-size:12px">ผู้ซื้อ: NewPlayer • 05/03/2026</div>
-</div>
-<div class="kanit" style="font-weight:700;color:var(--success)">+700 ฿</div>
-<span class="badge badge-green">สำเร็จ</span>
-</div>
-
-<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
-<span class="badge badge-green">ซื้อ</span>
-<div style="flex:1">
-  <div style="font-weight:600;font-size:14px">บัญชี PUBG Mythic</div>
-  <div style="color:var(--muted);font-size:12px">ผู้ขาย: GamerX • 01/03/2026</div>
-</div>
-<button class="btn btn-ghost btn-sm" onclick="goPage('order-info')">📋 ดูข้อมูลสินค้า</button>
-<div class="kanit" style="font-weight:700;color:var(--danger)">-1,900 ฿</div>
-<span class="badge badge-yellow">รอดำเนินการ</span>
-</div>
+<div style="font-size:12px;color:var(--muted);margin:10px 0 14px 2px">รายการซื้อและขายทั้งหมดของคุณ • ข้อมูลบัญชีจะแสดงเฉพาะรายการซื้อที่ชำระเงินสำเร็จ</div>
+<div id="histTradeList" style="padding:24px;text-align:center;color:var(--muted)">กำลังโหลดประวัติซื้อ/ขาย...</div>
 </div>
 <div id="hist-tx" style="display:none">
-<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:14px 18px">
-<span class="badge badge-green">ฝาก</span>
-<div style="flex:1"><div style="font-weight:600;font-size:14px">บัตรเครดิต</div><div style="color:var(--muted);font-size:12px">09/03/2026</div></div>
-<div class="kanit" style="font-weight:700;color:var(--success)">+2,000 pts</div>
-<span class="badge badge-green">สำเร็จ</span>
-</div>
-<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:10px;padding:14px 18px">
-<span class="badge badge-red">ถอน</span>
-<div style="flex:1"><div style="font-weight:600;font-size:14px">โอนธนาคาร SCB</div><div style="color:var(--muted);font-size:12px">07/03/2026</div></div>
-<div class="kanit" style="font-weight:700;color:var(--danger)">-1,000 pts</div>
-<span class="badge badge-green">สำเร็จ</span>
-</div>
-<div class="card" style="display:flex;align-items:center;gap:14px;padding:14px 18px">
-<span class="badge badge-green">ฝาก</span>
-<div style="flex:1"><div style="font-weight:600;font-size:14px">พร้อมเพย์</div><div style="color:var(--muted);font-size:12px">03/03/2026</div></div>
-<div class="kanit" style="font-weight:700;color:var(--success)">+500 pts</div>
-<span class="badge badge-green">สำเร็จ</span>
-</div>
+<div id="histWalletTransactionList" style="padding:24px;text-align:center;color:var(--muted)">กำลังโหลดประวัติฝาก/ถอน...</div>
 </div>
 </div>
 </div>
@@ -1031,7 +988,7 @@
 <div class="page" id="pg-chat">
 <div class="container" style="padding-top:36px;padding-bottom:60px">
 <div class="sec-header"><div class="sec-title">💬 แชทข้อความ</div><div class="sec-sub">ติดต่อสื่อสารกับผู้ซื้อและผู้ขาย</div></div>
-<div style="display:grid;grid-template-columns:280px 1fr;border:1px solid var(--border);border-radius:14px;overflow:hidden;height:560px">
+<div id="chatApp" style="display:grid;grid-template-columns:280px 1fr;border:1px solid var(--border);border-radius:14px;overflow:hidden;height:560px">
 <div style="background:var(--card);border-right:1px solid var(--border);overflow-y:auto">
 <div style="padding:14px;border-bottom:1px solid var(--border)"><input class="inp" placeholder="🔍 ค้นหาแชท..." style="font-size:13px"/></div>
 <div style="padding:12px 16px;display:flex;gap:10px;align-items:center;cursor:pointer;background:rgba(59,130,246,0.1);border-left:3px solid var(--accent)">
@@ -1328,33 +1285,29 @@
 <!-- ======== PAGE: SELLER VERIFY ======== -->
 <div class="page" id="pg-seller-verify">
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:860px">
-<div class="sec-header"><div class="sec-title">🪪 ยืนยันตัวตนผู้ขาย</div><div class="sec-sub">ต้องยืนยันตัวตนด้วยบัตรประชาชนก่อนลงขายสินค้า</div></div>
+<div class="sec-header"><div class="sec-title">🏷️ สมัครเป็นผู้ขาย</div><div class="sec-sub">ยืนยันอีเมลและเบอร์โทรก่อน แล้วส่งคำขอให้ผู้ดูแลอนุมัติสิทธิ์ผู้ขาย</div></div>
 <div class="grid2">
 <div class="card">
-<h4 style="font-weight:700;margin-bottom:16px">ขั้นตอนการยืนยันตัวตน</h4>
+<h4 style="font-weight:700;margin-bottom:16px">ขั้นตอนการสมัครเป็นผู้ขาย</h4>
 <div style="display:flex;flex-direction:column;gap:10px">
-<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">1️⃣</span><span style="font-size:14px;color:var(--muted)">อัปโหลดรูปบัตรประชาชน (ด้านหน้า)</span></div>
-<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">2️⃣</span><span style="font-size:14px;color:var(--muted)">อัปโหลดรูปบัตรประชาชน (ด้านหลัง)</span></div>
-<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">3️⃣</span><span style="font-size:14px;color:var(--muted)">ถ่ายรูปคู่กับบัตรประชาชน (Selfie)</span></div>
-<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">4️⃣</span><span style="font-size:14px;color:var(--muted)">รอ Admin ตรวจสอบ 1–2 วันทำการ</span></div>
+<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">1️⃣</span><span style="font-size:14px;color:var(--muted)">สมัครสมาชิกเป็นผู้ซื้อ (Customer)</span></div>
+<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">2️⃣</span><span style="font-size:14px;color:var(--muted)">ยืนยันอีเมลและเบอร์โทรศัพท์ให้ครบ</span></div>
+<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">3️⃣</span><span style="font-size:14px;color:var(--muted)">ส่งคำขอสมัครเป็นผู้ขาย</span></div>
+<div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">4️⃣</span><span style="font-size:14px;color:var(--muted)">Admin อนุมัติ → ได้รับสิทธิ์ SELLER และลงขายสินค้าได้</span></div>
 </div>
-<div class="notice info" style="margin-top:16px">🔒 ข้อมูลบัตรประชาชนจะถูกเข้ารหัสและเก็บอย่างปลอดภัย</div>
+<div class="notice info" style="margin-top:16px">🔒 สิทธิ์ SELLER จะถูกเพิ่มโดยระบบหลังจาก Admin อนุมัติคำขอเท่านั้น</div>
 </div>
 <div class="card">
-<h4 style="font-weight:700;margin-bottom:18px">อัปโหลดเอกสาร</h4>
-<div class="inp-group">
-<label class="inp-label">บัตรประชาชน (ด้านหน้า)</label>
-<div class="upload-zone"><div style="font-size:32px;margin-bottom:8px">📤</div><div style="font-size:13px;color:var(--muted)">คลิกเพื่ออัปโหลด หรือลากไฟล์มาวางที่นี่</div><div style="font-size:12px;color:var(--dim);margin-top:4px">PNG, JPG (ไม่เกิน 5MB)</div></div>
+<h4 style="font-weight:700;margin-bottom:12px">สถานะการสมัครผู้ขาย</h4>
+<div id="sellerVerificationStatus" class="notice info" style="margin-bottom:16px">กำลังโหลดสถานะ...</div>
+<div class="notice" style="margin-bottom:16px;font-size:13px">ยืนยัน Email และเบอร์โทรก่อน จากนั้นอัปโหลดบัตรประชาชนหน้า-หลังและรูป Selfie ให้ครบทั้ง 3 รายการ</div>
+<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+<div class="card" data-seller-document="ID_FRONT" style="padding:14px"><strong>🪪 บัตรประชาชนด้านหน้า</strong><div data-seller-file-name style="font-size:12px;color:var(--muted);margin:8px 0">ยังไม่ได้เลือกรูป</div><img data-seller-preview style="display:none;max-width:100%;max-height:180px;border-radius:8px;margin-bottom:10px"/><input id="seller-document-input-ID_FRONT" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="renderSellerVerificationDocument('ID_FRONT', this.files[0]);updateSellerVerificationSubmitState()"><button type="button" data-seller-upload-button class="btn btn-secondary btn-sm" onclick="chooseSellerVerificationDocument('ID_FRONT')">เลือกรูป</button></div>
+<div class="card" data-seller-document="ID_BACK" style="padding:14px"><strong>🪪 บัตรประชาชนด้านหลัง</strong><div data-seller-file-name style="font-size:12px;color:var(--muted);margin:8px 0">ยังไม่ได้เลือกรูป</div><img data-seller-preview style="display:none;max-width:100%;max-height:180px;border-radius:8px;margin-bottom:10px"/><input id="seller-document-input-ID_BACK" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="renderSellerVerificationDocument('ID_BACK', this.files[0]);updateSellerVerificationSubmitState()"><button type="button" data-seller-upload-button class="btn btn-secondary btn-sm" onclick="chooseSellerVerificationDocument('ID_BACK')">เลือกรูป</button></div>
+<div class="card" data-seller-document="SELFIE" style="padding:14px"><strong>🤳 รูป Selfie ของคุณ</strong><div data-seller-file-name style="font-size:12px;color:var(--muted);margin:8px 0">ยังไม่ได้เลือกรูป</div><img data-seller-preview style="display:none;max-width:100%;max-height:180px;border-radius:8px;margin-bottom:10px"/><input id="seller-document-input-SELFIE" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="renderSellerVerificationDocument('SELFIE', this.files[0]);updateSellerVerificationSubmitState()"><button type="button" data-seller-upload-button class="btn btn-secondary btn-sm" onclick="chooseSellerVerificationDocument('SELFIE')">เลือกรูป</button></div>
 </div>
-<div class="inp-group">
-<label class="inp-label">บัตรประชาชน (ด้านหลัง)</label>
-<div class="upload-zone"><div style="font-size:32px;margin-bottom:8px">📤</div><div style="font-size:13px;color:var(--muted)">คลิกเพื่ออัปโหลด</div></div>
-</div>
-<div class="inp-group" style="margin-bottom:20px">
-<label class="inp-label">รูปถ่ายคู่กับบัตร (Selfie)</label>
-<div class="upload-zone"><div style="font-size:32px;margin-bottom:8px">🤳</div><div style="font-size:13px;color:var(--muted)">ถ่ายภาพตัวเองพร้อมบัตร</div></div>
-</div>
-<button class="btn btn-primary btn-full btn-lg" onclick="goPage('add-listing')">📨 ส่งเอกสารเพื่อตรวจสอบ</button>
+<button id="sellerVerificationSubmitButton" class="btn btn-primary btn-full btn-lg" onclick="submitSellerVerificationRequest()" disabled>🏷️ ส่งคำขอตรวจสอบ</button>
+<div id="sellerVerificationMessage" style="margin-top:12px;font-size:13px;min-height:18px"></div>
 </div>
 </div>
 </div>
@@ -1364,37 +1317,39 @@
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:820px">
 <div class="sec-header"><div class="sec-title">➕ เพิ่มประกาศขายบัญชีเกม</div><div class="sec-sub">กรอกรายละเอียดสินค้าที่ต้องการขาย</div></div>
 <div class="card" style="padding:30px">
+<div id="create-product-feedback" class="notice" style="display:none;margin-bottom:16px"></div>
 <div class="grid2" style="gap:14px;margin-bottom:4px">
-<div class="inp-group"><label class="inp-label">เกม</label><select class="inp"><option>เลือกเกม</option><option>Valorant</option><option>ROV</option><option>PUBG</option><option>Free Fire</option><option>Genshin Impact</option><option>Honkai: Star Rail</option></select></div>
-<div class="inp-group"><label class="inp-label">ชื่อประกาศ</label><input class="inp" placeholder="เช่น บัญชี Valorant Immortal สกินครบ"/></div>
-<div class="inp-group"><label class="inp-label">แรงค์/เลเวล</label><input class="inp" placeholder="เช่น Immortal 3, Level 230"/></div>
-<div class="inp-group"><label class="inp-label">จำนวนสกิน</label><input class="inp" placeholder="เช่น 42 สกิน"/></div>
-<div class="inp-group"><label class="inp-label">ราคา (บาท)</label><input class="inp" placeholder="กรอกราคา" type="number"/></div>
-<div class="inp-group"><label class="inp-label">เซิร์ฟเวอร์</label><select class="inp"><option>Asia</option><option>NA</option><option>EU</option></select></div>
+<div class="inp-group"><label class="inp-label">เกม</label><select class="inp" id="create-product-game" onchange="loadCreateProductAttributes()"><option value="">กำลังโหลดเกม...</option></select></div>
+<div class="inp-group"><label class="inp-label">ชื่อประกาศ</label><input class="inp" id="create-product-title" placeholder="เช่น บัญชี Valorant Immortal สกินครบ"/></div>
+<div class="inp-group" style="grid-column:1/-1"><label class="inp-label">รายละเอียดเพิ่มเติม</label><textarea class="inp" id="create-product-description" placeholder="อธิบายรายละเอียดสินค้า สกินพิเศษ สิ่งที่มีในบัญชี ฯลฯ" rows="4" style="resize:none"></textarea></div>
+<div class="inp-group"><label class="inp-label">ราคา (บาท)</label><input class="inp" id="create-product-price" placeholder="กรอกราคา" type="number" min="0" step="0.01"/></div>
 </div>
-<div class="inp-group">
-<label class="inp-label">รายละเอียดเพิ่มเติม</label>
-<textarea class="inp" placeholder="อธิบายรายละเอียดสินค้า สกินพิเศษ สิ่งที่มีในบัญชี ฯลฯ" rows="4" style="resize:none"></textarea>
+<div class="card" style="padding:18px;margin:8px 0 18px">
+<div style="font-weight:700;margin-bottom:4px">🎮 รายละเอียดเฉพาะเกม</div>
+<div id="create-product-attributes" style="display:flex;flex-direction:column;gap:12px;color:var(--muted);font-size:13px">เลือกเกมเพื่อโหลดรายละเอียด</div>
 </div>
 <div class="inp-group">
 <label class="inp-label">ข้อมูลบัญชีสำหรับส่งให้ผู้ซื้อ (จะแสดงหลังการขาย)</label>
 <div class="card" style="padding:16px">
 <div class="grid2" style="gap:12px">
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Username</label><input class="inp" placeholder="Username บัญชีเกม"/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Password</label><input class="inp" placeholder="Password บัญชีเกม" type="password"/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email บัญชีเกม</label><input class="inp" placeholder="Email ที่ผูกบัญชีเกม"/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email Password</label><input class="inp" placeholder="Password Email" type="password"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Username</label><input class="inp" id="create-product-username" placeholder="Username บัญชีเกม"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Password</label><input class="inp" id="create-product-password" placeholder="Password บัญชีเกม" type="password"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email บัญชีเกม</label><input class="inp" id="create-product-email" placeholder="Email ที่ผูกบัญชีเกม"/></div>
+<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email Password</label><input class="inp" id="create-product-email-password" placeholder="Password Email" type="password"/></div>
 </div>
 </div>
 </div>
 <div class="inp-group">
-<label class="inp-label">รูปภาพสินค้า (สูงสุด 10 รูป)</label>
-<div class="upload-zone"><div style="font-size:40px;margin-bottom:10px">🖼️</div><div style="color:var(--muted);font-size:14px">อัปโหลดรูปภาพสกรีนช็อตของบัญชี</div></div>
+<label class="inp-label">รูปภาพสินค้า <span id="product-image-count" style="float:right;color:var(--muted);font-weight:400">0/10 รูป</span></label>
+<input id="product-image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onchange="handleProductImageSelection(this.files)">
+<div id="product-image-preview-grid" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:10px"></div>
+<button type="button" class="btn btn-secondary btn-md" onclick="selectProductImages()">🖼️ เลือกรูปภาพ</button>
+<div style="font-size:12px;color:var(--muted);margin-top:8px">รองรับ JPG / PNG / WEBP สูงสุด 10 รูป และไม่เกิน 5 MB ต่อรูป</div>
+<div id="product-image-feedback" style="margin-top:8px;font-size:12px;min-height:16px"></div>
 </div>
 <div class="flex gap-12">
-<button class="btn btn-primary btn-lg" onclick="goPage('my-listings')">🚀 เผยแพร่ประกาศ</button>
-<button class="btn btn-secondary btn-md">💾 บันทึกร่าง</button>
-<button class="btn btn-secondary btn-md" onclick="goPage('my-listings')">ยกเลิก</button>
+<button class="btn btn-primary btn-lg" id="create-product-save-button" onclick="createProductFromForm('DRAFT')">💾 บันทึกร่าง</button>
+<button class="btn btn-secondary btn-md" onclick="cancelCreateProductEditor()">ยกเลิก</button>
 </div>
 </div>
 </div>
@@ -1459,6 +1414,12 @@
 <button class="btn btn-primary btn-md" onclick="goPage('add-listing')">+ เพิ่มประกาศ</button>
 </div>
 <div class="notice info" style="margin-bottom:16px">⚡ ระบบขายแบบอัตโนมัติ: ผู้ซื้อชำระเงินสำเร็จเมื่อไร จะได้รับข้อมูลบัญชีทันที และระบบจะโอนพ้อยท์ให้ผู้ขายอัตโนมัติ</div>
+<div id="my-products-feedback" style="display:none;margin-bottom:16px"></div>
+<div id="my-products-list">
+<div class="card" style="padding:28px;text-align:center;color:var(--muted)">กำลังโหลดประกาศของคุณ...</div>
+</div>
+<!-- legacy listing cards kept below temporarily -->
+<div id="my-products-legacy" style="display:none">
 <div class="card" id="listing-card-valorant" style="margin-bottom:12px;padding:18px 22px">
 <div class="flex gap-16" style="align-items:center">
 <div class="game-img" style="width:100px;height:58px;flex-shrink:0;background:linear-gradient(135deg,rgba(255,70,85,0.2),rgba(255,70,85,0.05));border:1px solid rgba(255,70,85,0.2);color:#ff4655">🎯 VAL</div>
@@ -1491,39 +1452,29 @@
 </div>
 </div>
 </div>
+</div>
 <!-- ======== ADMIN PAGES ======== -->
 <!-- Admin Dashboard -->
 <div class="page" id="pg-admin-dashboard">
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar"></div>
 <div class="admin-content">
-<div class="sec-header"><div class="sec-title">📊 แดชบอร์ดผู้ดูแลระบบ</div><div class="sec-sub">ภาพรวมของระบบ GameMarket</div></div>
+<div class="sec-header"><div class="sec-title">📊 แดชบอร์ดผู้ดูแลระบบ</div><div class="sec-sub">ภาพรวมเฉพาะโมดูลที่เชื่อมต่อ Backend แล้ว</div></div>
+<div class="card" style="margin-bottom:20px;padding:18px 20px"><strong>สถานะระบบ Admin</strong><div style="color:var(--muted);font-size:13px;margin-top:6px">Dashboard, Game Management, Transaction Report, Seller Verification, Topup และ Withdrawal เชื่อม Backend แล้ว ส่วน Chat Log และ Suspend Users ยังรอ Admin API เฉพาะโมดูล</div></div>
 <div class="grid4" style="margin-bottom:28px">
-<div class="card stat-card"><div style="font-size:24px">👥</div><div class="stat-val" style="color:var(--accent)">5,420</div><div class="stat-label">สมาชิกทั้งหมด</div><div style="font-size:12px;color:var(--success);margin-top:4px">▲ +12% เดือนนี้</div></div>
-<div class="card stat-card"><div style="font-size:24px">📦</div><div class="stat-val" style="color:var(--success)">1,248</div><div class="stat-label">รายการขาย</div><div style="font-size:12px;color:var(--success);margin-top:4px">▲ +8%</div></div>
-<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--warn)">₿248K</div><div class="stat-label">ยอดขายเดือนนี้</div><div style="font-size:12px;color:var(--success);margin-top:4px">▲ +15%</div></div>
-<div class="card stat-card"><div style="font-size:24px">🚨</div><div class="stat-val" style="color:var(--danger)">3</div><div class="stat-label">รายงานรอดำเนินการ</div></div>
+<div class="card stat-card"><div style="font-size:24px">👥</div><div id="adminDashboardUserCount" class="stat-val" style="color:var(--accent)">—</div><div class="stat-label">สมาชิกทั้งหมด</div><div style="font-size:12px;color:var(--muted);margin-top:4px">จาก Database</div></div>
+<div class="card stat-card"><div style="font-size:24px">📦</div><div id="adminDashboardProductCount" class="stat-val" style="color:var(--success)">—</div><div class="stat-label">รายการสินค้า</div><div style="font-size:12px;color:var(--muted);margin-top:4px">ACTIVE + SOLD</div></div>
+<div class="card stat-card"><div style="font-size:24px">💰</div><div id="adminDashboardMonthlySales" class="stat-val" style="color:var(--warn)">—</div><div class="stat-label">ยอดขายเดือนนี้</div><div style="font-size:12px;color:var(--muted);margin-top:4px">PAID + COMPLETED</div></div>
+<div class="card stat-card"><div style="font-size:24px">🚨</div><div id="adminDashboardReportCount" class="stat-val" style="color:var(--danger)">—</div><div class="stat-label">รายงานที่ยังเปิดอยู่</div><div style="font-size:12px;color:var(--muted);margin-top:4px">จาก Transaction Report</div></div>
 </div>
 <div class="grid2">
 <div class="card">
-<h4 style="font-weight:700;margin-bottom:14px">📈 การทำธุรกรรมล่าสุด</h4>
-<table class="table">
-<thead><tr><th>ผู้ซื้อ → ผู้ขาย</th><th>เกม</th><th>ยอด</th><th>สถานะ</th></tr></thead>
-<tbody>
-<tr><td>PlayerOne → AimPro</td><td>Valorant</td><td style="color:var(--success);font-weight:700">1,500 ฿</td><td><span class="badge badge-green">สำเร็จ</span></td></tr>
-<tr><td>NewGamer → GamerX</td><td>PUBG</td><td style="color:var(--success);font-weight:700">1,900 ฿</td><td><span class="badge badge-green">สำเร็จ</span></td></tr>
-<tr><td>ROVFan → ROVKing</td><td>ROV</td><td style="color:var(--success);font-weight:700">700 ฿</td><td><span class="badge badge-yellow">รอดำเนินการ</span></td></tr>
-</tbody>
-</table>
+<h4 style="font-weight:700;margin-bottom:10px">📈 ธุรกรรมล่าสุด</h4>
+<div id="adminDashboardRecentTransactions" class="report-list"></div>
 </div>
 <div class="card">
-<h4 style="font-weight:700;margin-bottom:16px">🎮 เกมยอดนิยม</h4>
-<div style="display:flex;flex-direction:column;gap:12px">
-<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="Valorant" src="assets/images/Valorant.png" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> Valorant</span><span style="color:var(--muted)">42%</span></div><div class="prog-bar"><div class="prog-fill" style="width:42%;background:var(--danger)"></div></div></div>
-<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="PUBG" src="assets/images/Pubg.png" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> PUBG</span><span style="color:var(--muted)">38%</span></div><div class="prog-bar"><div class="prog-fill" style="width:38%;background:var(--warn)"></div></div></div>
-<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="ROV" src="assets/images/Rov.png" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> ROV</span><span style="color:var(--muted)">30%</span></div><div class="prog-bar"><div class="prog-fill" style="width:30%;background:var(--accent)"></div></div></div>
-<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="Free Fire" src="assets/images/FreeFire.jpg" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> Free Fire</span><span style="color:var(--muted)">25%</span></div><div class="prog-bar"><div class="prog-fill" style="width:25%;background:var(--success)"></div></div></div>
-<div><div class="flex-between" style="margin-bottom:6px;font-size:14px"><span style="display:flex;align-items:center;gap:8px"><img alt="Genshin Impact" src="assets/images/Genshin impact.jpg" style="width:18px;height:18px;border-radius:5px;object-fit:cover"/> Genshin</span><span style="color:var(--muted)">20%</span></div><div class="prog-bar"><div class="prog-fill" style="width:20%;background:var(--purple)"></div></div></div>
+<h4 style="font-weight:700;margin-bottom:10px">🎮 เกมยอดนิยม</h4>
+<div id="adminDashboardPopularGames" class="report-list"></div>
 </div>
 </div>
 </div>
@@ -1535,29 +1486,19 @@
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar2"></div>
 <div class="admin-content">
-<div class="flex-between" style="margin-bottom:24px">
-<div><div class="sec-title">🎮 จัดการหมวดหมู่เกม</div><div class="sec-sub">เพิ่ม ลบ แก้ไขหมวดหมู่เกม</div></div>
-<button class="btn btn-primary btn-md" onclick="toggleAddGame()">+ เพิ่มหมวดหมู่</button>
+<div class="sec-header"><div><div class="sec-title">🎮 จัดการหมวดหมู่เกม</div><div class="sec-sub">จัดการข้อมูลเกมจาก Database โดยตรง</div></div><button class="btn btn-primary btn-md" onclick="adminOpenGameEditor()">+ เพิ่มเกม</button></div>
+<div id="adminGameMessage" class="notice" style="display:none;margin-bottom:16px"></div>
+<div id="adminGameEditor" class="card" style="display:none;padding:20px;margin-bottom:18px"></div>
+<div class="card" style="padding:18px">
+<div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminGameSearch" oninput="adminFilterGames()" placeholder="ค้นหาชื่อเกมหรือ slug"/></div><div class="report-field"><span class="icon">📌</span><select id="adminGameStatusFilter" onchange="adminFilterGames()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">เปิดใช้งาน</option><option value="INACTIVE">ปิดใช้งาน</option></select></div><button class="btn btn-secondary btn-sm" onclick="adminLoadGames()">↻ รีเฟรช</button></div>
+<div id="adminGameList" class="grid2"></div>
 </div>
-<div id="addGameForm" style="display:none">
-<div class="card" style="margin-bottom:20px;padding:20px">
-<h4 style="font-weight:700;margin-bottom:14px">เพิ่มหมวดหมู่ใหม่</h4>
-<div class="grid3" style="gap:12px;margin-bottom:14px">
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ชื่อเกม</label><input class="inp" placeholder="เช่น Valorant"/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ประเภท</label><input class="inp" placeholder="เช่น FPS, MOBA, RPG"/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ไอคอน (emoji)</label><input class="inp" placeholder="🎮"/></div>
+<div class="card" style="padding:24px;display:none">
+<div class="report-summary-box">
+<div class="report-summary-item"><div class="label">สถานะ</div><strong>ยังไม่เชื่อม Backend</strong><div class="sub">ข้อมูลเกมปัจจุบันถูกใช้งานผ่าน Public Game API</div></div>
+<div class="report-summary-item"><div class="label">การดำเนินการ</div><strong>เพิ่ม • แก้ไข • ลบ ถูกปิดไว้</strong><div class="sub">เพื่อป้องกันปุ่ม Mockup ทำให้ข้อมูลระบบจริงสับสน</div></div>
 </div>
-<div class="flex gap-10"><button class="btn btn-primary btn-sm">💾 บันทึก</button><button class="btn btn-secondary btn-sm" onclick="toggleAddGame()">ยกเลิก</button></div>
-</div>
-</div>
-<div class="grid2">
-<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="Valorant" src="assets/images/Valorant.png" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">Valorant</div><div style="color:var(--muted);font-size:12px">FPS • 42 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
-<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="ROV" src="assets/images/Rov.png" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">ROV</div><div style="color:var(--muted);font-size:12px">MOBA • 38 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
-<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="PUBG" src="assets/images/Pubg.png" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">PUBG</div><div style="color:var(--muted);font-size:12px">Battle Royale • 30 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
-<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="Free Fire" src="assets/images/FreeFire.jpg" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">Free Fire</div><div style="color:var(--muted);font-size:12px">Battle Royale • 25 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
-<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="Genshin Impact" src="assets/images/Genshin impact.jpg" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">Genshin Impact</div><div style="color:var(--muted);font-size:12px">RPG • 20 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
-<div class="card" style="padding:16px;display:flex;align-items:center;gap:12px"><img alt="Honkai: Star Rail" src="assets/images/Honkai Starrail.png" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex-shrink:0"/><div style="flex:1"><div style="font-weight:600">Honkai: Star Rail</div><div style="color:var(--muted);font-size:12px">RPG • 18 รายการ</div></div><div class="flex gap-6"><button class="btn btn-secondary btn-sm">✏️</button><button class="btn btn-danger btn-sm">🗑️</button></div></div>
-</div>
+<div class="report-empty">ยังไม่สามารถจัดการเกมจากหน้า Admin ได้ จนกว่าจะมี Game Management API สำหรับ Admin โดยเฉพาะ</div>
 </div>
 </div>
 </div>
@@ -1566,19 +1507,11 @@
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar3"></div>
 <div class="admin-content">
-<div class="sec-header"><div class="sec-title">💬 ประวัติแชทระบบ</div><div class="sec-sub">ตรวจสอบการสนทนาย้อนหลัง</div></div>
-<div class="card" style="margin-bottom:20px">
-<div class="grid3" style="gap:12px;align-items:end">
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ค้นหาชื่อผู้ใช้</label><input class="inp" placeholder="ค้นหา..."/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">ช่วงวันที่</label><input class="inp" type="date"/></div>
-<button class="btn btn-primary btn-md">🔍 ค้นหา</button>
-</div>
-</div>
-<div style="display:flex;flex-direction:column;gap:10px">
-<div class="card" style="padding:16px 20px"><div class="flex-between"><div><div style="font-weight:600;font-size:14px">AimPro ↔ PlayerOne</div><div style="color:var(--muted);font-size:13px">สินค้า: Valorant • 09/03/2026 • 12 ข้อความ</div></div><button class="btn btn-secondary btn-sm">👁️ ดูแชท</button></div></div>
-<div class="card" style="padding:16px 20px"><div class="flex-between"><div><div style="font-weight:600;font-size:14px">GamerX ↔ NewPlayer</div><div style="color:var(--muted);font-size:13px">สินค้า: PUBG • 08/03/2026 • 8 ข้อความ</div></div><button class="btn btn-secondary btn-sm">👁️ ดูแชท</button></div></div>
-<div class="card" style="padding:16px 20px"><div class="flex-between"><div><div style="font-weight:600;font-size:14px">ROVKing ↔ ROVFan</div><div style="color:var(--muted);font-size:13px">สินค้า: ROV • 07/03/2026 • 5 ข้อความ</div></div><button class="btn btn-secondary btn-sm">👁️ ดูแชท</button></div></div>
-<div class="card" style="padding:16px 20px"><div class="flex-between"><div><div style="font-weight:600;font-size:14px;color:var(--danger)">⚠️ KleeMain ↔ Unknown [ถูกรายงาน]</div><div style="color:var(--muted);font-size:13px">สินค้า: Genshin • 06/03/2026 • 3 ข้อความ</div></div><div class="flex gap-8"><span class="badge badge-red">รายงาน</span><button class="btn btn-secondary btn-sm">👁️ ดูแชท</button></div></div></div>
+<div class="sec-header"><div><div class="sec-title">💬 ประวัติแชทระบบ</div><div class="sec-sub">ตรวจสอบข้อความจากระบบแชทจริง</div></div><button class="btn btn-secondary btn-sm" onclick="window.loadAdminChatLog?.()">↻ รีเฟรช</button></div>
+<div class="card" style="padding:18px">
+<div class="report-toolbar" style="margin-bottom:16px"><div class="report-field"><span class="icon">🔍</span><input id="adminChatLogSearch" placeholder="ค้นหาผู้ใช้ สินค้า หรือข้อความ" oninput="window.filterAdminChatLog?.()"></div></div>
+<div id="adminChatLogMessage" style="margin-bottom:10px;color:var(--muted);font-size:13px"></div>
+<div id="adminChatLogList" class="report-list"></div>
 </div>
 </div>
 </div>
@@ -1589,18 +1522,34 @@
 <div class="admin-sidebar" id="adminSidebar4"></div>
 <div class="admin-content">
 <div class="sec-header"><div class="sec-title">💸 อนุมัติการถอนเงิน</div><div class="sec-sub">รายการคำขอถอนพ้อยท์รอการอนุมัติ</div></div>
-<div class="grid3" style="margin-bottom:24px">
-<div class="card stat-card"><div style="font-size:24px">⏳</div><div class="stat-val" style="color:var(--warn)">2</div><div class="stat-label">รอดำเนินการ</div></div>
-<div class="card stat-card"><div style="font-size:24px">✅</div><div class="stat-val" style="color:var(--success)">28</div><div class="stat-label">อนุมัติแล้ว (เดือนนี้)</div></div>
-<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--accent)">84,500</div><div class="stat-label">ยอดถอนรวม (฿)</div></div>
-</div>
-<div style="display:flex;flex-direction:column;gap:12px">
-<div class="card" style="padding:18px 22px"><div class="flex gap-16" style="align-items:center"><div class="avatar" style="width:46px;height:46px;background:var(--accent);font-size:20px">G</div><div style="flex:1"><div style="font-weight:600">GamePro123</div><div style="color:var(--muted);font-size:13px">SCB • เลขบัญชี: XXX-X-12345-X • 09/03/2026</div></div><div class="kanit" style="font-size:20px;font-weight:700;color:var(--accent)">1,000 pts</div><span class="badge badge-yellow">⏳ รอดำเนินการ</span><div class="flex gap-8"><button class="btn btn-success btn-sm">✓ อนุมัติ</button><button class="btn btn-danger btn-sm">✗ ปฏิเสธ</button></div></div></div>
-<div class="card" style="padding:18px 22px"><div class="flex gap-16" style="align-items:center"><div class="avatar" style="width:46px;height:46px;background:var(--success);font-size:20px">A</div><div style="flex:1"><div style="font-weight:600">AimPro</div><div style="color:var(--muted);font-size:13px">KBank • 08/03/2026</div></div><div class="kanit" style="font-size:20px;font-weight:700;color:var(--accent)">5,000 pts</div><span class="badge badge-yellow">⏳ รอดำเนินการ</span><div class="flex gap-8"><button class="btn btn-success btn-sm">✓ อนุมัติ</button><button class="btn btn-danger btn-sm">✗ ปฏิเสธ</button></div></div></div>
-<div class="card" style="padding:18px 22px"><div class="flex gap-16" style="align-items:center"><div class="avatar" style="width:46px;height:46px;background:var(--warn);font-size:20px">G</div><div style="flex:1"><div style="font-weight:600">GamerX</div><div style="color:var(--muted);font-size:13px">BBL • 07/03/2026</div></div><div class="kanit" style="font-size:20px;font-weight:700;color:var(--accent)">2,500 pts</div><span class="badge badge-green">✅ อนุมัติแล้ว</span></div></div>
+<div id="adminWithdrawalMessage" style="margin-bottom:12px;font-size:13px;color:var(--muted)"></div>
+<div id="adminWithdrawalList" style="display:flex;flex-direction:column;gap:12px"></div>
+
 </div>
 </div>
 </div>
+</div>
+<!-- Admin Topup -->
+<div class="page" id="pg-admin-topup">
+<div class="admin-layout">
+<div class="admin-sidebar" id="adminSidebar8"></div>
+<div class="admin-content">
+<div class="sec-header"><div class="sec-title">➕ อนุมัติการเติมพ้อยท์</div><div class="sec-sub">ตรวจสอบคำขอเติมพ้อยท์และอนุมัติยอดเข้าสู่กระเป๋าผู้ใช้</div></div>
+<div class="card" style="padding:0;overflow:hidden">
+<div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700">คำขอรอดำเนินการ</div><div style="font-size:13px;color:var(--muted);margin-top:3px">เมื่ออนุมัติ ระบบจะเพิ่มยอดให้ผู้ใช้ทันที</div></div><button class="btn btn-secondary btn-sm" onclick="loadAdminTopupRequests()">↻ รีเฟรช</button></div>
+<div id="adminTopupMessage" style="padding:12px 22px;color:var(--muted);font-size:13px"></div>
+<div id="adminTopupList" style="display:flex;flex-direction:column;gap:10px;padding:0 18px 18px"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Admin Seller Verification -->
+<div class="page" id="pg-admin-seller-verifications">
+<div class="admin-layout"><div class="admin-sidebar" id="adminSidebar7"></div><div class="admin-content">
+<div class="sec-header"><div class="sec-title">🪪 ตรวจสอบผู้ขาย</div><div class="sec-sub">ตรวจสอบเอกสารและอนุมัติสิทธิ์ผู้ขาย</div></div>
+<div id="adminSellerVerificationMessage" style="margin-bottom:12px;font-size:13px"></div>
+<div id="adminSellerVerificationList" style="display:flex;flex-direction:column;gap:14px"></div>
+</div></div>
 </div>
 <!-- Admin Report -->
 <div class="page" id="pg-admin-report">
@@ -1611,182 +1560,48 @@
 <div class="card">
 <div class="report-panel">
   <div class="report-summary-grid">
-    <div class="report-stat danger">
-      <div class="label">รายงานทั้งหมด</div>
-      <div class="value">12</div>
-      <div class="sub">อัปเดตล่าสุด 5 นาทีที่แล้ว</div>
-    </div>
-    <div class="report-stat warn">
-      <div class="label">กำลังตรวจสอบ</div>
-      <div class="value">4</div>
-      <div class="sub">เคสที่ยังรอการตัดสินใจ</div>
-    </div>
-    <div class="report-stat success">
-      <div class="label">ปิดเคสแล้ว</div>
-      <div class="value">6</div>
-      <div class="sub">จัดการเสร็จในวันนี้ 2 เคส</div>
-    </div>
-    <div class="report-stat info">
-      <div class="label">บัคระบบ</div>
-      <div class="value">2</div>
-      <div class="sub">Critical 1 • Medium 1</div>
-    </div>
+    <div class="report-stat danger"><div class="label">รายงานทั้งหมด</div><div id="adminReportStatTotal" class="value">0</div><div id="adminReportUpdatedAt" class="sub">กำลังโหลดข้อมูล...</div></div>
+    <div class="report-stat warn"><div class="label">กำลังตรวจสอบ</div><div id="adminReportStatPending" class="value">0</div><div class="sub">รอตรวจสอบ + กำลังตรวจสอบ</div></div>
+    <div class="report-stat success"><div class="label">ปิดเคสแล้ว</div><div id="adminReportStatClosed" class="value">0</div><div class="sub">ไม่พบปัญหา + ดำเนินการแล้ว</div></div>
+    <div class="report-stat info"><div class="label">บัคระบบ</div><div class="value">—</div><div class="sub">อยู่ในหมวดรายงานบัค</div></div>
   </div>
 
   <div class="tabs" style="margin-bottom:18px">
     <button class="tab-btn active" onclick="switchTab(this,'rpt-user')">🚨 รายงานผู้ใช้</button>
+    <button class="tab-btn" onclick="switchTab(this,'rpt-transaction')">🧾 รายงานการทำรายการ</button>
     <button class="tab-btn" onclick="switchTab(this,'rpt-bug')">🐛 รายงานบัค</button>
   </div>
 
-  <div id="rpt-user">
+  <div id="rpt-transaction" style="display:none">
+    <div class="report-summary-box">
+      <div class="report-summary-item"><div class="label">สถานะการตรวจ</div><strong>ข้อมูลจาก Transaction Report จริง</strong><div class="sub">แสดงทั้งเคสที่เปิดอยู่และเคสที่ปิดแล้ว</div></div>
+      <div class="report-summary-item"><div class="label">การจัดการ</div><strong>รับเคส • ไม่พบปัญหา • ดำเนินการแล้ว</strong><div class="sub">การเปลี่ยนสถานะยังตรวจสิทธิ์ Admin + CSRF</div></div>
+    </div>
     <div class="report-toolbar">
-      <div class="report-field"><span class="icon">🔍</span><input placeholder="ค้นหาชื่อผู้ใช้, Order ID หรือเหตุผลรายงาน" value=""/></div>
-      <div class="report-field"><span class="icon">📌</span><select><option>ทุกสถานะ</option><option>ยังไม่ดำเนินการ</option><option>กำลังตรวจสอบ</option><option>ปิดเคสแล้ว</option></select></div>
-      <div class="report-field"><span class="icon">🗂️</span><select><option>ทุกประเภท</option><option>หลอกลวง</option><option>ไม่ได้รับสินค้า</option><option>สื่อสารไม่ตอบกลับ</option></select></div>
-      <div class="report-field"><span class="icon">🕒</span><select><option>ล่าสุด</option><option>วันนี้</option><option>7 วันที่ผ่านมา</option><option>30 วันที่ผ่านมา</option></select></div>
+      <div class="report-field"><span class="icon">🔍</span><input id="adminReportSearch" oninput="applyAdminReportFilter()" placeholder="ค้นหา User, Order ID, สินค้า หรือเหตุผล"/></div>
+      <div class="report-field"><span class="icon">📌</span><select id="adminReportStatusFilter" onchange="applyAdminReportFilter()"><option value="ALL">ทุกสถานะ</option><option value="PENDING">รอตรวจสอบ</option><option value="REVIEWED">กำลังตรวจสอบ</option><option value="DISMISSED">ปิดรายงาน</option><option value="RESOLVED">ดำเนินการแล้ว</option></select></div>
+      <div class="report-field"><span class="icon">🗂️</span><select id="adminReportReasonFilter" onchange="applyAdminReportFilter()"><option value="ALL">ทุกประเภท</option><option value="SCAM">หลอกลวง</option><option value="ITEM_NOT_AS_DESCRIBED">สินค้าไม่ตรงรายละเอียด</option><option value="NO_DELIVERY">ไม่ได้รับสินค้า</option><option value="HARASSMENT">คุกคาม</option><option value="CHAT_ABUSE">พฤติกรรมไม่เหมาะสม</option><option value="OTHER">อื่น ๆ</option></select></div>
+      <div class="report-field"><span class="icon">🕒</span><select id="adminReportRangeFilter" onchange="applyAdminReportFilter()"><option value="LATEST">ทั้งหมด</option><option value="TODAY">วันนี้</option><option value="7D">7 วันที่ผ่านมา</option><option value="30D">30 วันที่ผ่านมา</option></select></div>
+      <button class="btn btn-secondary btn-sm" onclick="resetAdminReportFilters()">รีเซ็ต</button>
     </div>
+    <div id="adminTransactionReportList" class="report-list"></div>
+  </div>
 
-    <div class="report-list">
-      <div class="report-entry priority-high">
-        <div class="report-top">
-          <div style="flex:1">
-            <div class="report-title-row">
-              <span class="inline-badge danger">🔴 ยังไม่ดำเนินการ</span>
-              <span class="inline-badge info">Fraud Report</span>
-              <div class="report-title">PlayerOne รายงาน GamerX</div>
-            </div>
-            <div class="report-meta">
-              <span>🧾 Order ID: ORD-2026-001</span>
-              <span>👤 ผู้ซื้อ: PlayerOne</span>
-              <span>🛍️ ผู้ขาย: GamerX</span>
-              <span>🕒 09/03/2026 • 14:30</span>
-            </div>
-            <div class="report-desc">ผู้ซื้อแจ้งว่าสินค้าที่ได้รับไม่ตรงกับรายละเอียดที่ลงขายไว้ โดย rank และจำนวนสกินไม่ตรงจากประกาศ และมีการแนบภาพหลักฐานก่อนซื้อ/หลังซื้อไว้ครบถ้วน</div>
-            <div class="report-tags">
-              <span class="report-chip">Valorant</span>
-              <span class="report-chip">สินค้าไม่ตรงปก</span>
-              <span class="report-chip">มูลค่า 1,500 ฿</span>
-              <span class="report-chip">แนบหลักฐานครบ</span>
-            </div>
-          </div>
-          <div class="report-actions">
-            <button class="btn btn-primary btn-sm">🔍 ดูรายละเอียด</button>
-            <button class="btn btn-secondary btn-sm">📝 รับเคส</button>
-            <button class="btn btn-danger btn-sm">🚫 ระงับผู้ขาย</button>
-            <button class="btn btn-secondary btn-sm">✅ ปิดรายงาน</button>
-          </div>
-        </div>
-        <div class="report-evidence">
-          <div class="report-note"><strong>หลักฐานแนบ</strong> รูปสินค้าก่อนซื้อ 3 ไฟล์ • แชท 5 ข้อความ • สลิปชำระเงิน</div>
-          <div class="report-note"><strong>ความเสี่ยงบัญชี</strong> ผู้ขายถูกรายงานลักษณะใกล้เคียงกัน 2 ครั้งใน 30 วันล่าสุด</div>
-          <div class="report-note"><strong>คำแนะนำระบบ</strong> แนะนำให้ตรวจสอบ chat log และข้อมูลสินค้าจริงก่อนตัดสินใจปิดเคส</div>
-        </div>
-      </div>
-
-      <div class="report-entry priority-mid">
-        <div class="report-top">
-          <div style="flex:1">
-            <div class="report-title-row">
-              <span class="inline-badge warn">🟡 กำลังตรวจสอบ</span>
-              <span class="inline-badge info">Response Delay</span>
-              <div class="report-title">NewGamer รายงาน ROVKing</div>
-            </div>
-            <div class="report-meta">
-              <span>🧾 Order ID: ORD-2026-014</span>
-              <span>👤 ผู้ซื้อ: NewGamer</span>
-              <span>🛍️ ผู้ขาย: ROVKing</span>
-              <span>🕒 08/03/2026 • 11:05</span>
-            </div>
-            <div class="report-desc">ผู้ซื้อระบุว่าหลังชำระเงินแล้วผู้ขายไม่ตอบแชทต่อเนื่องเกิน 24 ชั่วโมง แม้ระบบจะตัดยอดและส่ง OTP สำเร็จแล้ว แต่ยังไม่ได้รับข้อมูลการเข้าสู่ระบบเพิ่มเติม</div>
-            <div class="report-tags">
-              <span class="report-chip">ROV</span>
-              <span class="report-chip">ไม่ตอบกลับ</span>
-              <span class="report-chip">เสี่ยง SLA</span>
-            </div>
-          </div>
-          <div class="report-actions">
-            <button class="btn btn-primary btn-sm">🔍 ดูรายละเอียด</button>
-            <button class="btn btn-secondary btn-sm">💬 เปิดแชท Log</button>
-            <button class="btn btn-secondary btn-sm">📨 แจ้งเตือนผู้ขาย</button>
-            <button class="btn btn-secondary btn-sm">✅ ปิดรายงาน</button>
-          </div>
-        </div>
-        <div class="report-evidence">
-          <div class="report-note"><strong>สถานะล่าสุด</strong> เคสนี้มีแอดมินรับเรื่องแล้ว 1 คน และรอการตอบกลับจากผู้ขาย</div>
-          <div class="report-note"><strong>เวลา SLA</strong> เหลือเวลาอีก 6 ชั่วโมงก่อนระบบ escalates เป็นระดับสูง</div>
-          <div class="report-note"><strong>ประวัติผู้ขาย</strong> ไม่มีประวัติการโดนแบน แต่เคยตอบช้ากว่าเกณฑ์ 1 ครั้ง</div>
-        </div>
-      </div>
+  <div id="rpt-user">
+    <div class="report-summary-box">
+      <div class="report-summary-item"><div class="label">สถานะ</div><strong>ยังไม่เชื่อมกับข้อมูลจริง</strong><div class="sub">ส่วนนี้จะเปิดใช้งานเมื่อ User Report API ถูกพัฒนาแยกจาก Transaction Report</div></div>
+      <div class="report-summary-item"><div class="label">หมายเหตุ</div><strong>ไม่มีข้อมูลตัวอย่างแสดงในระบบ</strong><div class="sub">เพื่อไม่ให้ข้อมูล Mockup ถูกเข้าใจว่าเป็นข้อมูลจาก Database</div></div>
     </div>
-    <div class="report-empty">แสดง 2 จาก 12 รายการ • สามารถต่อยอดให้ค้นหาและกรองจริงด้วย JavaScript ภายหลังได้</div>
+    <div class="report-empty">ระบบยังไม่มี User Report API สำหรับส่วนนี้ จึงไม่แสดงข้อมูลตัวอย่าง</div>
 
 
 
   <div id="rpt-bug" style="display:none">
-    <div class="report-toolbar">
-      <div class="report-field"><span class="icon">🔍</span><input placeholder="ค้นหาปัญหาระบบ, module หรือ keyword" value=""/></div>
-      <div class="report-field"><span class="icon">🚦</span><select><option>ทุกระดับความรุนแรง</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
-      <div class="report-field"><span class="icon">🧩</span><select><option>ทุกโมดูล</option><option>Payment</option><option>OTP</option><option>Chat</option><option>Order</option></select></div>
-      <div class="report-field"><span class="icon">🕒</span><select><option>ล่าสุด</option><option>วันนี้</option><option>7 วันที่ผ่านมา</option></select></div>
+    <div class="report-summary-box">
+      <div class="report-summary-item"><div class="label">สถานะ</div><strong>ยังไม่เชื่อมกับ Bug Tracker</strong><div class="sub">หน้านี้ยังไม่มี Backend สำหรับดึงรายการบัคจากระบบจริง</div></div>
+      <div class="report-summary-item"><div class="label">หมายเหตุ</div><strong>ไม่มีข้อมูลตัวอย่างแสดงในระบบ</strong><div class="sub">จะเพิ่มการเชื่อมต่อเมื่อมีโมดูล Bug Report โดยเฉพาะ</div></div>
     </div>
-
-    <div class="report-list">
-      <div class="report-entry priority-high">
-        <div class="report-top">
-          <div style="flex:1">
-            <div class="report-title-row">
-              <span class="inline-badge danger">Critical</span>
-              <span class="inline-badge info">Payment Module</span>
-              <div class="report-title">ระบบการชำระเงินค้าง</div>
-            </div>
-            <div class="report-meta">
-              <span>📦 กระทบ 3 คำสั่งซื้อ</span>
-              <span>🕒 รายงานล่าสุด 12 นาทีที่แล้ว</span>
-              <span>👨‍💻 ผู้รับผิดชอบ: Admin A</span>
-            </div>
-            <div class="report-desc">ผู้ใช้แจ้งว่าชำระเงินแล้วแต่สถานะยังไม่อัปเดต ทำให้ยังไม่ได้รับข้อมูลสินค้า แม้ยอด points ถูกหักเรียบร้อยแล้ว</div>
-            <div class="report-tags">
-              <span class="report-chip">Payment</span>
-              <span class="report-chip">Order Sync</span>
-              <span class="report-chip">ต้องเร่งแก้</span>
-            </div>
-          </div>
-          <div class="report-actions">
-            <button class="btn btn-primary btn-sm">🔧 สร้างงานแก้ไข</button>
-            <button class="btn btn-secondary btn-sm">📄 ดู log</button>
-            <button class="btn btn-danger btn-sm">🚨 Escalate</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="report-entry priority-mid">
-        <div class="report-top">
-          <div style="flex:1">
-            <div class="report-title-row">
-              <span class="inline-badge warn">Medium</span>
-              <span class="inline-badge info">OTP Service</span>
-              <div class="report-title">OTP ส่งช้ากว่าปกติ</div>
-            </div>
-            <div class="report-meta">
-              <span>📦 กระทบหลายผู้ใช้</span>
-              <span>🕒 รายงานล่าสุด 1 ชั่วโมงที่แล้ว</span>
-              <span>👨‍💻 ผู้รับผิดชอบ: ยังไม่ได้ assign</span>
-            </div>
-            <div class="report-desc">บางครั้ง OTP ใช้เวลานานกว่า 5 นาที ส่งผลให้ผู้ใช้บางรายคิดว่าระบบค้าง และกลับมาทำรายการซ้ำ</div>
-            <div class="report-tags">
-              <span class="report-chip">OTP</span>
-              <span class="report-chip">Latency</span>
-              <span class="report-chip">ควรตรวจสอบ provider</span>
-            </div>
-          </div>
-          <div class="report-actions">
-            <button class="btn btn-primary btn-sm">🔍 ตรวจสอบ</button>
-            <button class="btn btn-secondary btn-sm">📈 ดูสถิติ</button>
-            <button class="btn btn-secondary btn-sm">📝 มอบหมายงาน</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="report-empty">ระบบยังไม่มี Bug Report API สำหรับส่วนนี้ จึงไม่แสดงข้อมูล Mockup</div>
   </div>
 </div>
 </div>
@@ -1799,112 +1614,16 @@
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar6"></div>
 <div class="admin-content">
-<div class="sec-header"><div class="sec-title">🚫 รายชื่อผู้ใช้ที่ถูกระงับ</div><div class="sec-sub">จัดการบัญชีที่ถูกระงับการใช้งานชั่วคราวหรือถาวร</div></div>
-<div class="card">
-  <div class="report-panel">
-    <div class="report-summary-grid" style="margin-bottom:18px">
-      <div class="report-stat danger">
-        <div class="label">ถูกระงับทั้งหมด</div>
-        <div class="value">3</div>
-        <div class="sub">อัปเดตล่าสุด 5 นาทีที่แล้ว</div>
-      </div>
-      <div class="report-stat warn">
-        <div class="label">ระงับชั่วคราว</div>
-        <div class="value">2</div>
-        <div class="sub">มีวันปลดระงับกำหนดไว้</div>
-      </div>
-      <div class="report-stat danger">
-        <div class="label">ระงับถาวร</div>
-        <div class="value">1</div>
-        <div class="sub">ตรวจพบพฤติกรรมร้ายแรง</div>
-      </div>
-      <div class="report-stat info">
-        <div class="label">รอตรวจสอบเพิ่ม</div>
-        <div class="value">1</div>
-        <div class="sub">อาจมีการขยายเวลาระงับ</div>
-      </div>
-    </div>
-
-    <div class="report-toolbar" style="margin-bottom:18px">
-      <div class="report-field"><span class="icon">🔍</span><input placeholder="ค้นหาชื่อผู้ใช้, User ID หรือเหตุผลการระงับ" value=""/></div>
-      <div class="report-field"><span class="icon">📌</span><select><option>ทุกสถานะ</option><option>ระงับถาวร</option><option>ระงับชั่วคราว</option></select></div>
-      <div class="report-field"><span class="icon">🗂️</span><select><option>ทุกประเภท</option><option>Fraud / Scam</option><option>Abusive Chat</option><option>Multiple Chargeback</option></select></div>
-      <div class="report-field"><span class="icon">🕒</span><select><option>ล่าสุด</option><option>7 วันที่ผ่านมา</option><option>30 วันที่ผ่านมา</option></select></div>
-    </div>
-
-    <div style="display:grid;gap:12px">
-      <div class="report-entry priority-high" style="margin:0">
-        <div class="report-top">
-          <div style="flex:1">
-            <div class="report-title-row">
-              <span class="inline-badge danger">⛔ ระงับถาวร</span>
-              <span class="inline-badge info">Fraud / Scam</span>
-              <div class="report-title">GamerX</div>
-            </div>
-            <div class="report-meta">
-              <span>🆔 User ID: U-SELL-1048</span>
-              <span>🎮 บทบาท: ผู้ขาย</span>
-              <span>📅 ระงับเมื่อ: 09/03/2026</span>
-              <span>👮 โดยแอดมิน: Admin Panel</span>
-            </div>
-            <div class="report-desc">ระงับจากกรณีขายสินค้าไม่ตรงประกาศหลายครั้ง และตรวจพบพฤติกรรมเข้าข่ายหลอกลวงผู้ซื้อซ้ำ</div>
-          </div>
-          <div class="report-actions">
-            <button class="btn btn-primary btn-sm">👤 ดูโปรไฟล์</button>
-            <button class="btn btn-secondary btn-sm">📄 ประวัติรายงาน</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="report-entry priority-mid" style="margin:0">
-        <div class="report-top">
-          <div style="flex:1">
-            <div class="report-title-row">
-              <span class="inline-badge warn">⏳ ระงับชั่วคราว 7 วัน</span>
-              <span class="inline-badge info">Abusive Chat</span>
-              <div class="report-title">ROVKing</div>
-            </div>
-            <div class="report-meta">
-              <span>🆔 User ID: U-SELL-0871</span>
-              <span>🎮 บทบาท: ผู้ขาย</span>
-              <span>📅 ระงับเมื่อ: 08/03/2026</span>
-              <span>🔓 ปลดระงับ: 15/03/2026</span>
-            </div>
-            <div class="report-desc">ใช้ถ้อยคำไม่เหมาะสมในแชทซื้อขาย และไม่ให้ความร่วมมือกับทีมตรวจสอบหลังได้รับคำเตือน</div>
-          </div>
-          <div class="report-actions">
-            <button class="btn btn-primary btn-sm">👤 ดูโปรไฟล์</button>
-            <button class="btn btn-secondary btn-sm">📝 หมายเหตุแอดมิน</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="report-entry priority-mid" style="margin:0">
-        <div class="report-top">
-          <div style="flex:1">
-            <div class="report-title-row">
-              <span class="inline-badge warn">⏳ ระงับชั่วคราว 3 วัน</span>
-              <span class="inline-badge info">Multiple Chargeback</span>
-              <div class="report-title">SkinFlash</div>
-            </div>
-            <div class="report-meta">
-              <span>🆔 User ID: U-BUY-2214</span>
-              <span>🎮 บทบาท: ผู้ซื้อ</span>
-              <span>📅 ระงับเมื่อ: 09/03/2026</span>
-              <span>🔓 ปลดระงับ: 12/03/2026</span>
-            </div>
-            <div class="report-desc">บัญชีถูกระงับชั่วคราวเพื่อรอตรวจสอบจากการแจ้งปฏิเสธรายการชำระเงินหลายครั้งในช่วงเวลาสั้น</div>
-          </div>
-          <div class="report-actions">
-            <button class="btn btn-primary btn-sm">👤 ดูโปรไฟล์</button>
-            <button class="btn btn-secondary btn-sm">💳 ดูรายการชำระเงิน</button>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="sec-header"><div><div class="sec-title">🚫 รายชื่อผู้ใช้ที่ถูกระงับ</div><div class="sec-sub">จัดการสถานะบัญชีจาก Database จริง</div></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">↻ รีเฟรช</button></div>
+<div class="card" style="padding:18px"><div class="report-summary-box"><div class="report-summary-item"><div class="label">รอโหลด</div><strong id="adminSuspendedCount">—</strong><div class="sub">บัญชี SUSPENDED / BANNED</div></div><div class="report-summary-item"><div class="label">ความปลอดภัย</div><strong>Session ถูกยกเลิก</strong><div class="sub">ทุกการเปลี่ยนสถานะจะเพิ่ม token version</div></div></div><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminSuspendedSearch" oninput="adminFilterSuspendedUsers()" placeholder="ค้นหา username หรือ email"></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">โหลดข้อมูล</button></div><div id="adminSuspendedList" class="report-list"></div></div>
+</div>
+</div>
+</div>
+<div class="page" id="pg-product-detail">
+  <div class="page-wrap" style="max-width:1120px;margin:0 auto;padding:32px 20px">
+    <button class="btn btn-secondary btn-sm" onclick="goPage(isLoggedIn ? 'listings-user' : 'listings')">← กลับไปหน้ารายการสินค้า</button>
+    <div id="product-detail-content" style="margin-top:18px"></div>
   </div>
-</div>
-</div>
 </div>
 </div><!-- end #pages -->
 <div class="modal-backdrop" id="changeEmailModal" hidden onclick="if(event.target===this)closeVerificationTargetModal('email')">
@@ -1926,6 +1645,37 @@
 </div>
 </div>
 <script src="assets/js/phone-format.js"></script>
+<script src="assets/js/seller-verification-ui.js"></script>
+<script src="assets/js/product-image-ui.js"></script>
+<script src="assets/js/create-product-functions.js"></script>
+<script src="assets/js/my-products-functions.js"></script>
+<!-- ======== PAGE: SELLER PROFILE ======== -->
+<div class="page" id="pg-seller-profile">
+  <div class="seller-public-page">
+    <button class="btn btn-ghost btn-sm" onclick="goPage('listings-user')" style="margin-bottom:18px">← กลับไปหน้ารายการสินค้า</button>
+    <div id="seller-profile-content"></div>
+  </div>
+</div>
+
+<script src="assets/js/product-detail-functions.js"></script>
+<script src="assets/js/product-review-ui.js"></script>
+<script src="assets/js/public-seller-profile-ui.js"></script>
+<script src="assets/js/seller-rating-ui.js"></script>
+<script src="assets/js/history-trade-ui.js"></script>
+<script src="assets/js/review-ui.js"></script>
+<!-- transaction-report-ui.js is the single Transaction Report UI implementation -->
+<script src="assets/js/wallet-ui.js"></script>
+<script src="assets/js/wallet-topup-ui.js"></script>
+<script src="assets/js/admin-topup-ui.js"></script>
+<script src="assets/js/admin-withdraw-ui.js"></script>
+<script src="assets/js/admin-transaction-reports-ui.js"></script>
+<script src="assets/js/admin-games-ui.js"></script>
+<script src="assets/js/admin-moderation-ui.js"></script>
+<script src="assets/js/chat-ui.js"></script>
+<script src="assets/js/admin-chat-log-ui.js"></script>
+<script src='assets/js/admin-transaction-report-detail-ui.js'></script>
+<script src="assets/js/transaction-report-ui.js"></script>
 <script src="assets/js/script.js"></script>
+<script src="assets/js/wallet-withdraw.js"></script>
 </body>
 </html>

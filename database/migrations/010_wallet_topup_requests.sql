@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS wallet_topup_requests (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NOT NULL,
+  payment_method ENUM('CARD','BANK','PROMPTPAY','TRUEMONEY') NOT NULL,
+  amount DECIMAL(12,2) NOT NULL,
+  status ENUM('PENDING','APPROVED','REJECTED') NOT NULL DEFAULT 'PENDING',
+  reference_code VARCHAR(100) NULL,
+  proof_url VARCHAR(500) NULL,
+  reviewed_by BIGINT UNSIGNED NULL,
+  reviewed_at DATETIME(3) NULL,
+  rejection_reason VARCHAR(255) NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  KEY idx_topup_user_status (user_id, status, created_at),
+  KEY idx_topup_status_created (status, created_at),
+  CONSTRAINT fk_topup_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_topup_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT chk_topup_amount_positive CHECK (amount > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

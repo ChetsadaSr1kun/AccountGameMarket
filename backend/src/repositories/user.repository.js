@@ -70,6 +70,10 @@ async function incrementTokenVersion(executor, userId) {
   await executor.execute('UPDATE users SET token_version = token_version + 1, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [userId]);
 }
 
+async function updateAccountMode(executor, userId, accountMode) {
+  await executor.execute('UPDATE users SET account_mode = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [accountMode, userId]);
+}
+
 async function findByUsername(username) {
   const [rows] = await pool.execute('SELECT id FROM users WHERE username = ? LIMIT 1', [username]);
   return rows[0] || null;
@@ -104,4 +108,13 @@ async function markPhoneVerified(executor, userId) {
   await executor.execute('UPDATE users SET phone_verified_at = UTC_TIMESTAMP(3), updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [userId]);
 }
 
-module.exports = { findByLogin, findByEmail, findAuthUserById, findAuthUserByUsername, create, assignRoles, updatePassword, incrementTokenVersion, findByUsername, updateUsername, updateEmail, updatePhone, updateAvatarUrl, markEmailVerified, markPhoneVerified };
+async function listAdminSuspended() {
+  const [rows] = await pool.execute(`SELECT id,username,email,account_mode,status,suspension_reason,suspended_until,updated_at FROM users WHERE status IN ('SUSPENDED','BANNED') ORDER BY updated_at DESC`);
+  return rows.map((row) => ({ id:row.id,username:row.username,email:row.email,accountMode:row.account_mode,status:row.status,suspensionReason:row.suspension_reason,suspendedUntil:row.suspended_until,updatedAt:row.updated_at }));
+}
+async function adminSetStatus(executor,userId,status,reason=null,suspendedUntil=null) {
+  await executor.execute('UPDATE users SET status=?, suspension_reason=?, suspended_until=?, token_version=token_version+1, updated_at=UTC_TIMESTAMP(3) WHERE id=?',[status,reason,suspendedUntil,userId]);
+  return findAuthUserById(userId,executor);
+}
+
+module.exports = { findByLogin, findByEmail, findAuthUserById, findAuthUserByUsername, create, assignRoles, updatePassword, incrementTokenVersion, updateAccountMode, findByUsername, updateUsername, updateEmail, updatePhone, updateAvatarUrl, markEmailVerified, markPhoneVerified, listAdminSuspended, adminSetStatus };

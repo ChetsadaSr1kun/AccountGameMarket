@@ -7,4 +7,5 @@ data/*.db-wal
 uploads/private/
 uploads/avatars/
 logs/
-tmp/sms-inbox/
+tmp/
+uploads/

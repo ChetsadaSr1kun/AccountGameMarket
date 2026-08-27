@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS withdrawal_requests (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NOT NULL,
+  amount DECIMAL(12,2) NOT NULL,
+  payment_method ENUM('BANK','PROMPTPAY','TRUEMONEY') NOT NULL,
+  account_name VARCHAR(120) NOT NULL,
+  account_number VARCHAR(64) NOT NULL,
+  status ENUM('PENDING','APPROVED','REJECTED') NOT NULL DEFAULT 'PENDING',
+  rejection_reason VARCHAR(255) NULL,
+  reviewed_by BIGINT UNSIGNED NULL,
+  reviewed_at DATETIME(3) NULL,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  KEY idx_withdrawal_user_created (user_id, created_at),
+  KEY idx_withdrawal_status_created (status, created_at),
+  CONSTRAINT fk_withdrawal_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_withdrawal_reviewer FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT chk_withdrawal_amount CHECK (amount >= 100)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

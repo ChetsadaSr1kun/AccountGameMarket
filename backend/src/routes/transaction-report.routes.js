@@ -1,0 +1,12 @@
+const express=require('express');
+const controller=require('../controllers/transaction-report.controller');
+const {authenticate,authorize}=require('../middleware/auth.middleware');
+const {requireCsrf}=require('../middleware/csrf.middleware');
+const router=express.Router();
+router.use(authenticate);
+router.post('/',requireCsrf,controller.createReport);
+router.get('/pending',authorize('ADMIN'),controller.listPendingReports);
+router.get('/admin',authorize('ADMIN'),controller.listAdminReports);
+router.get('/:id',authorize('ADMIN'),controller.getReportDetail);
+router.patch('/:id',authorize('ADMIN'),requireCsrf,controller.updateReport);
+module.exports=router;
