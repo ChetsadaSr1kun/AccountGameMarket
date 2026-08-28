@@ -19,6 +19,33 @@ async function listPending() {
   return rows.map(map);
 }
 
+async function listTopupHistory(limit = 50) {
+  const { pool } = require('../config/database');
+  const safeLimit = Math.min(100, Math.max(1, Number.parseInt(limit, 10) || 50));
+  const [rows] = await pool.execute(`SELECT r.id,r.user_id,u.username,r.payment_method,r.amount,r.status,r.reference_code,
+    r.rejection_reason,r.reviewed_at,r.created_at
+    FROM wallet_topup_requests r INNER JOIN users u ON u.id=r.user_id
+    ORDER BY r.id DESC LIMIT ${safeLimit}`);
+  return rows.map(map);
+}
+
+async function getTopupSummary() {
+  const { pool } = require('../config/database');
+  const [rows] = await pool.execute(`SELECT
+    COUNT(*) AS total_count,
+    SUM(CASE WHEN status='APPROVED' THEN 1 ELSE 0 END) AS approved_count,
+    SUM(CASE WHEN status='PENDING' THEN 1 ELSE 0 END) AS pending_count,
+    SUM(CASE WHEN status='REJECTED' THEN 1 ELSE 0 END) AS rejected_count,
+    COALESCE(SUM(CASE WHEN status='APPROVED' THEN amount ELSE 0 END),0) AS approved_amount
+    FROM wallet_topup_requests`);
+  const row = rows[0] || {};
+  return {
+    totalCount: Number(row.total_count || 0), approvedCount: Number(row.approved_count || 0),
+    pendingCount: Number(row.pending_count || 0), rejectedCount: Number(row.rejected_count || 0),
+    approvedAmount: Number(row.approved_amount || 0),
+  };
+}
+
 async function decide(requestId, adminId, approved, reason = null) {
   return withTransaction(async (connection) => {
     const [rows] = await connection.execute('SELECT * FROM wallet_topup_requests WHERE id=? FOR UPDATE', [requestId]);
@@ -81,4 +108,4 @@ async function decideWithdrawal(requestId, adminId, approved, reason = null) {
   });
 }
 
-module.exports = { listPending, decide, listPendingWithdrawals, decideWithdrawal };
+module.exports = { listPending, decide, listTopupHistory, getTopupSummary, listPendingWithdrawals, decideWithdrawal };

@@ -1,6 +1,16 @@
 const service = require('../services/wallet-admin.service');
 const { success } = require('../utils/response');
 
+async function listTopupHistory(req, res, next) {
+  try {
+    const [history, summary] = await Promise.all([
+      service.listTopupHistory(),
+      service.getTopupSummary(),
+    ]);
+    return success(res, 200, { history, summary });
+  } catch (error) { return next(error); }
+}
+
 async function listPending(req, res, next) {
   try { return success(res, 200, { requests: await service.listPending() }); }
   catch (error) { return next(error); }
@@ -31,4 +41,4 @@ async function rejectWithdrawal(req, res, next) {
   catch (error) { return next(error); }
 }
 
-module.exports = { listPending, approve, reject, listPendingWithdrawals, approveWithdrawal, rejectWithdrawal };
+module.exports = { listPending, listTopupHistory, approve, reject, listPendingWithdrawals, approveWithdrawal, rejectWithdrawal };

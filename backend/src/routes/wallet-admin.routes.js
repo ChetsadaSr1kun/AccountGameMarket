@@ -5,6 +5,7 @@ const { requireCsrf } = require('../middleware/csrf.middleware');
 
 const router = express.Router();
 
+router.get('/topup/history', authenticate, authorize('ADMIN'), controller.listTopupHistory);
 router.get('/topup/pending', authenticate, authorize('ADMIN'), controller.listPending);
 router.post('/topup/:id/approve', authenticate, authorize('ADMIN'), requireCsrf, controller.approve);
 router.post('/topup/:id/reject', authenticate, authorize('ADMIN'), requireCsrf, controller.reject);
