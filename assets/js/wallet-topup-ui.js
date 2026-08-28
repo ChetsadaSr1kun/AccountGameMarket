@@ -47,7 +47,7 @@ async function createWalletTopupRequest() {
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error?.message || 'สร้างคำขอเติมพ้อยท์ไม่สำเร็จ');
-    if (message) message.innerHTML = '<div class="notice success">ส่งคำขอเรียบร้อยแล้ว • สถานะ: รอตรวจสอบ</div>';
+    if (message) message.innerHTML = '<div class="notice success">เติมพ้อยท์สำเร็จ • พ้อยท์ถูกเพิ่มเข้ากระเป๋าทันที</div>';
     if (input) input.value = '';
     if (typeof loadWallet === 'function') await loadWallet();
   } catch (error) {
