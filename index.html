@@ -1562,11 +1562,12 @@
 <!-- Admin Seller Verification -->
 <div class="page" id="pg-admin-seller-verifications">
 <div class="admin-layout"><div class="admin-sidebar" id="adminSidebar7"></div><div class="admin-content">
-<div class="sec-header"><div class="sec-title">🪪 ตรวจสอบผู้ขาย</div><div class="sec-sub">ตรวจสอบเอกสารและอนุมัติสิทธิ์ผู้ขาย</div></div>
-<div id="adminSellerVerificationMessage" style="margin-bottom:12px;font-size:13px"></div>
-<div id="adminSellerVerificationList" style="display:flex;flex-direction:column;gap:14px"></div>
+<div class="sec-header"><div><div class="sec-title">🪪 ตรวจสอบผู้ขาย</div><div class="sec-sub">ตรวจสอบข้อมูล เอกสาร และประวัติการอนุมัติผู้ขาย</div></div><button class="btn btn-secondary btn-sm" onclick="loadAdminSellerVerificationRequests()">↻ รีเฟรช</button></div>
+<div class="grid3" style="margin-bottom:20px"><div class="card stat-card"><div style="font-size:22px">⏳</div><div id="adminSellerPendingCount" class="stat-val">0</div><div class="stat-label">รอตรวจสอบ</div></div><div class="card stat-card"><div style="font-size:22px">✅</div><div id="adminSellerApprovedCount" class="stat-val">0</div><div class="stat-label">อนุมัติแล้ว</div></div><div class="card stat-card"><div style="font-size:22px">❌</div><div id="adminSellerRejectedCount" class="stat-val">0</div><div class="stat-label">ปฏิเสธ</div></div></div>
+<div class="card" style="padding:18px"><div class="report-toolbar" style="grid-template-columns:1.3fr .8fr auto"><div class="report-field"><span class="icon">🔍</span><input id="adminSellerVerificationSearch" oninput="filterAdminSellerVerification()" placeholder="ค้นหา Username / Email / ชื่อ"></div><div class="report-field"><select id="adminSellerVerificationStatus" onchange="filterAdminSellerVerification()"><option value="ALL">ทุกสถานะ</option><option value="PENDING">รอตรวจสอบ</option><option value="APPROVED">อนุมัติแล้ว</option><option value="REJECTED">ปฏิเสธ</option></select></div><button class="btn btn-secondary btn-sm" onclick="loadAdminSellerVerificationRequests()">โหลดข้อมูล</button></div><div id="adminSellerVerificationList" class="report-list"></div></div>
 </div></div>
 </div>
+<div class="modal-backdrop" id="adminSellerVerificationModal" hidden onclick="if(event.target===this)closeAdminSellerVerificationModal()"><div class="modal-dialog admin-seller-verification-modal" role="dialog" aria-modal="true"><div class="sec-header"><div><div class="sec-title">🪪 รายละเอียดการตรวจสอบ</div><div class="sec-sub">ตรวจสอบข้อมูลและเอกสารของผู้สมัคร</div></div><button class="btn btn-ghost btn-sm" onclick="closeAdminSellerVerificationModal()">✕</button></div><div id="adminSellerVerificationModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminSellerVerificationModal()">ปิด</button></div></div></div>
 <!-- Admin Report -->
 <div class="page" id="pg-admin-report">
 <div class="admin-layout">
@@ -1662,6 +1663,7 @@
 </div>
 <script src="assets/js/phone-format.js"></script>
 <script src="assets/js/seller-verification-ui.js"></script>
+<script src="assets/js/admin-seller-verification-ui.js"></script>
 <script src="assets/js/product-image-ui.js"></script>
 <script src="assets/js/create-product-functions.js"></script>
 <script src="assets/js/my-products-functions.js"></script>

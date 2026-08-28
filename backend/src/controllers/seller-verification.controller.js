@@ -33,6 +33,11 @@ const listPendingRequests = asyncHandler(async (req, res) => {
   return success(res, 200, { requests });
 });
 
+const listAdminHistory = asyncHandler(async (req, res) => {
+  const history = await sellerVerificationService.listAdminHistory();
+  return success(res, 200, { history });
+});
+
 const getAdminRequest = asyncHandler(async (req, res) => {
   const request = await sellerVerificationService.getRequestForAdmin(Number(req.params.userId));
   return success(res, 200, { request });
@@ -58,6 +63,7 @@ module.exports = {
   approveRequest,
   listPendingRequests,
   getAdminRequest,
+  listAdminHistory,
   rejectRequest,
   getAdminDocument,
 };

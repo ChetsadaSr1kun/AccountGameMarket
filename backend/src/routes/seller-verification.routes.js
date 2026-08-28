@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.get('/me', authenticate, controller.getMyStatus);
 router.get('/admin/pending', authenticate, authorize('ADMIN'), controller.listPendingRequests);
+router.get('/admin/history', authenticate, authorize('ADMIN'), controller.listAdminHistory);
 router.get('/admin/:userId', authenticate, authorize('ADMIN'), controller.getAdminRequest);
 router.get('/admin/:userId/documents/:type', authenticate, authorize('ADMIN'), controller.getAdminDocument);
 router.post('/documents/id-front', authenticate, requireCsrf, uploadSellerDocument, controller.uploadIdFront);

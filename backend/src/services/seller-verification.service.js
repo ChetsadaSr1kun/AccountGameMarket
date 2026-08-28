@@ -75,6 +75,10 @@ async function listPending() {
   })));
 }
 
+async function listAdminHistory() {
+  return sellerVerificationRepository.listAdminHistory();
+}
+
 async function getRequestForAdmin(userId) {
   const request = await sellerVerificationRepository.findRequestWithUser(userId);
   if (!request) throw new AppError('Seller verification request was not found.', 404, 'SELLER_REQUEST_NOT_FOUND');
@@ -104,4 +108,4 @@ async function getDocumentForAdmin(userId, type) {
   return { request, document, absolutePath };
 }
 
-module.exports = { getStatus, uploadDocument, submit, approve, listPending, getRequestForAdmin, reject, getDocumentForAdmin };
+module.exports = { getStatus, uploadDocument, submit, approve, listPending, listAdminHistory, getRequestForAdmin, reject, getDocumentForAdmin };
