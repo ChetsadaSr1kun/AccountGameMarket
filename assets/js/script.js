@@ -422,7 +422,7 @@ const adminNavItems = [
   ['admin-suspended-users','⛔','รายชื่อผู้ใช้ที่ถูกระงับ'],
 ];
 function renderAdminSidebars() {
-  ['','2','3','4','5','6','7','8','9'].forEach(sfx => {
+  ['','2','3','4','5','6','7','8','9','10'].forEach(sfx => {
     const el = document.getElementById('adminSidebar'+sfx);
     if (!el) return;
     el.innerHTML = `
