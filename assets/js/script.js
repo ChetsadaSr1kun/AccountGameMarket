@@ -14,7 +14,7 @@ const otpCooldowns = {
 
 const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
-const adminPages = ['admin-dashboard','admin-games','admin-seller-verifications','admin-chat-log','admin-withdraw','admin-topup','admin-report','admin-suspended-users'];
+const adminPages = ['admin-dashboard','admin-users','admin-games','admin-seller-verifications','admin-chat-log','admin-withdraw','admin-topup','admin-report','admin-suspended-users'];
 const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat',
   'order-confirm','order-otp','order-success','order-info','order-detail','review','user-report',
   'seller-verify','add-listing','edit-listing','my-listings','seller-profile'];
@@ -70,6 +70,7 @@ function goPage(pageId) {
   if (pageId === 'admin-report') window.loadAdminTransactionReports?.();
   if (pageId === 'admin-dashboard') window.loadAdminDashboardSummary?.();
   if (pageId === 'admin-games') window.adminInitGames?.();
+  if (pageId === 'admin-users') window.adminLoadUsers?.();
   if (pageId === 'admin-suspended-users') window.adminLoadSuspendedUsers?.();
   if (pageId === 'admin-chat-log') window.loadAdminChatLog?.();
   if (pageId === 'chat') window.loadChatPage?.();
@@ -409,6 +410,7 @@ document.addEventListener('click', function(e) { if (!e.target.closest('.dropdow
 // ===================== ADMIN SIDEBAR =====================
 const adminNavItems = [
   ['admin-dashboard','📊','Dashboard'],
+  ['admin-users','👥','จัดการผู้ใช้'],
   ['admin-games','🎮','หมวดหมู่เกม'],
   ['admin-chat-log','💬','ประวัติแชท'],
   ['admin-withdraw','💸','อนุมัติถอนเงิน'],
@@ -418,7 +420,7 @@ const adminNavItems = [
   ['admin-suspended-users','⛔','รายชื่อผู้ใช้ที่ถูกระงับ'],
 ];
 function renderAdminSidebars() {
-  ['','2','3','4','5','6','7','8'].forEach(sfx => {
+  ['','2','3','4','5','6','7','8','9'].forEach(sfx => {
     const el = document.getElementById('adminSidebar'+sfx);
     if (!el) return;
     el.innerHTML = `
