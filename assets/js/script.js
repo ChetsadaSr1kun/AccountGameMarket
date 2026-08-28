@@ -15,7 +15,7 @@ const otpCooldowns = {
 const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
 const adminPages = ['admin-dashboard','admin-users','admin-products','admin-games','admin-seller-verifications','admin-chat-log','admin-withdraw','admin-topup','admin-report','admin-suspended-users'];
-const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat',
+const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat','notifications',
   'order-confirm','order-otp','order-success','order-info','order-detail','review','user-report',
   'seller-verify','add-listing','edit-listing','my-listings','seller-profile'];
 const guestPages = ['home','login','register','forgot','otp-reset','reset-success','listings','product','product-detail'];
@@ -73,6 +73,7 @@ function goPage(pageId) {
   if (pageId === 'admin-users') window.adminLoadUsers?.();
   if (pageId === 'admin-products') window.adminLoadProducts?.();
   if (pageId === 'admin-suspended-users') window.adminLoadSuspendedUsers?.();
+  if (pageId === 'notifications') window.loadNotifications?.();
   if (pageId === 'admin-chat-log') window.loadAdminChatLog?.();
   if (pageId === 'chat') window.loadChatPage?.();
   window.scrollTo(0,0);

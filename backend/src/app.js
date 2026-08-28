@@ -23,6 +23,7 @@ const reviewRoutes = require('./routes/review.routes');
 const reviewReportRoutes = require('./routes/review-report.routes');
 const sellerProfileRoutes = require('./routes/seller-profile.routes');
 const transactionReportRoutes = require('./routes/transaction-report.routes');
+const notificationRoutes = require('./routes/notification.routes');
 const { globalLimit } = require('./middleware/rate-limit.middleware');
 const { notFound, errorHandler } = require('./middleware/error-handler.middleware');
 
@@ -74,6 +75,7 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/review-reports', reviewReportRoutes);
 app.use('/api/v1/sellers', sellerProfileRoutes);
 app.use('/api/v1/transaction-reports', transactionReportRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 app.get('/', (req, res) => res.sendFile(path.join(projectRoot, 'index.html')));
 app.use('/assets', express.static(path.join(projectRoot, 'assets'), { index: false }));
