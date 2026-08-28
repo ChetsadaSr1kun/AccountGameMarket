@@ -55,6 +55,8 @@
 <button class="devbtn" onclick="loginAndGo('my-listings')">📦 ประกาศฉัน</button>
 <span style="color:var(--border2);margin:0 4px">|</span>
 <button class="devbtn" onclick="goAdmin('admin-dashboard')">📊 Admin</button>
+<button class="devbtn" onclick="goAdmin('admin-users')">👥 จัดการผู้ใช้</button>
+<button class="devbtn" onclick="goAdmin('admin-products')">📦 จัดการสินค้า</button>
 <button class="devbtn" onclick="goAdmin('admin-games')">🎮 หมวดหมู่</button>
 <button class="devbtn" onclick="goAdmin('admin-chat-log')">💬 แชทLog</button>
 <button class="devbtn" onclick="goAdmin('admin-withdraw')">💸 ถอนเงิน</button>
@@ -1488,6 +1490,13 @@
 <div class="card" style="padding:18px"><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminUserSearch" oninput="adminFilterUsers()" placeholder="ค้นหา Username / Email / ชื่อ"></div><div class="report-field"><select id="adminUserRole" onchange="adminFilterUsers()"><option value="ALL">ทุกบทบาท</option><option value="USER">USER</option><option value="SELLER">SELLER</option><option value="ADMIN">ADMIN</option></select></div><div class="report-field"><select id="adminUserStatus" onchange="adminFilterUsers()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">ใช้งาน</option><option value="SUSPENDED">ระงับ</option><option value="BANNED">แบน</option></select></div></div><div id="adminUserList" class="report-list"></div></div>
 </div></div></div>
 <div class="modal-backdrop" id="adminUserModal" hidden onclick="if(event.target===this)closeAdminUserModal()"><div class="modal-dialog" role="dialog" aria-modal="true" style="max-width:680px"><div class="sec-header"><div class="sec-title">👤 รายละเอียดผู้ใช้</div><button class="btn btn-ghost btn-sm" onclick="closeAdminUserModal()">✕</button></div><div id="adminUserModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminUserModal()">ปิด</button></div></div></div>
+<div class="page" id="pg-admin-products">
+<div class="admin-layout"><div class="admin-sidebar" id="adminSidebar10"></div><div class="admin-content">
+<div class="sec-header"><div><div class="sec-title">📦 จัดการสินค้า</div><div class="sec-sub">ตรวจสอบและจัดการรายการสินค้าจากผู้ขาย</div></div><button class="btn btn-secondary btn-sm" onclick="adminLoadProducts()">↻ รีเฟรช</button></div>
+<div class="grid4" style="margin-bottom:20px"><div class="card stat-card"><div>📦</div><div id="adminProductTotal" class="stat-val">0</div><div class="stat-label">สินค้าทั้งหมด</div></div><div class="card stat-card"><div>🟢</div><div id="adminProductActive" class="stat-val">0</div><div class="stat-label">กำลังขาย</div></div><div class="card stat-card"><div>⏸</div><div id="adminProductPaused" class="stat-val">0</div><div class="stat-label">ซ่อน</div></div><div class="card stat-card"><div>✅</div><div id="adminProductSold" class="stat-val">0</div><div class="stat-label">ขายแล้ว</div></div></div>
+<div class="card" style="padding:18px"><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminProductSearch" oninput="adminFilterProducts()" placeholder="ค้นหาชื่อสินค้า / ผู้ขาย"></div><div class="report-field"><select id="adminProductGame" onchange="adminFilterProducts()"><option value="ALL">ทุกเกม</option></select></div><div class="report-field"><select id="adminProductStatus" onchange="adminFilterProducts()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">กำลังขาย</option><option value="PAUSED">ซ่อน</option><option value="SOLD">ขายแล้ว</option><option value="DRAFT">ฉบับร่าง</option><option value="CANCELLED">ยกเลิก</option></select></div></div><div id="adminProductList" class="report-list"></div></div>
+</div></div></div>
+<div class="modal-backdrop" id="adminProductModal" hidden onclick="if(event.target===this)closeAdminProductModal()"><div class="modal-dialog" role="dialog" aria-modal="true" style="max-width:720px"><div class="sec-header"><div class="sec-title">📦 รายละเอียดสินค้า</div><button class="btn btn-ghost btn-sm" onclick="closeAdminProductModal()">✕</button></div><div id="adminProductModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminProductModal()">ปิด</button></div></div></div>
 <!-- Admin Games -->
 <div class="page" id="pg-admin-games">
 <div class="admin-layout">
@@ -1678,6 +1687,7 @@
 <script src="assets/js/admin-transaction-reports-ui.js"></script>
 <script src="assets/js/admin-games-ui.js"></script>
 <script src="assets/js/admin-user-ui.js"></script>
+<script src="assets/js/admin-product-ui.js"></script>
 <script src="assets/js/admin-moderation-ui.js"></script>
 <script src="assets/js/chat-ui.js"></script>
 <script src="assets/js/admin-chat-log-ui.js"></script>
