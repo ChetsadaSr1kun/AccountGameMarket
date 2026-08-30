@@ -1,5 +1,6 @@
 const AppError = require('../utils/app-error');
 const reviewRepository = require('../repositories/review.repository');
+const notificationService = require('./notification.service');
 
 function mapReview(row){if(!row)return null;return {id:Number(row.id),orderId:Number(row.order_id),productId:Number(row.product_id),buyerId:Number(row.buyer_id),sellerId:Number(row.seller_id),rating:Number(row.rating),comment:row.comment||'',sellerReply:row.seller_reply||'',sellerReplyAt:row.seller_reply_at, buyerUsername:row.buyer_username||undefined,createdAt:row.created_at,updatedAt:row.updated_at};}
 
@@ -11,7 +12,9 @@ async function createReview(buyerId,data){
   const order=await reviewRepository.findCompletedOrderForBuyer(orderId,buyerId);
   if(!order)throw new AppError('Only buyers of completed orders can submit reviews.',403,'ORDER_NOT_REVIEWABLE');
   if(await reviewRepository.findReviewByOrderAndBuyer(orderId,buyerId))throw new AppError('You have already reviewed this order.',409,'REVIEW_ALREADY_EXISTS');
-  return mapReview(await reviewRepository.create({orderId,productId:Number(order.product_id),buyerId,sellerId:Number(order.seller_id),rating,comment}));
+  const review=mapReview(await reviewRepository.create({orderId,productId:Number(order.product_id),buyerId,sellerId:Number(order.seller_id),rating,comment}));
+  try{await notificationService.create({userId:Number(order.seller_id),type:'NEW_REVIEW',title:'ได้รับรีวิวใหม่',message:`คุณได้รับรีวิว ${rating}/5 จากผู้ซื้อ`,referenceType:'REVIEW',referenceId:review.id});}catch(error){console.error('notification create failed after review:',error.message);}
+  return review;
 }
 
 async function listProductReviews(productId){return (await reviewRepository.listByProduct(Number(productId),50)).map(mapReview);}
@@ -27,7 +30,9 @@ async function replyToReview(sellerId,reviewId,reply){
   if(!review)throw new AppError('Review not found.',404,'REVIEW_NOT_FOUND');
   if(Number(review.seller_id)!==Number(sellerId))throw new AppError('You can only reply to reviews for your own seller account.',403,'REVIEW_REPLY_FORBIDDEN');
   if(review.seller_reply)throw new AppError('This review already has a seller reply.',409,'REPLY_ALREADY_EXISTS');
-  return mapReview(await reviewRepository.setSellerReply(id,sellerId,text));
+  const updated=mapReview(await reviewRepository.setSellerReply(id,sellerId,text));
+  try{await notificationService.create({userId:Number(review.buyer_id),type:'NEW_REVIEW',title:'ผู้ขายตอบกลับรีวิวของคุณ',message:'ผู้ขายตอบกลับรีวิวของคุณแล้ว',referenceType:'REVIEW',referenceId:updated.id});}catch(error){console.error('notification create failed after seller reply:',error.message);}
+  return updated;
 }
 
 module.exports={createReview,listProductReviews,listSellerReviews,getSellerSummary,replyToReview};
