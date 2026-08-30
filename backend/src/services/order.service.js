@@ -2,6 +2,7 @@ const orderRepository = require('../repositories/order.repository');
 const { withTransaction } = require('../utils/transaction');
 const AppError = require('../utils/app-error');
 const { loadCredentials } = require('./product.service');
+const notificationService = require('./notification.service');
 
 async function createOrder(user, productId) {
   if (!user.accountVerified) throw new AppError('Please verify your email and phone number before purchasing.', 403, 'ACCOUNT_NOT_VERIFIED');
@@ -44,6 +45,8 @@ async function payOrder(user, orderId) {
     await connection.execute("INSERT INTO wallet_transactions (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note) VALUES (?,'SALE',?,?,?,?,?)", [order.seller_id, amount, newSellerBalance, 'ORDER', order.id, 'Immediate seller payment']);
 
     await orderRepository.markCompletedAndProductSold(order.id, order.product_id, connection);
+    await notificationService.create({ userId: user.id, type: "ORDER_PURCHASE", title: "ซื้อสินค้าสำเร็จ", message: "Order #" + order.id + " ซื้อสำเร็จแล้ว", referenceType: "ORDER", referenceId: order.id }, connection);
+    await notificationService.create({ userId: order.seller_id, type: "ORDER_SOLD", title: "มีการซื้อสินค้าใหม่", message: "สินค้าใน Order #" + order.id + " ถูกซื้อแล้ว", referenceType: "ORDER", referenceId: order.id }, connection);
     return orderRepository.findByIdForUser(order.id, user.id, connection);
   });
 }
@@ -68,3 +71,5 @@ async function getOrderCredentials(userId, orderId) {
 }
 
 module.exports = { createOrder, payOrder, listOrders, getOrder, getOrderCredentials };
+
+

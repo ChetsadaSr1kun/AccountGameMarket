@@ -1636,6 +1636,12 @@
 </div>
 </div>
 </div>
+<div class="page" id="pg-notifications">
+<div class="page-wrap" style="max-width:920px;margin:0 auto;padding:32px 20px">
+<div class="sec-header flex-between" style="gap:16px;flex-wrap:wrap"><div><div class="sec-title">🔔 การแจ้งเตือน</div><div class="sec-sub">ดูข่าวสารและกิจกรรมล่าสุดจากบัญชีของคุณ</div></div><div class="flex gap-8"><select class="inp" id="notificationUnreadFilter" style="width:auto" onchange="loadNotifications()"><option value="ALL">ทั้งหมด</option><option value="UNREAD">ยังไม่ได้อ่าน</option></select><button class="btn btn-secondary btn-sm" onclick="markAllNotificationsRead()">อ่านทั้งหมด</button></div></div>
+<div id="notificationPageList" class="notification-list"><div class="notice info">กำลังโหลดการแจ้งเตือน...</div></div>
+</div>
+</div>
 <div class="page" id="pg-product-detail">
   <div class="page-wrap" style="max-width:1120px;margin:0 auto;padding:32px 20px">
     <button class="btn btn-secondary btn-sm" onclick="goPage(isLoggedIn ? 'listings-user' : 'listings')">← กลับไปหน้ารายการสินค้า</button>
@@ -1695,7 +1701,9 @@
 <script src="assets/js/admin-chat-log-ui.js"></script>
 <script src='assets/js/admin-transaction-report-detail-ui.js'></script>
 <script src="assets/js/transaction-report-ui.js"></script>
+<script src="assets/js/notification-ui.js"></script>
 <script src="assets/js/script.js"></script>
+<script src="assets/js/notification-nav-ui.js"></script>
 <script src="assets/js/wallet-withdraw.js"></script>
 </body>
 </html>

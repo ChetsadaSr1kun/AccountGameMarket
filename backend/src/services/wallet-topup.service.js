@@ -1,7 +1,8 @@
-const crypto = require('crypto');
+﻿const crypto = require('crypto');
 const AppError = require('../utils/app-error');
 const repository = require('../repositories/wallet-topup.repository');
 const walletRepository = require('../repositories/wallet.repository');
+const notificationService = require('./notification.service');
 
 const allowedMethods = new Set(['CARD', 'BANK', 'PROMPTPAY', 'TRUEMONEY']);
 
@@ -38,6 +39,7 @@ async function createRequest(userId, paymentMethod, amount) {
     await connection.execute(`INSERT INTO wallet_transactions
       (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note)
       VALUES (?,'TOP_UP',?,?,?,?,?)`, [userId, normalizedAmount, newBalance, 'WALLET_TOPUP', result.insertId, 'Demo top-up: credited immediately']);
+    await notificationService.create({ userId, type: 'WALLET_TOPUP', title: 'เติมพ้อยท์สำเร็จ', message: 'เติม ' + normalizedAmount.toLocaleString('en-US') + ' pts เข้ากระเป๋าแล้ว', referenceType: 'WALLET_TOPUP', referenceId: result.insertId }, connection);
     return repository.findById(result.insertId, connection);
   });
   return mapRequest(row);
