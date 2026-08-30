@@ -1,6 +1,7 @@
 const AppError = require('../utils/app-error');
 const wallet = require('../repositories/wallet.repository');
 const { withTransaction } = require('../utils/transaction');
+const notificationService = require('./notification.service');
 
 function map(row) {
   return {
@@ -94,6 +95,7 @@ async function decideWithdrawal(requestId, adminId, approved, reason = null) {
 
     if (approved) {
       await connection.execute(`UPDATE withdrawal_requests SET status='APPROVED',reviewed_by=?,reviewed_at=CURRENT_TIMESTAMP(3) WHERE id=?`, [adminId, request.id]);
+      await notificationService.create({ userId: request.user_id, type: 'WALLET_WITHDRAW_APPROVED', title: '\u0e16\u0e2d\u0e19\u0e1e\u0e49\u0e2d\u0e22\u0e17\u0e4c\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08', message: 'คำขอถอน #' + request.id + ' ได้รับการอนุมัติแล้ว', referenceType: 'WITHDRAWAL', referenceId: request.id }, connection);
     } else {
       await wallet.ensureWallet(request.user_id, connection);
       const [walletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [request.user_id]);
@@ -103,6 +105,7 @@ async function decideWithdrawal(requestId, adminId, approved, reason = null) {
         (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note)
         VALUES (?,'REFUND',?,?,?,?,?)`, [request.user_id, request.amount, newBalance, 'WITHDRAWAL_REQUEST', request.id, 'คืนพ้อยท์จากคำขอถอนที่ไม่อนุมัติ']);
       await connection.execute(`UPDATE withdrawal_requests SET status='REJECTED',reviewed_by=?,reviewed_at=CURRENT_TIMESTAMP(3),rejection_reason=? WHERE id=?`, [adminId, String(reason).trim(), request.id]);
+      await notificationService.create({ userId: request.user_id, type: 'WALLET_WITHDRAW_REJECTED', title: '\u0e16\u0e2d\u0e19\u0e1e\u0e49\u0e2d\u0e22\u0e17\u0e4c\u0e16\u0e39\u0e01\u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18', message: 'คำขอถอน #' + request.id + ' ถูกปฏิเสธ: ' + String(reason).trim(), referenceType: 'WITHDRAWAL', referenceId: request.id }, connection);
     }
     return { id: Number(request.id), status: approved ? 'APPROVED' : 'REJECTED' };
   });

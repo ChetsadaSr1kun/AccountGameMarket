@@ -7,6 +7,7 @@ const { saveSellerDocument } = require('../utils/seller-document');
 const { withTransaction } = require('../utils/transaction');
 const AppError = require('../utils/app-error');
 const { publicUser } = require('./user.service');
+const notificationService = require('./notification.service');
 
 const REQUIRED_DOCUMENT_TYPES = ['ID_FRONT', 'ID_BACK', 'SELFIE'];
 
@@ -61,6 +62,7 @@ async function approve(userId, adminId) {
     await userRepository.assignRoles(connection, userId, [sellerRoleId]);
     await userRepository.updateAccountMode(connection, userId, 'UNIFIED');
     await sellerVerificationRepository.approve(connection, userId, adminId);
+    await notificationService.create({ userId, type: 'SELLER_VERIFICATION_APPROVED', title: '\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34 Seller \u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08', message: 'คำขอ Seller ของคุณได้รับการอนุมัติแล้ว', referenceType: 'SELLER_VERIFICATION', referenceId: request.id }, connection);
     await refreshTokenRepository.revokeAllForUser(connection, userId);
     await userRepository.incrementTokenVersion(connection, userId);
     return publicUser(await userRepository.findAuthUserById(userId, connection));
@@ -91,7 +93,9 @@ async function reject(userId, adminId, reason) {
   return withTransaction(async (connection) => {
     const request = await sellerVerificationRepository.findByUserId(userId, connection);
     if (!request || request.status !== 'PENDING') throw new AppError('No pending seller verification request was found.', 409, 'SELLER_REQUEST_NOT_PENDING');
-    return sellerVerificationRepository.reject(connection, userId, adminId, cleanReason);
+    const rejected = await sellerVerificationRepository.reject(connection, userId, adminId, cleanReason);
+    await notificationService.create({ userId, type: 'SELLER_VERIFICATION_REJECTED', title: '\u0e04\u0e33\u0e02\u0e2d Seller \u0e16\u0e39\u0e01\u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18', message: 'คำขอ Seller ถูกปฏิเสธ: ' + cleanReason, referenceType: 'SELLER_VERIFICATION', referenceId: rejected.id }, connection);
+    return rejected;
   });
 }
 
