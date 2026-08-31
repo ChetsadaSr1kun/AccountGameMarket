@@ -51,7 +51,7 @@ async function openProductDetail(id) {
 
           <div class="product-detail-action-card">
             <div class="product-detail-action-row"><span>สถานะสินค้า</span><strong class="product-detail-status"><span></span> กำลังเปิดขาย</strong></div>
-            <button class="btn btn-primary btn-lg btn-full product-detail-buy" onclick="startProductPurchase(${Number(product.id)})">🛒 ซื้อสินค้า</button>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-primary btn-lg btn-full product-detail-buy" onclick="startProductPurchase(${Number(product.id)})">🛒 ซื้อสินค้า</button><button class="btn btn-secondary btn-lg btn-full" type="button" onclick="contactProductSeller(${Number(product.seller?.id || product.sellerId || 0)},${Number(product.id)})">💬 ติดต่อผู้ขาย</button></div>
             <div class="product-detail-safe-note">🔒 ข้อมูลบัญชีจะเปิดเผยหลังชำระเงินสำเร็จเท่านั้น</div>
           </div>
         </section>
@@ -84,6 +84,14 @@ function selectProductDetailImage(el) {
 
 function orderCsrfToken() {
   return typeof getCookieValue === 'function' ? getCookieValue('gm_csrf') : '';
+}
+
+async function contactProductSeller(sellerId, productId) {
+  const sid=Number(sellerId),pid=Number(productId);
+  if(!Number.isInteger(sid)||sid<=0||!Number.isInteger(pid)||pid<=0){alert('ไม่พบข้อมูลผู้ขาย');return;}
+  if(typeof isLoggedIn!=='undefined'&&!isLoggedIn){goPage('login');return;}
+  const csrf=orderCsrfToken();if(!csrf){alert('ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่');return;}
+  try{const response=await fetch('/api/v1/chat',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({otherUserId:sid,productId:pid})});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body.error?.message||'ไม่สามารถเปิดแชทกับผู้ขายได้');goPage('chat');}catch(error){console.error('contactProductSeller failed:',error);alert(error.message||'ไม่สามารถเปิดแชทกับผู้ขายได้');}
 }
 
 async function startProductPurchase(id) {
@@ -231,6 +239,7 @@ async function payOrderFromWallet(id) {
   }
 }
 
+window.contactProductSeller = contactProductSeller;
 window.openProductDetail = openProductDetail;
 window.selectProductDetailImage = selectProductDetailImage;
 window.startProductPurchase = startProductPurchase;
