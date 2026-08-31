@@ -19,10 +19,12 @@ function renderSellerProfileRating(payload) {
   <div class="seller-review-list">${reviews.map(r=>`<article class="seller-review-item"><div class="seller-review-head"><div><strong>${sellerRatingEscape(r.buyerUsername||r.username||'ผู้ซื้อ')}</strong><div class="seller-review-stars">${sellerRatingStars(r.rating)}</div></div><time>${r.createdAt?new Date(r.createdAt).toLocaleDateString('th-TH'):'-'}</time></div>${r.comment?`<p>${sellerRatingEscape(r.comment)}</p>`:'<p class="seller-review-no-comment">ไม่ได้เขียนความคิดเห็น</p>'}${r.sellerReply?`<div class="seller-public-reply"><strong>↳ ผู้ขาย</strong><p>${sellerRatingEscape(r.sellerReply)}</p></div>`:''}</article>`).join('')}</div>`;
 }
 async function loadProfileSellerRating() {
-  const target=document.getElementById('profileSellerRating'); if(!target||!window.currentUser?.id)return;
+  const target=document.getElementById('profileSellerRating');
+  const userId = (typeof currentUser !== 'undefined' && currentUser?.id) ? Number(currentUser.id) : Number(window.currentUser?.id || 0);
+  if(!target||!Number.isInteger(userId)||userId<=0)return;
   target.innerHTML='<div class="seller-rating-loading">กำลังโหลดคะแนนรีวิว...</div>';
   try{
-    const response=await fetch(`/api/v1/sellers/${Number(window.currentUser.id)}`,{credentials:'include'});
+    const response=await fetch(`/api/v1/sellers/${userId}`,{credentials:'include'});
     const body=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(body.error?.message||'โหลดคะแนนผู้ขายไม่สำเร็จ');
     renderSellerProfileRating(body.data||body);
