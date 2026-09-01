@@ -1353,6 +1353,8 @@ window.loadMarketplaceListings = loadMarketplaceListings;
 
 
 // ===== REAL MARKETPLACE CONTROLS OVERRIDE =====
+const marketplaceSort = window.__marketplaceSort || { listings: 'newest', 'listings-user': 'newest' };
+window.__marketplaceSort = marketplaceSort;
 const marketplaceControlState = window.__marketplaceControlState || { games: false, bindings: new Set() };
 window.__marketplaceControlState = marketplaceControlState;
 function marketplacePriceBoundsReal(pageId){const page=document.getElementById('pg-'+pageId);const name=pageId==='listings'?'price':'price2';const selected=page?.querySelector('input[name="'+name+'"]:checked');if(!selected)return[null,null];const i=[...page.querySelectorAll('input[name="'+name+'"]')].indexOf(selected);return pageId==='listings'?[[0,500],[500,1500],[1500,3000],[3000,null]][i]||[null,null]:[[0,500],[500,1500],[1500,null]][i]||[null,null];}
