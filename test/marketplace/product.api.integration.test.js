@@ -34,7 +34,7 @@ async function register(label, overrides = {}) {
   const payload = { ...payloadFor(label), ...overrides };
   const response = await api.post('/api/v1/auth/register').send(payload);
   assert.equal(response.status, 201);
-  return { payload, cookies: cookiesFrom(response) };
+  return { payload, cookies: cookiesFrom(response), csrfToken: response.body.data.csrfToken };
 }
 
 async function promoteRegisteredUserToSeller(email) {
@@ -68,7 +68,9 @@ async function cleanup() {
 }
 
 let sellerCookies;
+let sellerCsrfToken;
 let sellerBCookies;
+let sellerBCsrfToken;
 let sellerProductId;
 
 before(async () => {
@@ -79,7 +81,9 @@ before(async () => {
   await promoteRegisteredUserToSeller(seller.payload.email);
   await promoteRegisteredUserToSeller(sellerB.payload.email);
   sellerCookies = seller.cookies;
+  sellerCsrfToken = seller.csrfToken;
   sellerBCookies = sellerB.cookies;
+  sellerBCsrfToken = sellerB.csrfToken;
 });
 
 after(async () => {
@@ -105,6 +109,7 @@ test('creates a draft product for the authenticated seller', async () => {
   const response = await api
     .post('/api/v1/user/products')
     .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
     .send({
       gameId: valorant.id,
       title: 'Test Valorant Account',
@@ -126,7 +131,8 @@ test('creates a draft product for the authenticated seller', async () => {
 test('lists only products owned by the authenticated seller', async () => {
   const response = await api
     .get('/api/v1/user/products')
-    .set('Cookie', cookieHeader(sellerCookies));
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken);
   assert.equal(response.status, 200);
   assert.ok(response.body.data.some((product) => product.id === sellerProductId));
   assert.ok(response.body.data.every((product) => product.sellerId === response.body.data[0].sellerId));
@@ -135,7 +141,8 @@ test('lists only products owned by the authenticated seller', async () => {
 test('prevents one seller from reading another seller product', async () => {
   const response = await api
     .get(`/api/v1/user/products/${sellerProductId}`)
-    .set('Cookie', cookieHeader(sellerBCookies));
+    .set('Cookie', cookieHeader(sellerBCookies))
+    .set('X-CSRF-Token', sellerBCsrfToken);
   assert.equal(response.status, 404);
   assert.equal(response.body.error.code, 'PRODUCT_NOT_FOUND');
 });
@@ -149,6 +156,7 @@ test('rejects a product when attribute does not belong to selected game', async 
   const response = await api
     .post('/api/v1/user/products')
     .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
     .send({
       gameId: valorant.id,
       title: 'Invalid Attribute Product',
@@ -173,6 +181,7 @@ test('rejects a SELECT option that does not belong to its attribute', async () =
   const response = await api
     .post('/api/v1/user/products')
     .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
     .send({
       gameId: valorant.id,
       title: 'Invalid Option Product',
@@ -189,6 +198,7 @@ test('updates a product owned by the seller', async () => {
   const response = await api
     .patch(`/api/v1/user/products/${sellerProductId}`)
     .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
     .send({ title: 'Updated Valorant Account', price: 1750 });
   assert.equal(response.status, 200);
   assert.equal(response.body.data.title, 'Updated Valorant Account');
@@ -199,6 +209,7 @@ test('prevents one seller from updating another seller product', async () => {
   const response = await api
     .patch(`/api/v1/user/products/${sellerProductId}`)
     .set('Cookie', cookieHeader(sellerBCookies))
+    .set('X-CSRF-Token', sellerBCsrfToken)
     .send({ title: 'Hijacked' });
   assert.equal(response.status, 404);
   assert.equal(response.body.error.code, 'PRODUCT_NOT_FOUND');
@@ -207,7 +218,8 @@ test('prevents one seller from updating another seller product', async () => {
 test('prevents one seller from deleting another seller product', async () => {
   const response = await api
     .delete(`/api/v1/user/products/${sellerProductId}`)
-    .set('Cookie', cookieHeader(sellerBCookies));
+    .set('Cookie', cookieHeader(sellerBCookies))
+    .set('X-CSRF-Token', sellerBCsrfToken);
   assert.equal(response.status, 404);
   assert.equal(response.body.error.code, 'PRODUCT_NOT_FOUND');
 });
@@ -215,11 +227,13 @@ test('prevents one seller from deleting another seller product', async () => {
 test('deletes a product owned by the seller', async () => {
   const response = await api
     .delete(`/api/v1/user/products/${sellerProductId}`)
-    .set('Cookie', cookieHeader(sellerCookies));
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken);
   assert.equal(response.status, 204);
 
   const check = await api
     .get(`/api/v1/user/products/${sellerProductId}`)
-    .set('Cookie', cookieHeader(sellerCookies));
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken);
   assert.equal(check.status, 404);
 });
