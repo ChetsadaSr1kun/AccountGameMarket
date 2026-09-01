@@ -49,6 +49,7 @@ function goPage(pageId) {
   currentPage = pageId;
   updateNav();
   updateDevBtns();
+  if (pageId === 'home-user' && isLoggedIn) window.loadRealHomeUserData?.();
   renderAdminSidebars();
   if (pageId === 'seller-verify') window.loadSellerVerificationStatus?.();
   if (pageId === 'add-listing') {

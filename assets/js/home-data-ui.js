@@ -23,8 +23,9 @@ async function loadRealHomeUserData(){
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=Number(v||0).toLocaleString('th-TH');};
     set('homeUserStatWallet',d.wallet);set('homeUserStatPurchases',d.purchases);set('homeUserStatListings',d.listings);set('homeUserStatMessages',d.messages);
     if(box)box.innerHTML=d.recentMessages?.length?d.recentMessages.map(m=>{const name=homeEscape(m.otherUsername||'ผู้ใช้');const initial=homeEscape((m.otherUsername||'?').charAt(0).toUpperCase());const text=homeEscape(m.lastMessage||'ยังไม่มีข้อความ');const time=m.lastMessageAt?new Date(m.lastMessageAt).toLocaleString('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'-';return `<div class="flex gap-10" style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;align-items:center" onclick="goPage('chat')"><div class="avatar" style="width:34px;height:34px;background:var(--accent);font-size:14px">${initial}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${name}</div><div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${text}</div></div><div style="font-size:11px;color:var(--dim)">${time}</div></div>`;}).join(''):'<div class="report-empty">ยังไม่มีการสนทนา</div>';
-  }catch(e){console.error('loadRealHomeUserData failed:',e);if(box)box.innerHTML='<div class="notice danger">'+homeEscape(e.message)+'</div>';}
+  }catch(e){console.error('loadRealHomeUserData failed:',e);if(r.status===401){return;}if(box)box.innerHTML='<div class="notice danger">'+homeEscape(e.message)+'</div>';}
 }
 function maybeLoadHomeUserData(){if(document.getElementById('pg-home-user'))loadRealHomeUserData();}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',maybeLoadHomeUserData);else maybeLoadHomeUserData();
 window.loadRealHomeUserData=loadRealHomeUserData;
+// User-home data is loaded by script.js after authentication is restored.
+
