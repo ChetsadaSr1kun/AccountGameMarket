@@ -664,97 +664,8 @@
 
 <!-- ======== PAGE: USER REPORT ======== -->
 <div class="page" id="pg-user-report">
-<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:860px">
-<div class="sec-header">
-  <div class="sec-title">🚨 รายงานผู้ใช้งาน</div>
-  <div class="sec-sub">แจ้งปัญหาผู้ใช้หรือพฤติกรรมที่ไม่เหมาะสม เพื่อให้แอดมินตรวจสอบต่อ</div>
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:860px"><div id="user-report-content"><div class="card" style="padding:32px;text-align:center;color:var(--muted)">กำลังโหลดข้อมูลคำสั่งซื้อ...</div></div></div>
 </div>
-
-<div class="card" style="padding:24px 24px 18px;margin-bottom:16px">
-  <div class="report-summary-box">
-    <div class="report-summary-item">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:6px">ผู้ใช้งานที่ต้องการรายงาน</div>
-      <div style="font-weight:700;font-size:16px">AimPro</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:4px">ผู้ขาย • บัญชี Valorant Immortal 3</div>
-    </div>
-    <div class="report-summary-item">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:6px">อ้างอิงคำสั่งซื้อ</div>
-      <div style="font-weight:700;font-size:16px">#ORD-2026-001</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:4px">ซื้อเมื่อ 09/03/2026 14:30</div>
-    </div>
-  </div>
-  <div class="notice warn">⚠️ กรุณาแนบรายละเอียดให้ครบถ้วน เช่น ข้อความแชท หลักฐานการโอน หรือปัญหาที่พบ เพื่อช่วยให้แอดมินตรวจสอบได้เร็วขึ้น</div>
-</div>
-
-<div class="card" style="padding:24px">
-  <div class="grid2" style="gap:16px">
-    <div class="inp-group">
-      <label class="inp-label">ผู้ถูกรายงาน</label>
-      <input class="inp" value="AimPro" placeholder="ชื่อผู้ใช้งาน"/>
-    </div>
-    <div class="inp-group">
-      <label class="inp-label">ประเภทปัญหา</label>
-      <select class="inp">
-        <option>เลือกประเภทปัญหา</option>
-        <option>สินค้าไม่ตรงตามประกาศ</option>
-        <option>ได้รับข้อมูลไม่ครบ</option>
-        <option>ไม่ตอบแชท / ติดต่อไม่ได้</option>
-        <option>พฤติกรรมไม่เหมาะสม</option>
-        <option>สงสัยการหลอกลวง</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="grid2" style="gap:16px">
-    <div class="inp-group">
-      <label class="inp-label">อ้างอิงจากหน้า</label>
-      <select class="inp">
-        <option>หน้าข้อมูลสินค้าที่ซื้อ</option>
-        <option>หน้าแชทข้อความ</option>
-        <option>หน้าอื่น ๆ</option>
-      </select>
-    </div>
-    <div class="inp-group">
-      <label class="inp-label">Order ID</label>
-      <input class="inp" value="ORD-2026-001" placeholder="กรอกรหัสคำสั่งซื้อ"/>
-    </div>
-  </div>
-
-  <div class="inp-group">
-    <label class="inp-label">หัวข้อรายงาน</label>
-    <input class="inp" placeholder="เช่น ได้รับข้อมูลบัญชีไม่ครบ หรือ สินค้าไม่ตรงตามที่ลงขาย"/>
-  </div>
-
-  <div class="inp-group">
-    <label class="inp-label">รายละเอียดปัญหา</label>
-    <textarea class="inp" placeholder="อธิบายเหตุการณ์ที่เกิดขึ้นอย่างละเอียด เช่น เวลาเกิดเหตุ สิ่งที่ได้รับ และสิ่งที่ไม่ตรงจากประกาศ" rows="6" style="resize:vertical"></textarea>
-  </div>
-
-  <div class="inp-group">
-    <label class="inp-label">แนบหลักฐาน</label>
-    <div class="upload-zone">
-      <div style="font-size:30px;margin-bottom:8px">📎</div>
-      <div style="font-weight:700;margin-bottom:6px">อัปโหลดรูปภาพ / แคปแชท / สลิป / ไฟล์หลักฐาน</div>
-      <div style="font-size:13px;color:var(--muted)">รองรับไฟล์ภาพหรือ PDF เพื่อใช้ประกอบการตรวจสอบ</div>
-    </div>
-  </div>
-
-  <div class="notice info" style="margin-bottom:18px">ℹ️ หลังส่งรายงานแล้ว ระบบจะส่งเรื่องไปยังแอดมินเพื่อตรวจสอบ และคุณสามารถติดตามสถานะได้จากประวัติหรือการแจ้งเตือนภายหลัง</div>
-
-  <div class="flex-between" style="gap:12px;flex-wrap:wrap">
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-secondary btn-md" onclick="goPage('chat')">← กลับไปหน้าแชท</button>
-      <button class="btn btn-secondary btn-md" onclick="goPage('order-info')">📋 กลับไปหน้าข้อมูลสินค้า</button>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-ghost btn-md">บันทึกร่าง</button>
-      <button class="btn btn-danger btn-md">🚨 ส่งรายงานให้แอดมิน</button>
-    </div>
-  </div>
-</div>
-</div>
-</div>
-
 <!-- ======== PAGE: REVIEW ======== -->
 <div class="page" id="pg-review">
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:680px">
@@ -1165,6 +1076,7 @@
 <script src="assets/js/seller-rating-ui.js"></script>
 <script src="assets/js/history-trade-ui.js"></script>
 <script src="assets/js/review-ui.js"></script>
+<script src="assets/js/user-report-page-ui.js"></script>
 <script src="assets/js/review-page-ui.js"></script>
 <!-- transaction-report-ui.js is the single Transaction Report UI implementation -->
 <script src="assets/js/wallet-ui.js"></script>

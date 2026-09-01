@@ -61,6 +61,7 @@ function goPage(pageId) {
   if (pageId === 'my-listings') window.loadMyProducts?.();
   if (pageId === 'profile') window.loadProfileSellerRating?.();
   if (pageId === 'review') window.loadReviewPage?.();
+  if (pageId === 'user-report') window.loadUserReportPage?.();
   if (pageId === 'wallet' || pageId === 'history') {
     window.loadWallet?.();
     if (pageId === 'history') window.loadTradeHistory?.();
