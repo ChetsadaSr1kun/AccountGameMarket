@@ -123,7 +123,13 @@ async function loadWallet() {
     const wallet = body.data?.wallet || body.wallet;
     if (!wallet) throw new Error('ไม่พบข้อมูล Wallet');
     const formattedBalance = Number(wallet.balance || 0).toLocaleString('th-TH');
+    const formattedTopup = Number(wallet.totalTopup || 0).toLocaleString('th-TH');
+    const formattedWithdrawal = Number(wallet.totalWithdrawal || 0).toLocaleString('th-TH');
     if (balanceEl) balanceEl.textContent = formattedBalance;
+    const totalTopupEl = document.getElementById('walletTotalTopup');
+    const totalWithdrawalEl = document.getElementById('walletTotalWithdrawal');
+    if (totalTopupEl) totalTopupEl.textContent = formattedTopup;
+    if (totalWithdrawalEl) totalWithdrawalEl.textContent = formattedWithdrawal;
     const navBalanceEl = document.getElementById('walletNavBalance');
     if (navBalanceEl) navBalanceEl.textContent = `💰 ${formattedBalance} pts`;
     renderWalletTransactions(Array.isArray(wallet.transactions) ? wallet.transactions : [], requests, withdrawalRequests);

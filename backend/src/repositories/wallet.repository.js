@@ -10,6 +10,18 @@ async function findByUserId(userId, executor = pool) {
   return { userId: Number(rows[0].user_id), balance: Number(rows[0].balance), createdAt: rows[0].created_at, updatedAt: rows[0].updated_at };
 }
 
+async function getTotals(userId, executor = pool) {
+  const [[topup]] = await executor.execute(
+    "SELECT COALESCE(SUM(amount),0) total FROM wallet_topup_requests WHERE user_id=? AND status='APPROVED'",
+    [userId],
+  );
+  const [[withdrawal]] = await executor.execute(
+    "SELECT COALESCE(SUM(amount),0) total FROM withdrawal_requests WHERE user_id=? AND status='APPROVED'",
+    [userId],
+  );
+  return { totalTopup: Number(topup?.total || 0), totalWithdrawal: Number(withdrawal?.total || 0) };
+}
+
 async function listTransactions(userId, limit = 20, executor = pool) {
   const safeLimit = Math.min(100, Math.max(1, Number.parseInt(limit, 10) || 20));
   const [rows] = await executor.execute(`SELECT wt.id, wt.type, wt.amount, wt.balance_after, wt.reference_type,
@@ -32,7 +44,7 @@ async function listTransactions(userId, limit = 20, executor = pool) {
   }));
 }
 
-module.exports = { ensureWallet, findByUserId, listTransactions };
+module.exports = { ensureWallet, findByUserId, getTotals, listTransactions };
 async function reserveBalance(userId, amount, executor = pool) {
   const [result] = await executor.execute(
     'UPDATE wallets SET balance = balance - ? WHERE user_id = ? AND balance >= ?',
