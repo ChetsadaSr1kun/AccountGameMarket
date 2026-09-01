@@ -63,23 +63,137 @@ async function openProductDetail(id) {
       </section>
 
       ${attributes ? `<section class="product-detail-info-card"><div class="product-detail-section-title"><span>🎮</span><div><h2>รายละเอียดบัญชีเกม</h2><p>ข้อมูลสำคัญของบัญชี</p></div></div><div class="product-detail-stats">${attributes}</div></section>` : ''}
+
+      <section class="product-detail-info-card" id="product-review-card">
+        <div class="product-detail-section-title"><span>⭐</span><div><h2>รีวิวจากผู้ซื้อ</h2><p>ความคิดเห็นจากผู้ซื้อสินค้านี้</p></div></div>
+        <div id="product-review-content"><div class="product-review-loading">กำลังโหลดรีวิว...</div></div>
+      </section>
     </div>`;
 
   document.querySelectorAll('#product-detail-thumbs [data-product-image]').forEach((thumb) => {
     thumb.addEventListener('click', () => {
       const url = thumb.dataset.productImage;
-      const main = document.getElementById('product-detail-main-image');
-      if (main && url) main.innerHTML = `<img src="${url}" alt="รูปสินค้า"/>`;
+      setProductDetailMainImage(url);
       document.querySelectorAll('#product-detail-thumbs .product-detail-thumb').forEach((el) => el.classList.remove('is-active'));
       thumb.classList.add('is-active');
     });
   });
+
+  bindProductDetailMainImage();
+  window.loadProductReviews?.(product.id);
+}
+
+function ensureProductImageLightbox() {
+  let lightbox = document.getElementById('product-image-lightbox');
+  if (lightbox) return lightbox;
+  lightbox = document.createElement('div');
+  lightbox.id = 'product-image-lightbox';
+  lightbox.className = 'product-image-lightbox';
+  lightbox.setAttribute('role', 'dialog');
+  lightbox.setAttribute('aria-modal', 'true');
+  lightbox.innerHTML = '<button type="button" class="product-image-lightbox-close" aria-label="ปิด">✕</button><button type="button" class="product-image-lightbox-prev" aria-label="รูปก่อนหน้า">‹</button><div class="product-image-lightbox-body"><img alt="รูปสินค้าแบบขยาย"/><div class="product-image-lightbox-thumbs" aria-label="เลือกรูปสินค้า"></div></div><button type="button" class="product-image-lightbox-next" aria-label="รูปถัดไป">›</button><div class="product-image-lightbox-count"></div><div class="product-image-lightbox-hint">คลิกพื้นหลังหรือกด Esc เพื่อปิด</div>';
+  document.body.appendChild(lightbox);
+  const close = () => lightbox.classList.remove('is-open');
+  lightbox.querySelector('.product-image-lightbox-close')?.addEventListener('click', close);
+  lightbox.querySelector('.product-image-lightbox-prev')?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (!productLightboxImages.length) return;
+    productLightboxIndex = (productLightboxIndex - 1 + productLightboxImages.length) % productLightboxImages.length;
+    renderProductLightbox();
+  });
+  lightbox.querySelector('.product-image-lightbox-next')?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (!productLightboxImages.length) return;
+    productLightboxIndex = (productLightboxIndex + 1) % productLightboxImages.length;
+    renderProductLightbox();
+  });
+  lightbox.addEventListener('click', (event) => { if (event.target === lightbox) close(); });
+  document.addEventListener('keydown', (event) => {
+    if (!lightbox.classList.contains('is-open')) return;
+    if (event.key === 'Escape') close();
+    if (event.key === 'ArrowLeft' && productLightboxImages.length > 1) {
+      productLightboxIndex = (productLightboxIndex - 1 + productLightboxImages.length) % productLightboxImages.length;
+      renderProductLightbox();
+    }
+    if (event.key === 'ArrowRight' && productLightboxImages.length > 1) {
+      productLightboxIndex = (productLightboxIndex + 1) % productLightboxImages.length;
+      renderProductLightbox();
+    }
+  });
+  return lightbox;
+}
+
+let productLightboxImages = [];
+let productLightboxIndex = 0;
+
+function renderProductLightbox() {
+  const lightbox = document.getElementById('product-image-lightbox');
+  if (!lightbox || !productLightboxImages.length) return;
+  const item = productLightboxImages[productLightboxIndex];
+  const image = lightbox.querySelector('.product-image-lightbox-body > img');
+  const thumbs = lightbox.querySelector('.product-image-lightbox-thumbs');
+  const count = lightbox.querySelector('.product-image-lightbox-count');
+  if (image) { image.src = item.url; image.alt = item.alt || 'รูปสินค้า'; }
+  if (count) count.textContent = `${productLightboxIndex + 1} / ${productLightboxImages.length}`;
+  if (thumbs) {
+    thumbs.innerHTML = productLightboxImages.map((entry, index) => `<button type="button" class="product-image-lightbox-thumb ${index === productLightboxIndex ? 'is-active' : ''}" data-index="${index}" aria-label="รูปที่ ${index + 1}"><img src="${productDetailEscape(entry.url)}" alt=""/></button>`).join('');
+    thumbs.querySelectorAll('.product-image-lightbox-thumb').forEach((thumb) => thumb.addEventListener('click', () => {
+      productLightboxIndex = Number(thumb.dataset.index || 0);
+      renderProductLightbox();
+    }));
+    thumbs.querySelector('.is-active')?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+  const showNav = productLightboxImages.length > 1;
+  const prev = lightbox.querySelector('.product-image-lightbox-prev');
+  const next = lightbox.querySelector('.product-image-lightbox-next');
+  if (prev) prev.style.display = showNav ? 'flex' : 'none';
+  if (next) next.style.display = showNav ? 'flex' : 'none';
+}
+
+function openProductImageLightbox(imageUrl, altText = 'รูปสินค้า') {
+  if (!imageUrl) return;
+  const lightbox = ensureProductImageLightbox();
+  const thumbs = [...document.querySelectorAll('#product-detail-thumbs [data-product-image]')];
+  productLightboxImages = thumbs.map((thumb) => ({ url: thumb.dataset.productImage, alt: thumb.querySelector('img')?.alt || 'รูปสินค้า' })).filter((item) => item.url);
+  const canonicalImageUrl = (url) => {
+    try { return new URL(url, window.location.origin).pathname; }
+    catch { return String(url || ''); }
+  };
+  const currentPath = canonicalImageUrl(imageUrl);
+  if (!productLightboxImages.some((item) => canonicalImageUrl(item.url) === currentPath)) {
+    productLightboxImages.unshift({ url: imageUrl, alt: altText });
+  }
+  productLightboxIndex = Math.max(0, productLightboxImages.findIndex((item) => canonicalImageUrl(item.url) === currentPath));
+  renderProductLightbox();
+  lightbox.classList.add('is-open');
+}
+
+function setProductDetailMainImage(imageUrl) {
+  const main = document.getElementById('product-detail-main-image');
+  if (!main || !imageUrl) return;
+  main.innerHTML = `<img src="${productDetailEscape(imageUrl)}" alt="รูปสินค้า"/>`;
+  bindProductDetailMainImage();
+}
+
+function bindProductDetailMainImage() {
+  const main = document.getElementById('product-detail-main-image');
+  const image = main?.querySelector('img');
+  if (!main || !image) return;
+  main.onclick = () => openProductImageLightbox(image.currentSrc || image.src, image.alt || 'รูปสินค้า');
+  main.onkeydown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openProductImageLightbox(image.currentSrc || image.src, image.alt || 'รูปสินค้า');
+    }
+  };
+  main.tabIndex = 0;
+  main.setAttribute('role', 'button');
+  main.setAttribute('aria-label', 'คลิกเพื่อดูรูปสินค้าแบบขยาย');
 }
 
 function selectProductDetailImage(el) {
-  const main = document.getElementById('product-detail-main-image');
-  if (!main) return;
-  main.innerHTML = `<img src="${el.src}" style="width:100%;height:100%;object-fit:contain"/>`;
+  if (!el?.src) return;
+  setProductDetailMainImage(el.src);
 }
 
 function orderCsrfToken() {

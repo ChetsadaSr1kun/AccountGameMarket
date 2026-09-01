@@ -25,7 +25,7 @@ async function listPublic(filters = {}, executor = pool) {
   }
   if (filters.minPrice !== undefined) { where.push('p.price >= ?'); params.push(filters.minPrice); }
   if (filters.maxPrice !== undefined) { where.push('p.price <= ?'); params.push(filters.maxPrice); }
-  const sortMap = { newest: 'p.created_at DESC, p.id DESC', price_asc: 'p.price ASC, p.id DESC', price_desc: 'p.price DESC, p.id DESC' };
+  const sortMap = { newest: 'p.created_at DESC, p.id DESC', price_asc: 'p.price ASC, p.id DESC', price_desc: 'p.price DESC, p.id DESC', rating_desc: "COALESCE((SELECT AVG(r.rating) FROM reviews r WHERE r.product_id=p.id AND r.status='ACTIVE'),0) DESC, p.created_at DESC, p.id DESC" };
   const orderBy = sortMap[filters.sort] || sortMap.newest;
   const limit = Math.min(Math.max(Number(filters.pageSize) || 12, 1), 50);
   const page = Math.max(Number(filters.page) || 1, 1);
