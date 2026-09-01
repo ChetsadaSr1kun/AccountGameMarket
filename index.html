@@ -374,18 +374,8 @@
 <div style="display:grid;grid-template-columns:240px 1fr;gap:24px">
 <div>
 <div class="card" style="margin-bottom:14px">
-<div style="font-weight:700;margin-bottom:12px">🔍 ค้นหา</div>
-<input class="inp" placeholder="ค้นหาชื่อสินค้า..."/>
-</div>
-<div class="card" style="margin-bottom:14px">
 <div style="font-weight:700;margin-bottom:12px">🎮 หมวดหมู่เกม</div>
-<div class="filter-item active">ทุกเกม</div>
-<div class="filter-item" onclick="filterGame(this)">🎯 Valorant</div>
-<div class="filter-item" onclick="filterGame(this)">⚔️ ROV</div>
-<div class="filter-item" onclick="filterGame(this)">🔫 PUBG</div>
-<div class="filter-item" onclick="filterGame(this)">🔥 Free Fire</div>
-<div class="filter-item" onclick="filterGame(this)">🌟 Genshin Impact</div>
-<div class="filter-item" onclick="filterGame(this)">🚂 Honkai: Star Rail</div>
+<div id="guestGameFilter"><div class="filter-item active" onclick="filterGame(this)">ทุกเกม</div></div>
 </div>
 <div class="card">
 <div style="font-weight:700;margin-bottom:12px">💰 ช่วงราคา</div>
@@ -584,11 +574,9 @@
 <div class="sec-header"><div class="sec-title">รายการสินค้าทั้งหมด</div><div class="sec-sub">ล็อคอินแล้ว — สามารถสั่งซื้อได้เลย</div></div>
 <div style="display:grid;grid-template-columns:240px 1fr;gap:24px">
 <div>
-<div class="card" style="margin-bottom:14px"><div style="font-weight:700;margin-bottom:12px">🔍 ค้นหา</div><input class="inp" placeholder="ค้นหาชื่อสินค้า..."/></div>
 <div class="card" style="margin-bottom:14px">
 <div style="font-weight:700;margin-bottom:12px">🎮 หมวดหมู่เกม</div>
-<div class="filter-item active">ทุกเกม</div>
-<div class="filter-item">🎯 Valorant</div><div class="filter-item">⚔️ ROV</div><div class="filter-item">🔫 PUBG</div><div class="filter-item">🔥 Free Fire</div><div class="filter-item">🌟 Genshin Impact</div>
+<div id="userGameFilter"><div class="filter-item active" onclick="filterGame(this)">ทุกเกม</div></div>
 </div>
 <div class="card"><div style="font-weight:700;margin-bottom:12px">💰 ช่วงราคา</div>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 0–500 ฿</label>
