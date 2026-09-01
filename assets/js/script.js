@@ -77,6 +77,10 @@ function goPage(pageId) {
   if (pageId === 'notifications') window.loadNotifications?.();
   if (pageId === 'admin-chat-log') window.loadAdminChatLog?.();
   if (pageId === 'chat') window.loadChatPage?.();
+  if (pageId === 'order-confirm') window.loadOrderConfirmPage?.();
+  if (pageId === 'order-otp') window.showOrderOtpPage?.();
+  if (pageId === 'order-success') window.loadOrderSuccessPage?.();
+  if (pageId === 'order-info') window.loadOrderInfoPage?.();
   window.scrollTo(0,0);
 }
 

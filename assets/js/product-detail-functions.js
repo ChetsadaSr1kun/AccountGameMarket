@@ -345,7 +345,8 @@ async function payOrderFromWallet(id) {
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error?.message || 'ไม่สามารถชำระเงินได้');
     alert('ชำระเงินสำเร็จ');
-    await openOrderDetail(orderId);
+    window.pendingOrderId = orderId;
+    goPage('order-success');
     if (typeof window.loadWallet === 'function') window.loadWallet();
   } catch (error) {
     console.error('payOrderFromWallet failed:', error);
