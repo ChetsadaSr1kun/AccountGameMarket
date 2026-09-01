@@ -20,6 +20,7 @@ function mapRequest(row) {
 }
 
 async function createRequest(userId, paymentMethod, amount) {
+  if (process.env.NODE_ENV === 'production') throw new AppError('Demo top-up is disabled in production.', 403, 'DEMO_TOPUP_DISABLED');
   const normalizedMethod = String(paymentMethod || '').toUpperCase();
   const normalizedAmount = Number(amount);
   if (!allowedMethods.has(normalizedMethod)) throw new AppError('Unsupported payment method.', 400, 'INVALID_PAYMENT_METHOD');
