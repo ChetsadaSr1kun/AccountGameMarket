@@ -317,8 +317,6 @@ function clearClientAuthState() {
   csrfToken = null;
   isLoggedIn = false;
   isAdmin = false;
-  renderListingCard('valorant');
-  renderListingCard('rov');
   updateNav();
 }
 
@@ -529,101 +527,9 @@ function setProductImage(mainImageId, thumbEl, imageSrc) {
 }
 
 // ===================== EDIT LISTING =====================
-const listingStore = {
-  valorant: {
-    game: 'Valorant',
-    title: 'บัญชี Valorant Immortal 3',
-    rank: 'Immortal 3',
-    skins: '42 สกิน',
-    price: '1500',
-    server: 'Asia',
-    description: 'บัญชีแรงค์ Immortal 3 พร้อมสกินเด่น Prime Phantom, Reaver Vandal และ Glitchpop Sheriff เหมาะสำหรับผู้ที่ต้องการไอดีพร้อมเล่นต่อได้ทันที',
-    status: 'active',
-    username: 'valorant_im3_pro',
-    password: 'V@l0r@nt#2024',
-    email: 'seller@gmail.com',
-    emailPassword: 'Em@il#Pass123'
-  },
-  rov: {
-    game: 'ROV',
-    title: 'บัญชี ROV Diamond สกิน Krixi',
-    rank: 'Diamond',
-    skins: '25 สกิน',
-    price: '700',
-    server: 'Asia',
-    description: 'บัญชี ROV ระดับ Diamond มีสกิน Krixi และฮีโร่ใช้งานหลักครบ เหมาะสำหรับสายเมจและผู้เล่นเริ่มต้นที่อยากได้ไอดีคุ้มราคา',
-    status: 'paused',
-    username: 'rov_diamond_krixi',
-    password: 'ROV#Diamond2026',
-    email: 'rovseller@gmail.com',
-    emailPassword: 'RovMail#123'
-  }
-};
-
-let editingListingId = null;
-
-function openEditListing(listingId) {
-  const item = listingStore[listingId];
-  if (!item) return;
-  editingListingId = listingId;
-  document.getElementById('edit-game').value = item.game;
-  document.getElementById('edit-title').value = item.title;
-  document.getElementById('edit-rank').value = item.rank;
-  document.getElementById('edit-skins').value = item.skins;
-  document.getElementById('edit-price').value = item.price;
-  document.getElementById('edit-server').value = item.server;
-  document.getElementById('edit-description').value = item.description;
-  document.getElementById('edit-status').value = item.status;
-  document.getElementById('edit-username').value = item.username;
-  document.getElementById('edit-password').value = item.password;
-  document.getElementById('edit-email').value = item.email;
-  document.getElementById('edit-email-password').value = item.emailPassword;
-  loginAndGo('edit-listing');
-}
-
-function saveEditedListing() {
-  if (!editingListingId || !listingStore[editingListingId]) {
-    alert('ไม่พบรายการที่ต้องการแก้ไข');
-    return;
-  }
-
-  const updated = {
-    game: document.getElementById('edit-game').value,
-    title: document.getElementById('edit-title').value,
-    rank: document.getElementById('edit-rank').value,
-    skins: document.getElementById('edit-skins').value,
-    price: document.getElementById('edit-price').value,
-    server: document.getElementById('edit-server').value,
-    description: document.getElementById('edit-description').value,
-    status: document.getElementById('edit-status').value,
-    username: document.getElementById('edit-username').value,
-    password: document.getElementById('edit-password').value,
-    email: document.getElementById('edit-email').value,
-    emailPassword: document.getElementById('edit-email-password').value
-  };
-
-  listingStore[editingListingId] = updated;
-  renderListingCard(editingListingId);
-  alert('บันทึกการแก้ไขเรียบร้อยแล้ว');
-  loginAndGo('my-listings');
-}
-
-function renderListingCard(listingId) {
-  const item = listingStore[listingId];
-  if (!item) return;
-  const titleEl = document.getElementById(`listing-title-${listingId}`);
-  const metaEl = document.getElementById(`listing-meta-${listingId}`);
-  const priceEl = document.getElementById(`listing-price-${listingId}`);
-  const statusEl = document.getElementById(`listing-status-${listingId}`);
-  if (titleEl) titleEl.textContent = item.title;
-  if (metaEl) metaEl.textContent = `${item.rank} • ${item.skins} • ${item.server}`;
-  if (priceEl) priceEl.textContent = `${Number(item.price || 0).toLocaleString('th-TH')} ฿`;
-  if (statusEl) {
-    statusEl.className = 'badge ' + (item.status === 'active' ? 'badge-green' : 'badge-yellow');
-    statusEl.textContent = item.status === 'active' ? '🟢 กำลังขาย' : '⏸️ หยุดขาย';
-  }
-}
-
+// Legacy mock editing removed. Real editing uses create-product-functions.js and my-products-functions.js.
+function openEditListing(productId){return window.openMyProductEditor?.(Number(productId));}
+function saveEditedListing(){return window.createProductFromForm?.();}
 async function login() {
 
     const username = document
@@ -1217,8 +1123,6 @@ async function resetPassword() {
 }
 
 // ===================== INIT =====================
-renderListingCard('valorant');
-renderListingCard('rov');
 goPage('home');
 restoreSession();
 

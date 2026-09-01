@@ -747,51 +747,12 @@
 
 <!-- ======== PAGE: EDIT LISTING ======== -->
 <div class="page" id="pg-edit-listing">
-<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:820px">
-<div class="sec-header">
-<div class="sec-title">✏️ แก้รายการสินค้า</div>
-<div class="sec-sub">แก้ไขข้อมูลประกาศเดิมได้ทันที โดยระบบจะโหลดข้อมูลรายการที่เลือกมาให้</div>
-</div>
-<div class="card" style="padding:30px">
-<div class="notice info" style="margin-bottom:18px">📝 คุณกำลังแก้ไขประกาศเดิมอยู่ เมื่อบันทึกแล้วข้อมูลในหน้าประกาศของฉันจะอัปเดตตามล่าสุด</div>
-<div class="grid2" style="gap:14px;margin-bottom:4px">
-<div class="inp-group"><label class="inp-label">เกม</label><select class="inp" id="edit-game"><option>เลือกเกม</option><option>Valorant</option><option>ROV</option><option>PUBG</option><option>Free Fire</option><option>Genshin Impact</option><option>Honkai: Star Rail</option></select></div>
-<div class="inp-group"><label class="inp-label">ชื่อประกาศ</label><input class="inp" id="edit-title" placeholder="เช่น บัญชี Valorant Immortal สกินครบ"/></div>
-<div class="inp-group"><label class="inp-label">แรงค์/เลเวล</label><input class="inp" id="edit-rank" placeholder="เช่น Immortal 3, Level 230"/></div>
-<div class="inp-group"><label class="inp-label">จำนวนสกิน</label><input class="inp" id="edit-skins" placeholder="เช่น 42 สกิน"/></div>
-<div class="inp-group"><label class="inp-label">ราคา (บาท)</label><input class="inp" id="edit-price" placeholder="กรอกราคา" type="number"/></div>
-<div class="inp-group"><label class="inp-label">เซิร์ฟเวอร์</label><select class="inp" id="edit-server"><option>Asia</option><option>NA</option><option>EU</option></select></div>
-</div>
-<div class="inp-group">
-<label class="inp-label">รายละเอียดเพิ่มเติม</label>
-<textarea class="inp" id="edit-description" placeholder="อธิบายรายละเอียดสินค้า สกินพิเศษ สิ่งที่มีในบัญชี ฯลฯ" rows="4" style="resize:none"></textarea>
-</div>
-<div class="inp-group">
-<label class="inp-label">สถานะการขาย</label>
-<select class="inp" id="edit-status"><option value="active">กำลังขาย</option><option value="paused">หยุดขาย</option></select>
-</div>
-<div class="inp-group">
-<label class="inp-label">ข้อมูลบัญชีสำหรับส่งให้ผู้ซื้อ (จะแสดงหลังการขาย)</label>
-<div class="card" style="padding:16px">
-<div class="grid2" style="gap:12px">
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Username</label><input class="inp" id="edit-username" placeholder="Username บัญชีเกม"/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Password</label><input class="inp" id="edit-password" placeholder="Password บัญชีเกม" type="password"/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email บัญชีเกม</label><input class="inp" id="edit-email" placeholder="Email ที่ผูกบัญชีเกม"/></div>
-<div class="inp-group" style="margin-bottom:0"><label class="inp-label">Email Password</label><input class="inp" id="edit-email-password" placeholder="Password Email" type="password"/></div>
-</div>
-</div>
-</div>
-<div class="inp-group">
-<label class="inp-label">รูปภาพสินค้า (สูงสุด 10 รูป)</label>
-<div class="upload-zone">
-<div style="font-size:40px;margin-bottom:10px">🖼️</div>
-<div style="color:var(--muted);font-size:14px">หน้า mockup นี้ยังเป็นตัวอย่างการแก้ไขข้อมูลเดิม โดยสามารถต่อยอดเชื่อมอัปโหลดจริงได้ภายหลัง</div>
-</div>
-</div>
-<div class="flex gap-12" style="flex-wrap:wrap">
-<button class="btn btn-primary btn-lg" onclick="saveEditedListing()">💾 บันทึกการแก้ไข</button>
-<button class="btn btn-secondary btn-md" onclick="loginAndGo('my-listings')">← กลับไปหน้าประกาศของฉัน</button>
-</div>
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:760px">
+<div class="card" style="padding:32px;text-align:center">
+<div style="font-size:34px">✏️</div>
+<h3 style="margin:10px 0">แก้ไขประกาศ</h3>
+<p style="color:var(--muted);font-size:13px">กรุณาเปิดการแก้ไขจาก “ประกาศของฉัน” เพื่อโหลดสินค้าจริงจากระบบ</p>
+<button class="btn btn-primary btn-md" onclick="loginAndGo('my-listings')">ไปประกาศของฉัน</button>
 </div>
 </div>
 </div>
@@ -807,41 +768,6 @@
 <div id="my-products-feedback" style="display:none;margin-bottom:16px"></div>
 <div id="my-products-list">
 <div class="card" style="padding:28px;text-align:center;color:var(--muted)">กำลังโหลดประกาศของคุณ...</div>
-</div>
-<!-- legacy listing cards kept below temporarily -->
-<div id="my-products-legacy" style="display:none">
-<div class="card" id="listing-card-valorant" style="margin-bottom:12px;padding:18px 22px">
-<div class="flex gap-16" style="align-items:center">
-<div class="game-img" style="width:100px;height:58px;flex-shrink:0;background:linear-gradient(135deg,rgba(255,70,85,0.2),rgba(255,70,85,0.05));border:1px solid rgba(255,70,85,0.2);color:#ff4655">🎯 VAL</div>
-<div style="flex:1">
-<div id="listing-title-valorant" style="font-weight:600;margin-bottom:4px">บัญชี Valorant Immortal 3</div>
-<div id="listing-meta-valorant" style="color:var(--muted);font-size:13px">Immortal 3 • 42 สกิน • Asia</div>
-<div class="flex gap-8" style="margin-top:6px"><span id="listing-status-valorant" class="badge badge-green">🟢 กำลังขาย</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.8</span></span></div>
-</div>
-<div style="text-align:right">
-<div id="listing-price-valorant" class="kanit" style="font-size:22px;font-weight:800;color:var(--accent)">1,500 ฿</div>
-<div style="font-size:12px;color:var(--muted);margin-bottom:8px">เข้าชม 124 ครั้ง</div>
-<div class="flex gap-8"><button class="btn btn-secondary btn-sm" onclick="openEditListing('valorant')">✏️ แก้ไข</button><button class="btn btn-danger btn-sm">🗑️ ลบ</button></div>
-</div>
-</div>
-</div>
-<div class="card" id="listing-card-rov" style="margin-bottom:12px;padding:18px 22px">
-<div class="flex gap-16" style="align-items:center">
-<div class="game-img" style="width:100px;height:58px;flex-shrink:0;background:linear-gradient(135deg,rgba(0,196,255,0.2),rgba(0,196,255,0.05));border:1px solid rgba(0,196,255,0.2);color:#00c4ff">⚔️ ROV</div>
-<div style="flex:1">
-<div id="listing-title-rov" style="font-weight:600;margin-bottom:4px">บัญชี ROV Diamond สกิน Krixi</div>
-<div id="listing-meta-rov" style="color:var(--muted);font-size:13px">Diamond • 25 สกิน • Asia</div>
-<div class="flex gap-8" style="margin-top:6px"><span id="listing-status-rov" class="badge badge-yellow">⏸️ หยุดขาย</span></div>
-</div>
-<div style="text-align:right">
-<div id="listing-price-rov" class="kanit" style="font-size:22px;font-weight:800;color:var(--accent)">700 ฿</div>
-<div style="font-size:12px;color:var(--muted);margin-bottom:8px">เข้าชม 58 ครั้ง</div>
-<div class="flex gap-8"><button class="btn btn-secondary btn-sm" onclick="openEditListing('rov')">✏️ แก้ไข</button><button class="btn btn-danger btn-sm">🗑️ ลบ</button></div>
-</div>
-</div>
-</div>
-</div>
-</div>
 </div>
 <!-- ======== ADMIN PAGES ======== -->
 <!-- Admin Dashboard -->
