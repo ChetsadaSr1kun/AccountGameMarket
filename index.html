@@ -547,10 +547,10 @@
 <p style="color:var(--muted);margin-top:4px">มีรายการใหม่ที่น่าสนใจรอคุณอยู่</p>
 </div>
 <div class="grid4" style="gap:12px;margin-bottom:28px">
-<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--accent)">5,420</div><div class="stat-label">พ้อยท์คงเหลือ</div></div>
-<div class="card stat-card"><div style="font-size:24px">🛒</div><div class="stat-val" style="color:var(--success)">3</div><div class="stat-label">รายการที่ซื้อ</div></div>
-<div class="card stat-card"><div style="font-size:24px">📦</div><div class="stat-val" style="color:var(--warn)">2</div><div class="stat-label">ประกาศขาย</div></div>
-<div class="card stat-card"><div style="font-size:24px">💬</div><div class="stat-val" style="color:var(--purple)">5</div><div class="stat-label">ข้อความใหม่</div></div>
+<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--accent)" id="homeUserStatWallet">—</div><div class="stat-label">พ้อยท์คงเหลือ</div></div>
+<div class="card stat-card"><div style="font-size:24px">🛒</div><div class="stat-val" style="color:var(--success)" id="homeUserStatPurchases">—</div><div class="stat-label">รายการที่ซื้อ</div></div>
+<div class="card stat-card"><div style="font-size:24px">📦</div><div class="stat-val" style="color:var(--warn)" id="homeUserStatListings">—</div><div class="stat-label">ประกาศขาย</div></div>
+<div class="card stat-card"><div style="font-size:24px">💬</div><div class="stat-val" style="color:var(--purple)" id="homeUserStatMessages">—</div><div class="stat-label">การสนทนา</div></div>
 </div>
 <div class="sec-header"><div class="sec-title">รายการแนะนำสำหรับคุณ</div></div>
 <div class="grid3" id="homeUserRecommendations"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div>
@@ -570,7 +570,7 @@
 </div>
 </div>
 <div class="card">
-<h4 style="font-weight:700;margin-bottom:12px">💬 ข้อความล่าสุด</h4>
+<h4 style="font-weight:700;margin-bottom:12px">💬 ข้อความล่าสุด</h4><div id="homeUserRecentMessages"><div class="notice info">กำลังโหลดข้อความ...</div></div>
 <div style="display:flex;flex-direction:column">
 <div class="flex gap-10" onclick="goPage('chat')" style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;align-items:center">
 <div class="avatar" style="width:34px;height:34px;background:var(--accent);font-size:14px">A</div>
