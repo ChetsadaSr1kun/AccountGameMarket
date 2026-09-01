@@ -85,15 +85,15 @@
 </div>
 <div class="grid3" style="gap:12px">
 <div class="card" style="padding:16px 18px">
-<div class="kanit" style="font-size:24px;font-weight:800;color:var(--accent)">1,248</div>
+<div id="homeStatProducts" class="kanit" style="font-size:24px;font-weight:800;color:var(--accent)">—</div>
 <div style="font-size:13px;color:var(--muted)">รายการขายทั้งหมด</div>
 </div>
 <div class="card" style="padding:16px 18px">
-<div class="kanit" style="font-size:24px;font-weight:800;color:var(--success)">5,420</div>
+<div id="homeStatUsers" class="kanit" style="font-size:24px;font-weight:800;color:var(--success)">—</div>
 <div style="font-size:13px;color:var(--muted)">สมาชิกทั้งหมด</div>
 </div>
 <div class="card" style="padding:16px 18px">
-<div class="kanit" style="font-size:24px;font-weight:800;color:var(--warn)">9,875</div>
+<div id="homeStatSales" class="kanit" style="font-size:24px;font-weight:800;color:var(--warn)">—</div>
 <div style="font-size:13px;color:var(--muted)">ครั้งซื้อสำเร็จ</div>
 </div>
 </div>
@@ -117,112 +117,9 @@
 </div>
 </div>
 <!-- Game Categories -->
-<div class="container" style="padding-top:48px;padding-bottom:16px">
-<div class="sec-header">
-<div class="sec-title">หมวดหมู่เกมยอดนิยม</div>
-<div class="sec-sub">เลือกดูรายการขายตามประเภทเกมที่คุณสนใจ</div>
-</div>
-<div class="grid6">
-<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
-<img alt="Valorant" src="assets/images/Valorant.png" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
-<div style="font-weight:600;font-size:13px">Valorant</div>
-<div style="color:var(--muted);font-size:12px;margin-top:4px">42 รายการ</div>
-</div>
-<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
-<img alt="ROV" src="assets/images/Rov.png" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
-<div style="font-weight:600;font-size:13px">ROV</div>
-<div style="color:var(--muted);font-size:12px;margin-top:4px">38 รายการ</div>
-</div>
-<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
-<img alt="PUBG" src="assets/images/Pubg.png" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
-<div style="font-weight:600;font-size:13px">PUBG</div>
-<div style="color:var(--muted);font-size:12px;margin-top:4px">30 รายการ</div>
-</div>
-<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
-<img alt="Free Fire" src="assets/images/FreeFire.jpg" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
-<div style="font-weight:600;font-size:13px">Free Fire</div>
-<div style="color:var(--muted);font-size:12px;margin-top:4px">25 รายการ</div>
-</div>
-<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
-<img alt="Genshin Impact" src="assets/images/Genshin impact.jpg" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
-<div style="font-weight:600;font-size:13px">Genshin Impact</div>
-<div style="color:var(--muted);font-size:12px;margin-top:4px">20 รายการ</div>
-</div>
-<div class="card card-hover" onclick="goPage('listings')" style="text-align:center;padding:22px 14px;cursor:pointer">
-<img alt="Honkai: Star Rail" src="assets/images/Honkai Starrail.png" style="width:60px;height:60px;object-fit:cover;margin-bottom:10px;border-radius:10px;"/>
-<div style="font-weight:600;font-size:13px">Honkai: Star Rail</div>
-<div style="color:var(--muted);font-size:12px;margin-top:4px">18 รายการ</div>
-</div>
-</div>
-</div>
+<div class="container" style="padding-top:48px;padding-bottom:16px"><div class="sec-header"><div class="sec-title">หมวดหมู่เกมยอดนิยม</div><div class="sec-sub">เลือกดูรายการขายตามประเภทเกมที่คุณสนใจ</div></div><div class="grid6" id="homeGameCategories"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดหมวดหมู่เกม...</div></div></div>
 <!-- Featured Listings -->
-<div class="container" style="padding-top:40px;padding-bottom:16px">
-<div class="sec-header flex-between">
-<div>
-<div class="sec-title">รายการขายแนะนำ</div>
-<div class="sec-sub">สินค้าที่ได้รับความนิยมสูงสุดในขณะนี้</div>
-</div>
-<button class="btn btn-ghost btn-sm" onclick="goPage('listings')">ดูทั้งหมด →</button>
-</div>
-<div class="grid4">
-<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
-<div class="game-img" style="background-image:url('assets/images/valorantpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,70,85,0.2);margin-bottom:12px"></div>
-<span class="badge badge-gray" style="margin-bottom:8px">Valorant</span>
-<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Valorant Immortal 3</div>
-<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: AimPro</div>
-<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
-<span class="badge badge-green">🏅 Immortal 3</span>
-<span class="badge badge-blue">🎨 42 สกิน</span>
-</div>
-<div class="flex-between">
-<span class="kanit" style="font-size:20px;font-weight:800;color:var(--accent)">1,500 ฿</span>
-<span class="stars">★★★★★ <span style="color:var(--muted)">4.8</span></span>
-</div>
-</div>
-<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
-<div class="game-img" style="background-image:url('assets/images/pubgpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(245,166,35,0.2);margin-bottom:12px"></div>
-<span class="badge badge-gray" style="margin-bottom:8px">PUBG</span>
-<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี PUBG ชุด Mythic เต็ม</div>
-<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: GamerX</div>
-<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
-<span class="badge badge-green">🏅 Conqueror</span>
-<span class="badge badge-blue">🎨 88 สกิน</span>
-</div>
-<div class="flex-between">
-<span class="kanit" style="font-size:20px;font-weight:800;color:var(--accent)">1,900 ฿</span>
-<span class="stars">★★★★★ <span style="color:var(--muted)">4.7</span></span>
-</div>
-</div>
-<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
-<div class="game-img" style="background-image:url('assets/images/freefirepage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,107,53,0.2);margin-bottom:12px"></div>
-<span class="badge badge-gray" style="margin-bottom:8px">Free Fire</span>
-<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Free Fire สิงห์แดง</div>
-<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: FFMaster</div>
-<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
-<span class="badge badge-green">🏅 สิงห์แดง</span>
-<span class="badge badge-blue">🎨 30 สกิน</span>
-</div>
-<div class="flex-between">
-<span class="kanit" style="font-size:20px;font-weight:800;color:var(--accent)">850 ฿</span>
-<span class="stars">★★★★★ <span style="color:var(--muted)">4.6</span></span>
-</div>
-</div>
-<div class="card card-hover" onclick="goPage('product')" style="cursor:pointer">
-<div class="game-img" style="background-image:url('assets/images/Genshinimpactpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(123,179,255,0.2);margin-bottom:12px"></div>
-<span class="badge badge-gray" style="margin-bottom:8px">Genshin Impact</span>
-<div style="font-weight:600;font-size:14px;margin-bottom:4px">บัญชี Genshin เวิ่นดิน AR55</div>
-<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: KleeMain</div>
-<div class="flex gap-8" style="flex-wrap:wrap;margin-bottom:10px">
-<span class="badge badge-green">🏅 AR55</span>
-<span class="badge badge-blue">🎨 15 ตัวละคร</span>
-</div>
-<div class="flex-between">
-<span class="kanit" style="font-size:20px;font-weight:800;color:var(--accent)">500 ฿</span>
-<span class="stars">★★★★★ <span style="color:var(--muted)">4.9</span></span>
-</div>
-</div>
-</div>
-</div>
+<div class="container" style="padding-top:40px;padding-bottom:16px"><div class="sec-header flex-between"><div><div class="sec-title">รายการขายแนะนำ</div><div class="sec-sub">สินค้าที่มีอยู่จริงและเปิดขายอยู่ในระบบ</div></div><button class="btn btn-ghost btn-sm" onclick="goPage('listings')">ดูทั้งหมด →</button></div><div class="grid4" id="homeFeaturedGrid"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div></div>
 <!-- How it works -->
 <div class="container" style="padding-top:48px;padding-bottom:60px">
 <div class="sec-header">
@@ -656,26 +553,7 @@
 <div class="card stat-card"><div style="font-size:24px">💬</div><div class="stat-val" style="color:var(--purple)">5</div><div class="stat-label">ข้อความใหม่</div></div>
 </div>
 <div class="sec-header"><div class="sec-title">รายการแนะนำสำหรับคุณ</div></div>
-<div class="grid3">
-<div class="card card-hover" onclick="goPage('product-user')" style="cursor:pointer">
-<div class="game-img" style="background-image:url('assets/images/valorantpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(255,70,85,0.2);margin-bottom:12px"></div>
-<div style="font-weight:600;font-size:13px;margin-bottom:4px">บัญชี Valorant Immortal 3</div>
-<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: AimPro</div>
-<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">1,500 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.8</span></span></div>
-</div>
-<div class="card card-hover" onclick="goPage('product-user')" style="cursor:pointer">
-<div class="game-img" style="background-image:url('assets/images/pubgpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(245,166,35,0.2);margin-bottom:12px"></div>
-<div style="font-weight:600;font-size:13px;margin-bottom:4px">บัญชี PUBG Mythic เต็ม</div>
-<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: GamerX</div>
-<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">1,900 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.7</span></span></div>
-</div>
-<div class="card card-hover" onclick="goPage('product-user')" style="cursor:pointer">
-<div class="game-img" style="background-image:url('assets/images/Honkaistarrailpage.jpg');background-size:cover;background-position:center;border:1px solid rgba(155,92,246,0.2);margin-bottom:12px"></div>
-<div style="font-weight:600;font-size:13px;margin-bottom:4px">บัญชี Honkai E6 Seele</div>
-<div style="color:var(--muted);font-size:12px;margin-bottom:8px">ผู้ขาย: StarPlayer</div>
-<div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">3,200 ฿</span><span class="stars">★★★★★ <span style="color:var(--muted)">4.9</span></span></div>
-</div>
-</div>
+<div class="grid3" id="homeUserRecommendations"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div>
 </div>
 <div style="display:flex;flex-direction:column;gap:14px">
 <div class="card">
@@ -1702,6 +1580,7 @@
 <script src='assets/js/admin-transaction-report-detail-ui.js'></script>
 <script src="assets/js/transaction-report-ui.js"></script>
 <script src="assets/js/notification-ui.js"></script>
+<script src="assets/js/home-data-ui.js"></script>
 <script src="assets/js/script.js"></script>
 <script src="assets/js/notification-nav-ui.js"></script>
 <script src="assets/js/wallet-withdraw.js"></script>
