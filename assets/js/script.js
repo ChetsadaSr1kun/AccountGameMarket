@@ -1246,7 +1246,74 @@ function publicListingCard(product) {
   </div>`;
 }
 
-async function loadMarketplaceListings(pageId) {
+let marketplaceGameFilter = { listings: null, 'listings-user': null };
+let marketplaceGamesLoaded = false;
+
+function marketplaceGameIcon(game) {
+  const key = String(game?.slug || game?.name || '').trim().toLowerCase();
+  const map = {
+    valorant: 'assets/images/Valorant.png',
+    rov: 'assets/images/Rov.png',
+    pubg: 'assets/images/Pubg.png',
+    'free-fire': 'assets/images/FreeFire.jpg',
+    freefire: 'assets/images/FreeFire.jpg',
+    'genshin-impact': 'assets/images/Genshin impact.jpg',
+    'genshin impact': 'assets/images/Genshin impact.jpg',
+    'honkai-star-rail': 'assets/images/Honkai Starrail.png',
+    'honkai: star rail': 'assets/images/Honkai Starrail.png',
+  };
+  return game?.imageUrl || map[key] || '';
+}
+
+function renderMarketplaceGameFilters(games) {
+  const groups = [
+    ['guestGameFilter', 'listings'],
+    ['userGameFilter', 'listings-user'],
+  ];
+  groups.forEach(([id, pageId]) => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    const selected = marketplaceGameFilter[pageId];
+    const activeAll = selected == null;
+    const items = ['<div class="filter-item ' + (activeAll ? 'active' : '') + '" onclick="selectMarketplaceGame(\'' + pageId + '\', null, this)">ทุกเกม</div>'];
+    games.filter(game => game && (game.status === 'ACTIVE' || !game.status)).forEach(game => {
+      const icon = marketplaceGameIcon(game);
+      const active = Number(selected) === Number(game.id);
+      const iconHtml = icon
+        ? '<img alt="" src="' + publicListingEscape(icon) + '" style="width:28px;height:28px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:10px">'
+        : '<span style="display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;margin-right:10px">🎮</span>';
+      items.push('<div class="filter-item ' + (active ? 'active' : '') + '" data-game-id="' + Number(game.id) + '" onclick="selectMarketplaceGame(\'' + pageId + '\',' + Number(game.id) + ',this)">' + iconHtml + publicListingEscape(game.name) + '</div>');
+    });
+    container.innerHTML = items.join('');
+  });
+}
+
+async function loadMarketplaceGameFilters() {
+  if (marketplaceGamesLoaded) return;
+  try {
+    const response = await fetch('/api/v1/games', { credentials: 'include' });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error?.message || 'โหลดหมวดหมู่เกมไม่สำเร็จ');
+    const data = body.data || body;
+    const games = Array.isArray(data) ? data : (data.games || []);
+    window.__marketplaceGames = games;
+    renderMarketplaceGameFilters(games);
+    marketplaceGamesLoaded = true;
+  } catch (error) {
+    console.error('loadMarketplaceGameFilters failed:', error);
+  }
+}
+
+async function selectMarketplaceGame(pageId, gameId, element) {
+  marketplaceGameFilter[pageId] = gameId == null ? null : Number(gameId);
+  const page = document.getElementById(`pg-${pageId}`);
+  const filter = page?.querySelector(pageId === 'listings' ? '#guestGameFilter' : '#userGameFilter');
+  filter?.querySelectorAll('.filter-item').forEach(item => item.classList.remove('active'));
+  element?.classList.add('active');
+  await loadMarketplaceListings(pageId, marketplaceGameFilter[pageId]);
+}
+
+async function loadMarketplaceListings(pageId, gameId = null) {
   const page = document.getElementById(`pg-${pageId}`);
   if (!page) return;
   const grids = page.querySelectorAll('.grid3');
@@ -1254,7 +1321,9 @@ async function loadMarketplaceListings(pageId) {
   if (!target) return;
   target.innerHTML = '<div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้า...</div>';
   try {
-    const response = await fetch('/api/v1/products?pageSize=50', { credentials: 'include' });
+    const query = new URLSearchParams({ pageSize: '50' });
+    if (gameId != null) query.set('gameId', String(gameId));
+    const response = await fetch(`/api/v1/products?${query.toString()}`, { credentials: 'include' });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error?.message || 'โหลดรายการสินค้าไม่สำเร็จ');
     const data = body.data || body;
@@ -1273,7 +1342,10 @@ const originalGoPageForMarketplace = goPage;
 goPage = function(pageId) {
   originalGoPageForMarketplace(pageId);
   const resolved = (pageId === 'seller-verify' && currentUser?.roles?.includes('SELLER')) ? 'add-listing' : pageId;
-  if (resolved === 'listings' || resolved === 'listings-user') loadMarketplaceListings(resolved);
+  if (resolved === 'listings' || resolved === 'listings-user') {
+    loadMarketplaceGameFilters().then(() => renderMarketplaceGameFilters(window.__marketplaceGames || []));
+    loadMarketplaceListings(resolved, marketplaceGameFilter[resolved]);
+  }
 };
 window.loadMarketplaceListings = loadMarketplaceListings;
 
