@@ -79,7 +79,12 @@ app.use('/api/v1/transaction-reports', transactionReportRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/home', homeRoutes);
 
-app.get('/', (req, res) => res.sendFile(path.join(projectRoot, 'index.html')));
+app.get('/', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.sendFile(path.join(projectRoot, 'index.html'));
+});
 app.use('/assets', express.static(path.join(projectRoot, 'assets'), { index: false }));
 app.use('/uploads/avatars', express.static(path.join(projectRoot, 'uploads', 'avatars'), { dotfiles: 'deny', fallthrough: false, index: false, redirect: false }));
 app.use('/uploads/products', express.static(path.join(projectRoot, 'uploads', 'products'), { dotfiles: 'deny', fallthrough: false, index: false, redirect: false }));

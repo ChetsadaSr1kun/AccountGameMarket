@@ -108,6 +108,8 @@ async function openProductDetail(id) {
   window.loadProductReviews?.(product.id);
 }
 
+window.renderProductDetail = renderProductDetail;
+
 function ensureProductImageLightbox() {
   let lightbox = document.getElementById('product-image-lightbox');
   if (lightbox) return lightbox;
