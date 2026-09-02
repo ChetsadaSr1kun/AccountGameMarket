@@ -71,7 +71,6 @@
 <div class="container">
 <div style="display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:start">
 <div>
-<span class="badge badge-blue" style="margin-bottom:16px">🎮 ตลาดซื้อขายไอดีเกมอันดับ 1</span>
 <h1 style="font-size:52px;font-weight:900;line-height:1.15;margin:14px 0 20px">
             ซื้อขายไอดีเกมได้ง่าย<br/>
 <span style="color:var(--accent)">ปลอดภัย</span> และครบในที่เดียว
@@ -81,7 +80,7 @@
           </p>
 <div class="flex gap-12" style="margin-bottom:40px">
 <button class="btn btn-primary btn-lg" onclick="goPage('register')">🚀 เริ่มต้นใช้งาน</button>
-<button class="btn btn-secondary btn-lg" onclick="goPage('listings')">📋 ดูรายการขายทั้งหมด</button>
+<button class="btn btn-secondary btn-lg" onclick="openMarketplacePage('listings')">📋 ดูรายการขายทั้งหมด</button>
 </div>
 <div class="grid3" style="gap:12px">
 <div class="card" style="padding:16px 18px">
@@ -109,7 +108,7 @@
 <select class="inp"><option>เกม: ทุกเกม</option><option>Valorant</option><option>ROV</option><option>PUBG</option><option>Free Fire</option><option>Genshin Impact</option></select>
 <select class="inp"><option>ราคา: ทุกช่วง</option><option>0–500 ฿</option><option>500–1,500 ฿</option><option>1,500+ ฿</option></select>
 </div>
-<button class="btn btn-primary btn-full btn-md" onclick="goPage('listings')">🔍 ค้นหารายการขาย</button>
+<button class="btn btn-primary btn-full btn-md" onclick="openMarketplacePage('listings')">🔍 ค้นหารายการขาย</button>
 <div class="divider"></div>
 <p style="font-size:13px;color:var(--muted);text-align:center">มีบัญชีแล้ว? <a onclick="goPage('login')" style="cursor:pointer">เข้าสู่ระบบ</a></p>
 </div>
@@ -119,7 +118,7 @@
 <!-- Game Categories -->
 <div class="container" style="padding-top:48px;padding-bottom:16px"><div class="sec-header"><div class="sec-title">หมวดหมู่เกมยอดนิยม</div><div class="sec-sub">เลือกดูรายการขายตามประเภทเกมที่คุณสนใจ</div></div><div class="grid6" id="homeGameCategories"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดหมวดหมู่เกม...</div></div></div>
 <!-- Featured Listings -->
-<div class="container" style="padding-top:40px;padding-bottom:16px"><div class="sec-header flex-between"><div><div class="sec-title">รายการขายแนะนำ</div><div class="sec-sub">สินค้าที่มีอยู่จริงและเปิดขายอยู่ในระบบ</div></div><button class="btn btn-ghost btn-sm" onclick="goPage('listings')">ดูทั้งหมด →</button></div><div class="grid4" id="homeFeaturedGrid"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div></div>
+<div class="container" style="padding-top:40px;padding-bottom:16px"><div class="sec-header flex-between"><div><div class="sec-title">รายการขายแนะนำ</div><div class="sec-sub">สินค้าที่มีอยู่จริงและเปิดขายอยู่ในระบบ</div></div><button class="btn btn-ghost btn-sm" onclick="openMarketplacePage('listings')">ดูทั้งหมด →</button></div><div class="grid4" id="homeFeaturedGrid"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div></div>
 <!-- How it works -->
 <div class="container" style="padding-top:48px;padding-bottom:60px">
 <div class="sec-header">
