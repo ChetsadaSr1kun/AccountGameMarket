@@ -78,6 +78,20 @@ function goPage(pageId) {
   if (pageId === 'admin-suspended-users') window.adminLoadSuspendedUsers?.();
   if (pageId === 'notifications') window.loadNotifications?.();
   if (pageId === 'admin-chat-log') window.loadAdminChatLog?.();
+  if (pageId === 'listings' || pageId === 'listings-user') {
+    const marketplacePageId = pageId;
+    requestAnimationFrame(() => {
+      window.loadMarketplaceGameFilters?.().then(() => {
+        window.renderMarketplaceGameFilters?.(window.__marketplaceGames || []);
+        window.bindMarketplaceControlsReal?.(marketplacePageId);
+        return window.loadMarketplaceListings?.(marketplacePageId);
+      }).catch((error) => {
+        console.error('Marketplace page initialization failed:', error);
+        const target = document.querySelector(`#pg-${marketplacePageId} .grid3`);
+        if (target) target.innerHTML = `<div class="notice danger" style="grid-column:1/-1">${typeof publicListingEscape === 'function' ? publicListingEscape(error.message || 'ไม่สามารถโหลดรายการสินค้าได้') : 'ไม่สามารถโหลดรายการสินค้าได้'}</div>`;
+      });
+    });
+  }
   if (pageId === 'chat') window.loadChatPage?.();
   if (pageId === 'order-confirm') window.loadOrderConfirmPage?.();
   if (pageId === 'order-otp') window.showOrderOtpPage?.();
@@ -1263,35 +1277,7 @@ function marketplacePriceBoundsReal(pageId){const page=document.getElementById('
 function bindMarketplaceControlsReal(pageId){const page=document.getElementById('pg-'+pageId);if(!page)return;const key=pageId;if(marketplaceControlState.bindings.has(key))return;marketplaceControlState.bindings.add(key);page.querySelectorAll('input[name="'+(pageId==='listings'?'price':'price2')+'"]').forEach(input=>input.addEventListener('change',()=>loadMarketplaceListingsReal(pageId)));const sort=page.querySelector('select.marketplace-sort');sort?.addEventListener('change',()=>{marketplaceSort[pageId]=sort.value||'newest';loadMarketplaceListingsReal(pageId);});const search=page.querySelector('input.marketplace-search');search?.addEventListener('input',()=>{marketplaceSearch[pageId]=search.value.trim();clearTimeout(search._timer);search._timer=setTimeout(()=>loadMarketplaceListingsReal(pageId),250);});}
 async function loadMarketplaceListingsReal(pageId){const page=document.getElementById('pg-'+pageId);if(!page)return;const target=page.querySelector('.grid3');if(!target)return;target.innerHTML='<div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div>';try{const q=new URLSearchParams({pageSize:'50'});const search=marketplaceSearch[pageId];if(search)q.set('search',search);const gameId=marketplaceGameFilter[pageId];if(gameId!=null)q.set('gameId',String(gameId));const[min,max]=marketplacePriceBoundsReal(pageId);if(min!=null)q.set('minPrice',String(min));if(max!=null)q.set('maxPrice',String(max));q.set('sort',marketplaceSort[pageId]||'newest');const r=await fetch('/api/v1/products?'+q.toString(),{credentials:'include'});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'โหลดรายการสินค้าไม่สำเร็จ');const d=b.data||b;const c=[...page.querySelectorAll('span')].find(e=>/^พบ \d+ รายการ$/.test(e.textContent.trim()));if(c)c.textContent='พบ '+(d.total||0)+' รายการ';target.innerHTML=d.items?.length?d.items.map(publicListingCard).join(''):'<div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">ยังไม่มีสินค้าที่ตรงกับตัวกรอง</div>';}catch(e){console.error('loadMarketplaceListingsReal failed:',e);target.innerHTML='<div class="notice danger" style="grid-column:1/-1">'+publicListingEscape(e.message||'โหลดรายการสินค้าไม่สำเร็จ')+'</div>';}}
 window.loadMarketplaceListings=loadMarketplaceListingsReal;
-const marketplaceBaseGoPage=goPage;
-function openMarketplacePage(pageId){
-  marketplaceBaseGoPage(pageId);
-  const resolved=(pageId==='seller-verify'&&currentUser?.roles?.includes('SELLER'))?'add-listing':pageId;
-  if(resolved!=='listings'&&resolved!=='listings-user')return;
-  const page=document.getElementById('pg-'+resolved);
-  if(!page)return;
-  page.classList.add('active');
-  page.style.setProperty('display','block','important');
-  page.style.setProperty('visibility','visible','important');
-  page.style.setProperty('opacity','1','important');
-  requestAnimationFrame(()=>{
-    bindMarketplaceControlsReal(resolved);
-    loadMarketplaceGameFilters().then(()=>{
-      renderMarketplaceGameFilters(window.__marketplaceGames||[]);
-      bindMarketplaceControlsReal(resolved);
-      return loadMarketplaceListingsReal(resolved);
-    }).catch(error=>{
-      console.error('Marketplace page initialization failed:',error);
-      const target=page.querySelector('.grid3');
-      if(target)target.innerHTML='<div class="notice danger" style="grid-column:1/-1">'+publicListingEscape(error.message||'ไม่สามารถโหลดรายการสินค้าได้')+'</div>';
-    });
-  });
+function openMarketplacePage(pageId) {
+  goPage(pageId);
 }
-window.openMarketplacePage=openMarketplacePage;
-goPage=function(pageId){
-  if(pageId==='listings'||pageId==='listings-user'){
-    openMarketplacePage(pageId);
-    return;
-  }
-  marketplaceBaseGoPage(pageId);
-};
+window.openMarketplacePage = openMarketplacePage;
