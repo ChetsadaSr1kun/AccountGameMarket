@@ -21,6 +21,21 @@ const userPages = ['home-user','listings-user','product-user','profile','wallet'
 const guestPages = ['home','login','register','forgot','otp-reset','reset-success','listings','product','product-detail'];
 
 // ===================== NAVIGATION =====================
+function ensureCurrentPageVisible() {
+  const pageId = currentPage || 'home';
+  const currentPageElement = document.getElementById(`pg-${pageId}`);
+  if (!currentPageElement) return;
+
+  document.querySelectorAll('.page').forEach((page) => {
+    const isCurrentPage = page === currentPageElement;
+    page.classList.toggle('active', isCurrentPage);
+    page.style.setProperty('display', isCurrentPage ? 'block' : 'none', 'important');
+  });
+
+  currentPageElement.style.setProperty('visibility', 'visible', 'important');
+  currentPageElement.style.setProperty('opacity', '1', 'important');
+}
+
 function goPage(pageId) {
   // Approved sellers should go directly to the create-listing page.
   if (pageId === 'seller-verify' && currentUser?.roles?.includes('SELLER')) pageId = 'add-listing';
@@ -1141,6 +1156,11 @@ async function resetPassword() {
 goPage('home');
 restoreSession();
 
+// A failed or stale client bootstrap must not leave every SPA page hidden.
+// This also restores the active view when the browser returns from its page cache.
+document.addEventListener('DOMContentLoaded', () => requestAnimationFrame(ensureCurrentPageVisible), { once: true });
+window.addEventListener('pageshow', ensureCurrentPageVisible);
+
 // Detect reset token from URL query string (Email Reset Link flow)
 // Token is read into memory only — never stored in localStorage/sessionStorage
 ;(function detectResetToken() {
@@ -1163,7 +1183,7 @@ function publicListingCard(product) {
   const image = product.primaryImageUrl
     ? `<img src="${publicListingEscape(product.primaryImageUrl)}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px"/>`
     : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">🎮</div>`;
-  return `<div class="card card-hover" onclick="openProductDetail(${Number(product.id)})" style="cursor:pointer">
+  return `<div class="card card-hover js-product-card" data-product-id="${Number(product.id)}" tabindex="0" role="button" style="cursor:pointer">
     ${image}<span class="badge badge-gray" style="margin-bottom:8px">${publicListingEscape(product.game?.name || '-')}</span>
     <div style="font-weight:600;font-size:14px;margin-bottom:4px">${publicListingEscape(product.title)}</div>
     <div style="color:var(--muted);font-size:12px;margin-bottom:10px">ผู้ขาย: ${publicListingEscape(product.seller?.username || '-')}</div>
@@ -1212,6 +1232,22 @@ function renderMarketplaceGameFilters(games) {
     container.innerHTML = items.join('');
   });
 }
+
+document.addEventListener('click', (event) => {
+  const card = event.target.closest('.js-product-card');
+  if (!card) return;
+  const productId = Number(card.dataset.productId);
+  if (Number.isSafeInteger(productId) && productId > 0) window.openProductDetail(productId);
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  const card = event.target.closest('.js-product-card');
+  if (!card) return;
+  event.preventDefault();
+  const productId = Number(card.dataset.productId);
+  if (Number.isSafeInteger(productId) && productId > 0) window.openProductDetail(productId);
+});
 
 async function loadMarketplaceGameFilters() {
   if (marketplaceGamesLoaded) return;
