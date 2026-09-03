@@ -14,36 +14,11 @@ async function openProductDetail(id) {
   const page = document.getElementById('pg-product-detail');
   const content = document.getElementById('product-detail-content');
   if (!page || !content) return;
-  const productId = Number(id);
-  if (!Number.isSafeInteger(productId) || productId <= 0) {
-    console.error('openProductDetail received an invalid product ID:', id);
-    document.querySelectorAll('.page').forEach((pageElement) => {
-    pageElement.classList.remove('active');
-    pageElement.style.setProperty('display', 'none', 'important');
-  });
-  page.classList.add('active');
-  page.style.setProperty('display', 'block', 'important');
-  page.style.setProperty('visibility', 'visible', 'important');
-  page.style.setProperty('opacity', '1', 'important');
-  if (typeof currentPage !== 'undefined') currentPage = 'product-detail';
-  if (typeof updateNav === 'function') updateNav();
-    content.innerHTML = '<div class="notice danger">ไม่พบรหัสสินค้าที่ถูกต้อง</div>';
-    return;
-  }
-  window.currentProductDetailId = productId;
-  document.querySelectorAll('.page').forEach((pageElement) => {
-    pageElement.classList.remove('active');
-    pageElement.style.setProperty('display', 'none', 'important');
-  });
-  page.classList.add('active');
-  page.style.setProperty('display', 'block', 'important');
-  page.style.setProperty('visibility', 'visible', 'important');
-  page.style.setProperty('opacity', '1', 'important');
-  if (typeof currentPage !== 'undefined') currentPage = 'product-detail';
-  if (typeof updateNav === 'function') updateNav();
+  window.currentProductDetailId = Number(id);
+  goPage('product-detail');
   content.innerHTML = '<div class="card" style="padding:32px;text-align:center;color:var(--muted)">กำลังโหลดรายละเอียดสินค้า...</div>';
   try {
-    const response = await fetch(`/api/v1/products/${productId}`, { credentials: 'include' });
+    const response = await fetch(`/api/v1/products/${Number(id)}`, { credentials: 'include' });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error?.message || 'โหลดรายละเอียดสินค้าไม่สำเร็จ');
     renderProductDetail(body.data || body);
@@ -107,8 +82,6 @@ async function openProductDetail(id) {
   bindProductDetailMainImage();
   window.loadProductReviews?.(product.id);
 }
-
-window.renderProductDetail = renderProductDetail;
 
 function ensureProductImageLightbox() {
   let lightbox = document.getElementById('product-image-lightbox');

@@ -21,21 +21,6 @@ const userPages = ['home-user','listings-user','product-user','profile','wallet'
 const guestPages = ['home','login','register','forgot','otp-reset','reset-success','listings','product','product-detail'];
 
 // ===================== NAVIGATION =====================
-function ensureCurrentPageVisible() {
-  const pageId = currentPage || 'home';
-  const currentPageElement = document.getElementById(`pg-${pageId}`);
-  if (!currentPageElement) return;
-
-  document.querySelectorAll('.page').forEach((page) => {
-    const isCurrentPage = page === currentPageElement;
-    page.classList.toggle('active', isCurrentPage);
-    page.style.setProperty('display', isCurrentPage ? 'block' : 'none', 'important');
-  });
-
-  currentPageElement.style.setProperty('visibility', 'visible', 'important');
-  currentPageElement.style.setProperty('opacity', '1', 'important');
-}
-
 function goPage(pageId) {
   // Approved sellers should go directly to the create-listing page.
   if (pageId === 'seller-verify' && currentUser?.roles?.includes('SELLER')) pageId = 'add-listing';
@@ -93,21 +78,6 @@ function goPage(pageId) {
   if (pageId === 'admin-suspended-users') window.adminLoadSuspendedUsers?.();
   if (pageId === 'notifications') window.loadNotifications?.();
   if (pageId === 'admin-chat-log') window.loadAdminChatLog?.();
-  if (pageId === 'listings' || pageId === 'listings-user') {
-    const marketplacePageId = pageId;
-    requestAnimationFrame(async () => {
-      try {
-        await loadMarketplaceGameFilters();
-        renderMarketplaceGameFilters(window.__marketplaceGames || []);
-        bindMarketplaceControlsReal(marketplacePageId);
-        await loadMarketplaceListingsReal(marketplacePageId);
-      } catch (error) {
-        console.error('Marketplace page initialization failed:', error);
-        const target = document.querySelector(`#pg-${marketplacePageId} .grid3`);
-        if (target) target.innerHTML = `<div class="notice danger" style="grid-column:1/-1">${typeof publicListingEscape === 'function' ? publicListingEscape(error.message || 'ไม่สามารถโหลดรายการสินค้าได้') : 'ไม่สามารถโหลดรายการสินค้าได้'}</div>`;
-      }
-    });
-  }
   if (pageId === 'chat') window.loadChatPage?.();
   if (pageId === 'order-confirm') window.loadOrderConfirmPage?.();
   if (pageId === 'order-otp') window.showOrderOtpPage?.();
@@ -235,7 +205,7 @@ function updateNav() {
   } else if (isLoggedIn) {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='home-user'?'active':''}" onclick="loginAndGo('home-user')">หน้าแรก</button>
-      <button class="nav-btn ${currentPage==='listings-user'?'active':''}" onclick="goPage('listings-user')">รายการสินค้า</button>
+      <button class="nav-btn ${currentPage==='listings-user'?'active':''}" onclick="loginAndGo('listings-user')">รายการสินค้า</button>
       <button class="nav-btn ${currentPage==='chat'?'active':''}" onclick="loginAndGo('chat')">💬 แชท</button>
       <button class="nav-btn ${currentPage==='history'?'active':''}" onclick="loginAndGo('history')">ประวัติ</button>
       <button class="nav-btn ${currentPage==='wallet'?'active':''}" onclick="loginAndGo('wallet')">💰 กระเป๋าตัง</button>
@@ -1153,18 +1123,8 @@ async function resetPassword() {
 }
 
 // ===================== INIT =====================
-const initialProductId = Number(new URLSearchParams(window.location.search).get('productId'));
-if (Number.isSafeInteger(initialProductId) && initialProductId > 0) {
-  showProductDetailDirect(initialProductId);
-} else {
-  goPage('home');
-}
+goPage('home');
 restoreSession();
-
-// A failed or stale client bootstrap must not leave every SPA page hidden.
-// This also restores the active view when the browser returns from its page cache.
-document.addEventListener('DOMContentLoaded', () => requestAnimationFrame(ensureCurrentPageVisible), { once: true });
-window.addEventListener('pageshow', ensureCurrentPageVisible);
 
 // Detect reset token from URL query string (Email Reset Link flow)
 // Token is read into memory only — never stored in localStorage/sessionStorage
@@ -1179,35 +1139,6 @@ window.addEventListener('pageshow', ensureCurrentPageVisible);
     }
 }());
 
-// ===================== PRODUCT DETAIL DIRECT ROUTE =====================
-async function showProductDetailDirect(id) {
-  const productId=Number(id);
-  const page=document.getElementById('pg-product-detail');
-  const content=document.getElementById('product-detail-content');
-  if(!page||!content)return;
-  document.querySelectorAll('.page').forEach((el)=>{el.classList.remove('active');el.style.setProperty('display','none','important');});
-  page.classList.add('active');
-  page.style.setProperty('display','block','important');
-  page.style.setProperty('visibility','visible','important');
-  page.style.setProperty('opacity','1','important');
-  currentPage='product-detail';
-  updateNav();
-  content.innerHTML='<div class="card" style="padding:32px;text-align:center;color:var(--muted)">?????????????????????????...</div>';
-  try {
-    const response=await fetch('/api/v1/products/'+productId,{credentials:'include'});
-    const body=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(body.error?.message||'?????????????????????????????');
-    const product=body.data||body;
-    if(typeof window.renderProductDetail==='function'){window.renderProductDetail(product);return;}
-    const image=product.images?.[0]?.imageUrl||'';
-    const esc=(value)=>String(value??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
-    content.innerHTML='<div class="product-detail-shell"><section class="product-detail-gallery"><div class="product-detail-main-media">'+(image?'<img src="'+esc(image)+'" alt="??????">':'<div class="product-detail-empty-media">???<span>?????????????????</span></div>')+'</div></section><section class="product-detail-summary"><div class="product-detail-game">?? '+esc(product.game?.name||'-')+'</div><h1 class="product-detail-title">'+esc(product.title||'??????')+'</h1><div class="product-detail-seller">??????: '+esc(product.seller?.username||'-')+'</div><div class="product-detail-price">'+Number(product.price||0).toLocaleString('th-TH')+' <span>???</span></div><div class="product-detail-action-card"><div class="product-detail-safe-note">?? ??????????????????????????????????????????????</div></div></section><section class="product-detail-info-card"><div class="product-detail-section-title"><span>??</span><div><h2>????????????????</h2></div></div><div class="product-detail-description">'+esc(product.description||'????????????????????????????????????')+'</div></section></div>';
-  } catch(error) {
-    console.error('showProductDetailDirect failed:',error);
-    content.innerHTML='<div class="notice danger">'+publicListingEscape(error.message||'?????????????????????????????')+'</div>';
-  }
-}
-
 // ===================== PUBLIC MARKETPLACE LISTINGS =====================
 function publicListingEscape(value) {
   return String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -1217,12 +1148,12 @@ function publicListingCard(product) {
   const image = product.primaryImageUrl
     ? `<img src="${publicListingEscape(product.primaryImageUrl)}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px"/>`
     : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">🎮</div>`;
-  return `<a href="?productId=${Number(product.id)}" class="card card-hover js-product-card" data-product-id="${Number(product.id)}" style="cursor:pointer;text-decoration:none;color:inherit;display:block">
+  return `<div class="card card-hover" onclick="openProductDetail(${Number(product.id)})" style="cursor:pointer">
     ${image}<span class="badge badge-gray" style="margin-bottom:8px">${publicListingEscape(product.game?.name || '-')}</span>
     <div style="font-weight:600;font-size:14px;margin-bottom:4px">${publicListingEscape(product.title)}</div>
     <div style="color:var(--muted);font-size:12px;margin-bottom:10px">ผู้ขาย: ${publicListingEscape(product.seller?.username || '-')}</div>
     <div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">${Number(product.price || 0).toLocaleString('th-TH')} ฿</span><span style="font-size:12px;color:var(--muted)">ดูรายละเอียด →</span></div>
-  </a>`;
+  </div>`;
 }
 
 let marketplaceGameFilter = { listings: null, 'listings-user': null };
@@ -1266,8 +1197,6 @@ function renderMarketplaceGameFilters(games) {
     container.innerHTML = items.join('');
   });
 }
-
-// Product cards use native navigation to ?productId=...; detail boot handles rendering.
 
 async function loadMarketplaceGameFilters() {
   if (marketplaceGamesLoaded) return;
@@ -1319,6 +1248,15 @@ async function loadMarketplaceListings(pageId, gameId = null) {
   }
 }
 
+const originalGoPageForMarketplace = goPage;
+goPage = function(pageId) {
+  originalGoPageForMarketplace(pageId);
+  const resolved = (pageId === 'seller-verify' && currentUser?.roles?.includes('SELLER')) ? 'add-listing' : pageId;
+  if (resolved === 'listings' || resolved === 'listings-user') {
+    loadMarketplaceGameFilters().then(() => renderMarketplaceGameFilters(window.__marketplaceGames || []));
+    loadMarketplaceListings(resolved, marketplaceGameFilter[resolved]);
+  }
+};
 window.loadMarketplaceListings = loadMarketplaceListings;
 
 
@@ -1334,4 +1272,4 @@ function marketplacePriceBoundsReal(pageId){const page=document.getElementById('
 function bindMarketplaceControlsReal(pageId){const page=document.getElementById('pg-'+pageId);if(!page)return;const key=pageId;if(marketplaceControlState.bindings.has(key))return;marketplaceControlState.bindings.add(key);page.querySelectorAll('input[name="'+(pageId==='listings'?'price':'price2')+'"]').forEach(input=>input.addEventListener('change',()=>loadMarketplaceListingsReal(pageId)));const sort=page.querySelector('select.marketplace-sort');sort?.addEventListener('change',()=>{marketplaceSort[pageId]=sort.value||'newest';loadMarketplaceListingsReal(pageId);});const search=page.querySelector('input.marketplace-search');search?.addEventListener('input',()=>{marketplaceSearch[pageId]=search.value.trim();clearTimeout(search._timer);search._timer=setTimeout(()=>loadMarketplaceListingsReal(pageId),250);});}
 async function loadMarketplaceListingsReal(pageId){const page=document.getElementById('pg-'+pageId);if(!page)return;const target=page.querySelector('.grid3');if(!target)return;target.innerHTML='<div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div>';try{const q=new URLSearchParams({pageSize:'50'});const search=marketplaceSearch[pageId];if(search)q.set('search',search);const gameId=marketplaceGameFilter[pageId];if(gameId!=null)q.set('gameId',String(gameId));const[min,max]=marketplacePriceBoundsReal(pageId);if(min!=null)q.set('minPrice',String(min));if(max!=null)q.set('maxPrice',String(max));q.set('sort',marketplaceSort[pageId]||'newest');const r=await fetch('/api/v1/products?'+q.toString(),{credentials:'include'});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'โหลดรายการสินค้าไม่สำเร็จ');const d=b.data||b;const c=[...page.querySelectorAll('span')].find(e=>/^พบ \d+ รายการ$/.test(e.textContent.trim()));if(c)c.textContent='พบ '+(d.total||0)+' รายการ';target.innerHTML=d.items?.length?d.items.map(publicListingCard).join(''):'<div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">ยังไม่มีสินค้าที่ตรงกับตัวกรอง</div>';}catch(e){console.error('loadMarketplaceListingsReal failed:',e);target.innerHTML='<div class="notice danger" style="grid-column:1/-1">'+publicListingEscape(e.message||'โหลดรายการสินค้าไม่สำเร็จ')+'</div>';}}
 window.loadMarketplaceListings=loadMarketplaceListingsReal;
-
+const previousMarketplaceGoPage=goPage;goPage=function(pageId){previousMarketplaceGoPage(pageId);const resolved=(pageId==='seller-verify'&&currentUser?.roles?.includes('SELLER'))?'add-listing':pageId;if(resolved==='listings'||resolved==='listings-user'){loadMarketplaceGameFilters().then(()=>{renderMarketplaceGameFilters(window.__marketplaceGames||[]);bindMarketplaceControlsReal(resolved);loadMarketplaceListingsReal(resolved);});}};

@@ -6,7 +6,6 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>GameMarket — ตลาดซื้อขายไอดีเกม</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&amp;family=Sarabun:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link rel="icon" type="image/png" href="assets/images/Valorant.png">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/product-detail.css">
 </head>
@@ -67,11 +66,12 @@
 <!-- ===================== PAGES ===================== -->
 <div id="pages">
 <!-- ======== PAGE: HOME (GUEST) ======== -->
-<div class="page active" id="pg-home">
+<div class="page" id="pg-home">
 <div class="hero-bg" style="padding:64px 0">
 <div class="container">
 <div style="display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:start">
 <div>
+<span class="badge badge-blue" style="margin-bottom:16px">🎮 ตลาดซื้อขายไอดีเกมอันดับ 1</span>
 <h1 style="font-size:52px;font-weight:900;line-height:1.15;margin:14px 0 20px">
             ซื้อขายไอดีเกมได้ง่าย<br/>
 <span style="color:var(--accent)">ปลอดภัย</span> และครบในที่เดียว
@@ -386,9 +386,11 @@
 </div>
 </div>
 <div>
-<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><input class="inp marketplace-search" type="search" placeholder="🔎 ค้นหาชื่อสินค้า เกม หรือคำสำคัญ" autocomplete="off" style="flex:1;min-width:220px"/></div><div class="flex-between" style="margin-bottom:16px;gap:12px;flex-wrap:wrap">
-<span style="color:var(--muted);font-size:14px">กำลังโหลดรายการ...</span>
-<select class="inp marketplace-sort" style="width:auto;min-width:150px;padding:8px 14px"><option value="newest">ใหม่ล่าสุด</option><option value="price_asc">ราคาต่ำ-สูง</option><option value="price_desc">ราคาสูง-ต่ำ</option><option value="rating_desc">คะแนนสูงสุด</option></select>
+<div class="flex-between" style="margin-bottom:16px">
+<span style="color:var(--muted);font-size:14px">พบ 6 รายการ</span>
+<select class="inp" style="width:auto;padding:8px 14px">
+<option>ใหม่ล่าสุด</option><option>ราคาต่ำ-สูง</option><option>ราคาสูง-ต่ำ</option><option>คะแนนสูงสุด</option>
+</select>
 </div>
 <div class="grid3"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div>
 </div>
@@ -460,9 +462,9 @@
 </div>
 </div>
 <div>
-<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap"><input class="inp marketplace-search" type="search" placeholder="🔎 ค้นหาชื่อสินค้า เกม หรือคำสำคัญ" autocomplete="off" style="flex:1;min-width:220px"/></div><div class="flex-between" style="margin-bottom:16px;gap:12px;flex-wrap:wrap">
-<span style="color:var(--muted);font-size:14px">กำลังโหลดรายการ...</span>
-<select class="inp marketplace-sort" style="width:auto;min-width:150px;padding:8px 14px"><option value="newest">ใหม่ล่าสุด</option><option value="price_asc">ราคาต่ำ-สูง</option><option value="price_desc">ราคาสูง-ต่ำ</option><option value="rating_desc">คะแนนสูงสุด</option></select>
+<div class="flex-between" style="margin-bottom:16px">
+<span style="color:var(--muted);font-size:14px">พบ 6 รายการ</span>
+<select class="inp" style="width:auto;padding:8px 14px"><option>ใหม่ล่าสุด</option><option>ราคาต่ำ-สูง</option></select>
 </div>
 <div class="grid3"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div>
 </div>
@@ -993,7 +995,7 @@
   </div>
 </div>
 
-<script src="assets/js/product-detail-functions.js?v=20260903-5"></script>
+<script src="assets/js/product-detail-functions.js"></script>
 <script src="assets/js/order-flow-ui.js"></script>
 <script src="assets/js/product-review-ui.js"></script>
 <script src="assets/js/public-seller-profile-ui.js"></script>
@@ -1018,8 +1020,8 @@
 <script src="assets/js/transaction-report-ui.js"></script>
 <script src="assets/js/notification-ui.js"></script>
 <script src="assets/js/home-data-ui.js"></script>
-<script src="assets/js/script.js?v=20260903-5"></script>
+<script src="assets/js/script.js"></script>
 <script src="assets/js/notification-nav-ui.js"></script>
 <script src="assets/js/wallet-withdraw.js"></script>
-<script id="gm-page-boot-fallback">document.addEventListener("DOMContentLoaded",function(){var pages=document.querySelectorAll("#pages > .page"),hasActive=false;pages.forEach(function(page){if(page.classList.contains("active"))hasActive=true;});if(!hasActive){var home=document.getElementById("pg-home");if(home)home.classList.add("active");}});</script></body>
+</body>
 </html>
