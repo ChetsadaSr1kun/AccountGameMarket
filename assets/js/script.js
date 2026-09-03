@@ -47,6 +47,13 @@ function goPage(pageId) {
   // Force the selected page visible even if a stale or legacy CSS rule overrides .page.active.
   pg.style.setProperty('display', 'block', 'important');
   currentPage = pageId;
+  // Clear a direct Product Detail query when navigating away from Product Detail.
+  // Preserve any unrelated query parameters.
+  if (pageId !== 'product-detail' && new URL(window.location.href).searchParams.has('productId')) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('productId');
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }
   updateNav();
   updateDevBtns();
   if (pageId === 'home-user' && isLoggedIn) window.loadRealHomeUserData?.();
@@ -1123,7 +1130,12 @@ async function resetPassword() {
 }
 
 // ===================== INIT =====================
-goPage('home');
+const initialProductId = Number(new URLSearchParams(window.location.search).get('productId'));
+if (Number.isSafeInteger(initialProductId) && initialProductId > 0) {
+    openProductDetail(initialProductId);
+} else {
+    goPage('home');
+}
 restoreSession();
 
 // Detect reset token from URL query string (Email Reset Link flow)
