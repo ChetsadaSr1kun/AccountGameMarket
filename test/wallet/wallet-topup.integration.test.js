@@ -61,6 +61,42 @@ test('creates a SlipOK-managed top-up request with no gateway redirect', async (
   await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [request.id]);
 });
 
+test('auto-expires an expired SlipOK request before slip verification', async () => {
+  const request = await topupService.createRequest(userId, 'BANK', 100);
+  await pool.execute(
+    'UPDATE wallet_topup_requests SET provider_expires_at = ? WHERE id = ?',
+    [new Date(Date.now() - 1000), request.id],
+  );
+
+  await assert.rejects(
+    topupService.processSlipOkVerification(request.id, userId, { buffer: Buffer.from('fake'), mimetype: 'image/png', originalname: 'slip.png' }),
+    (error) => error?.code === 'TOPUP_EXPIRED',
+  );
+
+  const [[row]] = await pool.execute(
+    'SELECT status, provider_status, rejection_reason FROM wallet_topup_requests WHERE id = ?',
+    [request.id],
+  );
+  assert.equal(row.status, 'REJECTED');
+  assert.equal(row.provider_status, 'EXPIRED');
+  assert.equal(row.rejection_reason, 'คำขอเติมพ้อยท์หมดอายุแล้ว');
+  await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [request.id]);
+});
+
+test('lists expired SlipOK requests as rejected', async () => {
+  const request = await topupService.createRequest(userId, 'PROMPTPAY', 100);
+  await pool.execute(
+    'UPDATE wallet_topup_requests SET provider_expires_at = ? WHERE id = ?',
+    [new Date(Date.now() - 1000), request.id],
+  );
+
+  const requests = await topupService.listMyRequests(userId);
+  const expired = requests.find((item) => item.id === request.id);
+  assert.equal(expired.status, 'REJECTED');
+  assert.equal(expired.providerStatus, 'EXPIRED');
+  await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [request.id]);
+});
+
 test('credits a verified SlipOK slip once and creates its wallet notification', async () => {
   const request = await topupService.createRequest(userId, 'BANK', 250);
   const originalCheckSlip = slipOkService.checkSlip;

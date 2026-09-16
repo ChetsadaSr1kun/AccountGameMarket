@@ -1,5 +1,14 @@
 const { pool } = require('../config/database');
 
+function parseDatabaseDateTime(value) {
+  if (value instanceof Date) return value;
+  const text = String(value || '').trim();
+  if (!text) return null;
+  const normalized = text.includes('T') ? text : text.replace(' ', 'T');
+  const parsed = new Date(normalized.endsWith('Z') ? normalized : `${normalized}Z`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 async function create(data, executor = pool) {
   const [result] = await executor.execute(
     `INSERT INTO wallet_topup_requests (user_id, payment_method, amount, reference_code, provider, provider_status)
@@ -22,6 +31,27 @@ async function findById(id, executor = pool, forUpdate = false) {
     [id],
   );
   return rows[0] || null;
+}
+
+async function expireExpiredPendingByUserId(userId, executor = pool) {
+  const [rows] = await executor.execute(
+    `SELECT id, provider_expires_at FROM wallet_topup_requests
+     WHERE user_id=? AND status='PENDING' AND provider='SLIPOK' AND provider_expires_at IS NOT NULL`,
+    [userId],
+  );
+  const now = Date.now();
+  for (const row of rows) {
+    const expiresAt = parseDatabaseDateTime(row.provider_expires_at);
+    if (expiresAt && expiresAt.getTime() <= now) {
+      await executor.execute(
+        `UPDATE wallet_topup_requests
+         SET provider_status='EXPIRED', status='REJECTED', reviewed_at=CURRENT_TIMESTAMP(3),
+             rejection_reason='คำขอเติมพ้อยท์หมดอายุแล้ว'
+         WHERE id=? AND status='PENDING'`,
+        [row.id],
+      );
+    }
+  }
 }
 
 async function listByUserId(userId, limit = 20, executor = pool) {
@@ -83,4 +113,4 @@ async function updateProviderResult(id, data, executor = pool) {
   return findById(id, executor);
 }
 
-module.exports = { create, findById, findBySlipOkTransRef, updateProviderData, updateProviderResult, updateSlipOkResult, listByUserId };
+module.exports = { create, findById, findBySlipOkTransRef, updateProviderData, updateProviderResult, updateSlipOkResult, expireExpiredPendingByUserId, listByUserId };

@@ -107,15 +107,13 @@ async function createRequest(userId, paymentMethod, amount) {
 }
 
 async function processSlipOkVerification(topupId, userId, file) {
+  await repository.expireExpiredPendingByUserId(userId);
   const current = await repository.findById(topupId);
   if (!current || Number(current.user_id) !== Number(userId)) throw new AppError('ไม่พบคำขอเติมพ้อยท์', 404, 'TOPUP_NOT_FOUND');
   if (current.provider !== 'SLIPOK') throw new AppError('คำขอนี้ไม่ได้ใช้ SlipOK', 409, 'TOPUP_PROVIDER_MISMATCH');
   if (current.status === 'APPROVED') return { id: Number(current.id), status: 'APPROVED', duplicate: true };
+  if (current.provider_status === 'EXPIRED') throw new AppError('คำขอเติมพ้อยท์หมดอายุแล้ว กรุณาสร้างคำขอใหม่', 409, 'TOPUP_EXPIRED');
   if (current.status !== 'PENDING') throw new AppError('คำขอเติมพ้อยท์นี้ไม่อยู่ในสถานะรอตรวจสอบ', 409, 'TOPUP_NOT_PENDING');
-  if (current.providerExpiresAt && new Date(current.providerExpiresAt).getTime() < Date.now()) {
-    await repository.updateProviderResult(current.id, { providerStatus: 'EXPIRED', providerReferenceNo: null, providerPaidAt: null, status: 'REJECTED' });
-    throw new AppError('คำขอเติมพ้อยท์หมดอายุแล้ว กรุณาสร้างคำขอใหม่', 409, 'TOPUP_EXPIRED');
-  }
 
   let verification;
   try { verification = await slipOkService.checkSlip({ file, amount: current.amount }); }
@@ -154,5 +152,5 @@ async function processSlipOkVerification(topupId, userId, file) {
   });
 }
 
-async function listMyRequests(userId) { const rows = await repository.listByUserId(userId, 20); return rows.map(mapRequest); }
+async function listMyRequests(userId) { await repository.expireExpiredPendingByUserId(userId); const rows = await repository.listByUserId(userId, 20); return rows.map(mapRequest); }
 module.exports = { createRequest, listMyRequests, processSlipOkVerification };
