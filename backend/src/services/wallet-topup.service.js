@@ -41,6 +41,38 @@ function assertReceiverMatches(paymentMethod, receiver) {
   }
 }
 
+function parseDateTime(value) {
+  if (!value) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  const text = String(value).trim();
+  if (!text) return null;
+  const normalized = text.includes('T') ? text : text.replace(' ', 'T');
+  const parsed = new Date(normalized);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function assertSlipTimestampFresh(request, transTimestamp) {
+  const transactionAt = parseDateTime(transTimestamp);
+  if (!transactionAt) {
+    throw new AppError('SlipOK ไม่พบเวลาทำรายการที่ตรวจสอบได้จากสลิป', 422, 'SLIP_TIMESTAMP_MISSING');
+  }
+
+  const requestCreatedAt = parseDateTime(request.created_at);
+  if (!requestCreatedAt) {
+    throw new AppError('ไม่สามารถตรวจสอบเวลาสร้างคำขอเติมพ้อยท์ได้', 500, 'TOPUP_TIMESTAMP_INVALID');
+  }
+
+  const now = Date.now();
+  const allowedPastSkewMs = 5 * 60 * 1000;
+  const allowedFutureSkewMs = 2 * 60 * 1000;
+  if (transactionAt.getTime() < requestCreatedAt.getTime() - allowedPastSkewMs) {
+    throw new AppError('สลิปนี้เกิดขึ้นก่อนคำขอเติมพ้อยท์นานเกินกำหนด', 422, 'SLIP_TIMESTAMP_TOO_OLD');
+  }
+  if (transactionAt.getTime() > now + allowedFutureSkewMs) {
+    throw new AppError('เวลาทำรายการในสลิปอยู่ในอนาคต', 422, 'SLIP_TIMESTAMP_IN_FUTURE');
+  }
+}
+
 function mapRequest(row) {
   return {
     id: Number(row.id), userId: Number(row.user_id), paymentMethod: row.payment_method, amount: Number(row.amount),
@@ -97,6 +129,7 @@ async function processSlipOkVerification(topupId, userId, file) {
   if (!transRef) throw new AppError('SlipOK ไม่พบเลขอ้างอิงธุรกรรมจากสลิป', 422, 'SLIPOK_TRANS_REF_MISSING');
   if (Number(verification.amount) !== Number(current.amount)) throw new AppError('จำนวนเงินในสลิปไม่ตรงกับคำขอเติมพ้อยท์', 422, 'SLIP_AMOUNT_MISMATCH');
   assertReceiverMatches(current.payment_method, verification.receiver);
+  assertSlipTimestampFresh(current, verification.transTimestamp);
   let transTimestamp = null;
   if (verification.transTimestamp) { const parsed = new Date(verification.transTimestamp); if (!Number.isNaN(parsed.getTime())) transTimestamp = parsed; }
 

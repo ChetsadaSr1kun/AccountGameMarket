@@ -28,6 +28,10 @@ function matchingReceiver(paymentMethod) {
   return { proxy: { value: mask(testReceiverPromptPay) } };
 }
 
+function freshTimestamp(offsetMs = 1000) {
+  return new Date(Date.now() - offsetMs).toISOString();
+}
+
 let userId;
 
 async function cleanup() {
@@ -65,7 +69,7 @@ test('credits a verified SlipOK slip once and creates its wallet notification', 
     success: true,
     amount: 250,
     transRef: 'SLIP-UNIQUE-250',
-    transTimestamp: '2026-09-16T03:00:00+07:00',
+    transTimestamp: freshTimestamp(),
     receiver: matchingReceiver('BANK'),
   });
   config.slipOk.receiverAccount = testReceiverAccount;
@@ -148,7 +152,7 @@ test('rejects reuse of the same SlipOK transaction reference on another request'
   const requestB = await topupService.createRequest(userId, 'BANK', 100);
   const originalCheckSlip = slipOkService.checkSlip;
   const originalReceiverAccount = config.slipOk.receiverAccount;
-  slipOkService.checkSlip = async () => ({ success: true, amount: 100, transRef: 'SLIP-DUPLICATE-1', receiver: matchingReceiver('BANK') });
+  slipOkService.checkSlip = async () => ({ success: true, amount: 100, transRef: 'SLIP-DUPLICATE-1', transTimestamp: freshTimestamp(), receiver: matchingReceiver('BANK') });
   config.slipOk.receiverAccount = testReceiverAccount;
 
   try {
@@ -169,6 +173,57 @@ test('rejects reuse of the same SlipOK transaction reference on another request'
   }
 });
 
+test('rejects a SlipOK slip that is older than the top-up request window', async () => {
+  const request = await topupService.createRequest(userId, 'BANK', 100);
+  const originalCheckSlip = slipOkService.checkSlip;
+  const originalReceiverAccount = config.slipOk.receiverAccount;
+  slipOkService.checkSlip = async () => ({
+    success: true,
+    amount: 100,
+    transRef: 'SLIP-TOO-OLD',
+    transTimestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+    receiver: matchingReceiver('BANK'),
+  });
+  config.slipOk.receiverAccount = testReceiverAccount;
+  try {
+    await assert.rejects(
+      topupService.processSlipOkVerification(request.id, userId, { buffer: Buffer.from('fake'), mimetype: 'image/png', originalname: 'slip.png' }),
+      (error) => error?.code === 'SLIP_TIMESTAMP_TOO_OLD',
+    );
+    const [[wallet]] = await pool.execute('SELECT balance FROM wallets WHERE user_id = ?', [userId]);
+    assert.equal(Number(wallet.balance), 350);
+  } finally {
+    slipOkService.checkSlip = originalCheckSlip;
+    config.slipOk.receiverAccount = originalReceiverAccount;
+    await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [request.id]);
+  }
+});
+
+test('rejects a SlipOK slip with a future transaction timestamp', async () => {
+  const request = await topupService.createRequest(userId, 'BANK', 100);
+  const originalCheckSlip = slipOkService.checkSlip;
+  const originalReceiverAccount = config.slipOk.receiverAccount;
+  slipOkService.checkSlip = async () => ({
+    success: true,
+    amount: 100,
+    transRef: 'SLIP-FUTURE',
+    transTimestamp: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+    receiver: matchingReceiver('BANK'),
+  });
+  config.slipOk.receiverAccount = testReceiverAccount;
+  try {
+    await assert.rejects(
+      topupService.processSlipOkVerification(request.id, userId, { buffer: Buffer.from('fake'), mimetype: 'image/png', originalname: 'slip.png' }),
+      (error) => error?.code === 'SLIP_TIMESTAMP_IN_FUTURE',
+    );
+    const [[wallet]] = await pool.execute('SELECT balance FROM wallets WHERE user_id = ?', [userId]);
+    assert.equal(Number(wallet.balance), 350);
+  } finally {
+    slipOkService.checkSlip = originalCheckSlip;
+    config.slipOk.receiverAccount = originalReceiverAccount;
+    await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [request.id]);
+  }
+});
 test('does not allow legacy admin crediting for a SlipOK-managed request', async () => {
   const request = await topupService.createRequest(userId, 'BANK', 100);
   await assert.rejects(
