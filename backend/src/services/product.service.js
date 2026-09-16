@@ -18,6 +18,12 @@ function encryptCredentials(credentials) {
   };
 }
 
+function assertActiveCredentials(credentials) {
+  const gameUsername = String(credentials?.gameUsername || '').trim();
+  const gamePassword = String(credentials?.gamePassword || '');
+  if (!gameUsername || !gamePassword) throw new AppError('Active products must include game account credentials.', 422, 'PRODUCT_CREDENTIALS_REQUIRED');
+}
+
 async function loadCredentials(productId, executor = require('../config/database').pool) {
   const row = await productCredentialRepository.findByProductId(productId, executor);
   if (!row) return null;
@@ -81,7 +87,9 @@ async function createMyProduct(user, data) {
   return withTransaction(async (connection) => {
     await assertGame(data.gameId, connection);
     const { normalized } = await validateAttributes(data.gameId, data.attributes, connection);
-    const productId = await productRepository.create({ sellerId: user.id, ...data, status: data.status || 'DRAFT' }, connection);
+    const status = data.status || 'DRAFT';
+    if (status === 'ACTIVE') assertActiveCredentials(data.credentials);
+    const productId = await productRepository.create({ sellerId: user.id, ...data, status }, connection);
     await productRepository.replaceAttributeValues(productId, normalized, connection);
     if (data.credentials) await productCredentialRepository.upsert(productId, encryptCredentials(data.credentials), connection);
     const product = await productRepository.findByIdForSeller(user.id, productId, connection);
@@ -97,6 +105,11 @@ async function updateMyProduct(user, productId, data) {
     const existing = await productRepository.findByIdForSeller(user.id, productId, connection);
     if (!existing) throw new AppError('Product not found.', 404, 'PRODUCT_NOT_FOUND');
     if (data.gameId && data.gameId !== existing.gameId) throw new AppError('Changing a product game is not supported.', 422, 'GAME_CHANGE_NOT_ALLOWED');
+    const targetStatus = data.status !== undefined ? data.status : existing.status;
+    if (targetStatus === 'ACTIVE') {
+      if (data.credentials !== undefined) assertActiveCredentials(data.credentials);
+      else assertActiveCredentials(await loadCredentials(productId, connection));
+    }
     if (data.attributes) {
       const { normalized } = await validateAttributes(existing.gameId, data.attributes, connection);
       await productRepository.replaceAttributeValues(productId, normalized, connection);

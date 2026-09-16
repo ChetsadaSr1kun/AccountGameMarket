@@ -128,6 +128,77 @@ test('creates a draft product for the authenticated seller', async () => {
   sellerProductId = response.body.data.id;
 });
 
+test('rejects creating an active product without game credentials', async () => {
+  const games = (await api.get('/api/v1/games')).body.data;
+  const valorant = games.find((game) => game.slug === 'valorant');
+  const response = await api
+    .post('/api/v1/user/products')
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
+    .send({
+      gameId: valorant.id,
+      title: 'Active Product Without Credentials',
+      description: 'Should fail',
+      price: 100,
+      status: 'ACTIVE',
+      attributes: [],
+    });
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'PRODUCT_CREDENTIALS_REQUIRED');
+});
+
+test('creates an active product when game credentials are provided', async () => {
+  const games = (await api.get('/api/v1/games')).body.data;
+  const valorant = games.find((game) => game.slug === 'valorant');
+  const response = await api
+    .post('/api/v1/user/products')
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
+    .send({
+      gameId: valorant.id,
+      title: 'Active Product With Credentials',
+      description: 'Should succeed',
+      price: 100,
+      status: 'ACTIVE',
+      attributes: [],
+      credentials: { gameUsername: 'test-user', gamePassword: 'test-pass' },
+    });
+
+  assert.equal(response.status, 201);
+  assert.equal(response.body.data.status, 'ACTIVE');
+  assert.equal(response.body.data.credentials.gameUsername, 'test-user');
+  assert.equal(response.body.data.credentials.gamePassword, 'test-pass');
+  await api
+    .delete(`/api/v1/user/products/${response.body.data.id}`)
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken);
+});
+
+test('rejects activating a product without game credentials', async () => {
+  const response = await api
+    .patch(`/api/v1/user/products/${sellerProductId}`)
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
+    .send({ status: 'ACTIVE' });
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'PRODUCT_CREDENTIALS_REQUIRED');
+});
+
+test('activates a product when game credentials are provided', async () => {
+  const response = await api
+    .patch(`/api/v1/user/products/${sellerProductId}`)
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
+    .send({ status: 'ACTIVE', credentials: { gameUsername: 'test-user', gamePassword: 'test-pass' } });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.status, 'ACTIVE');
+  assert.equal(response.body.data.credentials.gameUsername, 'test-user');
+  assert.equal(response.body.data.credentials.gamePassword, 'test-pass');
+});
+
 test('lists only products owned by the authenticated seller', async () => {
   const response = await api
     .get('/api/v1/user/products')
