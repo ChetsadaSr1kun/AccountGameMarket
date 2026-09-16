@@ -161,14 +161,29 @@ async function resetPassword(input) {
   const tokenHash = hashOpaqueToken(input.token);
   const passwordHash = await hashPassword(input.newPassword);
 
-  await withTransaction(async (connection) => {
+  const result = await withTransaction(async (connection) => {
     const resetToken = await passwordResetTokenRepository.findActiveForUpdate(connection, tokenHash);
-    if (!resetToken) throw new AppError('Reset token is invalid or expired.', 400, 'INVALID_RESET_TOKEN');
+
+    if (!resetToken) {
+      throw new AppError('Reset token is invalid or expired.', 400, 'INVALID_RESET_TOKEN');
+    }
+
+    const user = await userRepository.findAuthUserById(resetToken.user_id, connection);
+
     await userRepository.updatePassword(connection, resetToken.user_id, passwordHash);
     await userRepository.incrementTokenVersion(connection, resetToken.user_id);
     await refreshTokenRepository.revokeAllForUser(connection, resetToken.user_id);
     await passwordResetTokenRepository.markUsed(connection, resetToken.id);
+
+    return {
+      username: user?.username || '-',
+    };
   });
+
+  return {
+    username: result.username,
+    resetAt: new Date().toISOString(),
+  };
 }
 
 async function changePassword(userId, input) {

@@ -43,4 +43,22 @@ function authorize(...allowedRoles) {
   };
 }
 
-module.exports = { authenticate, authorize };
+function requireAccountVerified(req, res, next) {
+  if (!req.user?.accountVerified) {
+    return next(
+      new AppError(
+        'Please verify your email and phone number before performing this action.',
+        403,
+        'ACCOUNT_NOT_VERIFIED'
+      )
+    );
+  }
+
+  return next();
+}
+
+module.exports = {
+  authenticate,
+  authorize,
+  requireAccountVerified,
+};

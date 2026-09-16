@@ -30,6 +30,20 @@ if (isProduction && smsMode === 'development') {
   throw new Error('SMS_MODE=development is not permitted in production.');
 }
 
+if (smsMode === 'provider') {
+  if (!process.env.TWILIO_ACCOUNT_SID) {
+    throw new Error('TWILIO_ACCOUNT_SID is required when SMS_MODE=provider.');
+  }
+
+  if (!process.env.TWILIO_AUTH_TOKEN) {
+    throw new Error('TWILIO_AUTH_TOKEN is required when SMS_MODE=provider.');
+  }
+
+  if (!process.env.TWILIO_VERIFY_SERVICE_SID) {
+    throw new Error('TWILIO_VERIFY_SERVICE_SID is required when SMS_MODE=provider.');
+  }
+}
+
 // Validate SMTP config at startup when email is enabled.
 // Fail fast so misconfiguration is caught before any email is attempted.
 if (emailEnabled) {
@@ -37,6 +51,16 @@ if (emailEnabled) {
   if (!process.env.SMTP_PORT) throw new Error('SMTP_PORT is required when EMAIL_ENABLED=true.');
   if (!process.env.EMAIL_FROM) throw new Error('EMAIL_FROM is required when EMAIL_ENABLED=true.');
 }
+
+const slipOk = {
+  apiKey: process.env.SLIPOK_API_KEY || '',
+  branchId: process.env.SLIPOK_BRANCH_ID || '',
+  receiverName: process.env.SLIPOK_RECEIVER_NAME || '',
+  receiverBank: process.env.SLIPOK_RECEIVER_BANK || '',
+  receiverAccount: process.env.SLIPOK_RECEIVER_ACCOUNT || '',
+  receiverPromptPay: process.env.SLIPOK_RECEIVER_PROMPTPAY || '',
+  receiverTrueMoney: process.env.SLIPOK_RECEIVER_TRUEMONEY || '',
+};
 
 module.exports = {
   env: process.env.NODE_ENV || 'development',
@@ -76,6 +100,14 @@ module.exports = {
   },
   sms: {
     mode: smsMode,
-    developmentInboxDirectory: path.resolve(process.cwd(), process.env.SMS_DEV_INBOX_DIR || 'tmp/sms-inbox'),
+    developmentInboxDirectory: path.resolve(
+      process.cwd(),
+      process.env.SMS_DEV_INBOX_DIR || 'tmp/sms-inbox'
+    ),
+    twilioAccountSid: process.env.TWILIO_ACCOUNT_SID || '',
+    twilioAuthToken: process.env.TWILIO_AUTH_TOKEN || '',
+    twilioVerifyServiceSid: process.env.TWILIO_VERIFY_SERVICE_SID || '',
   },
+
+  slipOk,
 };

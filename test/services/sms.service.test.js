@@ -30,6 +30,6 @@ test('development SMS sender writes a local inbox message without an API respons
 test('development SMS sender fails closed in production and placeholder senders cannot deliver SMS', async () => {
   assert.throws(() => new DevelopmentSmsSender('ignored', true), /not permitted in production/);
   await assert.rejects(new DisabledSmsSender().sendPhoneVerificationOtp({}), /disabled/);
-  await assert.rejects(new ProviderSmsSender().sendPhoneVerificationOtp({}), /No SMS provider/);
+
   assert.ok(createSmsSender({ mode: 'disabled' }) instanceof DisabledSmsSender);
 });

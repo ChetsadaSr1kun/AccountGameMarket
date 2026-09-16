@@ -16,7 +16,7 @@ const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg
 
 const adminPages = ['admin-dashboard','admin-users','admin-products','admin-games','admin-seller-verifications','admin-chat-log','admin-withdraw','admin-topup','admin-report','admin-suspended-users'];
 const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat','notifications',
-  'order-confirm','order-otp','order-success','order-info','order-detail','review','user-report',
+  'order-confirm','order-otp','order-success','withdraw-otp','order-info','order-detail','review','user-report',
   'seller-verify','add-listing','edit-listing','my-listings','seller-profile'];
 const guestPages = ['home','login','register','forgot','otp-reset','reset-success','listings','product','product-detail'];
 
@@ -140,7 +140,9 @@ function updateOtpControls(channel) {
   const secondsRemaining = Math.max(0, Math.ceil((state.endsAt - Date.now()) / 1000));
   if (sendButton) {
     sendButton.disabled = isVerified || secondsRemaining > 0;
-    sendButton.textContent = secondsRemaining > 0 ? `ส่งใหม่ได้ใน ${secondsRemaining} วินาที` : 'ส่งรหัส OTP';
+    sendButton.textContent = secondsRemaining > 0
+      ? `ส่งใหม่ได้ใน\n${secondsRemaining} วินาที`
+      : 'ส่งรหัส OTP';
   }
   if (verifyButton) verifyButton.disabled = isVerified;
   if (otpInput) otpInput.disabled = isVerified;
@@ -490,11 +492,91 @@ function switchTab(btn, contentId) {
 
 // ===================== OTP =====================
 function otpNext(input, idx) {
-  if (input.value) {
-    input.classList.add('filled');
-    const boxes = input.closest('.otp-wrap').querySelectorAll('.otp-box');
-    if (idx < boxes.length - 1) boxes[idx+1].focus();
-  } else { input.classList.remove('filled'); }
+  const wrap = input.closest('.otp-wrap');
+  if (!wrap) return;
+
+  input.value = input.value.replace(/\D/g, '').slice(-1);
+  input.classList.toggle('filled', Boolean(input.value));
+
+  const boxes = [...wrap.querySelectorAll('.otp-box')];
+  const hiddenInput = document.getElementById(
+    wrap.id === 'profilePhoneVerificationOtpWrap'
+      ? 'profilePhoneVerificationOtp'
+      : ''
+  );
+
+  if (hiddenInput) {
+    hiddenInput.value = boxes.map((box) => box.value).join('');
+  }
+
+  if (input.value && idx < boxes.length - 1) {
+    boxes[idx + 1].focus();
+  }
+}
+
+function clearOtpBoxes(wrapId, hiddenId) {
+  const wrap = document.getElementById(wrapId);
+  const hiddenInput = document.getElementById(hiddenId);
+
+  if (wrap) {
+    wrap.querySelectorAll('.otp-box').forEach((box) => {
+      box.value = '';
+      box.classList.remove('filled');
+    });
+  }
+
+  if (hiddenInput) {
+    hiddenInput.value = '';
+  }
+}
+
+function handleOtpKeydown(event, idx) {
+  const input = event.currentTarget;
+  const wrap = input.closest('.otp-wrap');
+  if (!wrap) return;
+
+  const boxes = [...wrap.querySelectorAll('.otp-box')];
+
+  if (event.key === 'Backspace' && !input.value && idx > 0) {
+    boxes[idx - 1].focus();
+  }
+
+  if (event.key === 'ArrowLeft' && idx > 0) {
+    event.preventDefault();
+    boxes[idx - 1].focus();
+  }
+
+  if (event.key === 'ArrowRight' && idx < boxes.length - 1) {
+    event.preventDefault();
+    boxes[idx + 1].focus();
+  }
+}
+
+function handleOtpPaste(event) {
+  event.preventDefault();
+
+  const pasted = (event.clipboardData?.getData('text') || '')
+    .replace(/\D/g, '')
+    .slice(0, 6);
+
+  if (!pasted) return;
+
+  const wrap = event.currentTarget.closest('.otp-wrap');
+  if (!wrap) return;
+
+  const boxes = [...wrap.querySelectorAll('.otp-box')];
+  const hiddenInput = document.getElementById('profilePhoneVerificationOtp');
+
+  boxes.forEach((box, index) => {
+    box.value = pasted[index] || '';
+    box.classList.toggle('filled', Boolean(box.value));
+  });
+
+  if (hiddenInput) {
+    hiddenInput.value = boxes.map((box) => box.value).join('');
+  }
+
+  boxes[Math.min(pasted.length, boxes.length) - 1]?.focus();
 }
 
 // ===================== FILTER GAME =====================
@@ -836,8 +918,10 @@ async function sendPhoneVerificationOtp() {
             setProfileMsg('profilePhoneVerificationMsg', data.error?.message || 'ส่งรหัสยืนยันทาง SMS ไม่สำเร็จ', true);
             return;
         }
-        const otpInput = document.getElementById('profilePhoneVerificationOtp');
-        if (otpInput) otpInput.value = '';
+        clearOtpBoxes(
+          'profilePhoneVerificationOtpWrap',
+          'profilePhoneVerificationOtp'
+        );
         startOtpCooldown('phone');
         setProfileMsg('profilePhoneVerificationMsg', 'ส่งรหัสยืนยันทาง SMS แล้ว', false);
     } catch (error) {
@@ -869,7 +953,10 @@ async function verifyPhoneVerificationOtp() {
         }
         clearOtpCooldown('phone');
         applyCurrentUser(data.data?.user || currentUser);
-        document.getElementById('profilePhoneVerificationOtp').value = '';
+        clearOtpBoxes(
+          'profilePhoneVerificationOtpWrap',
+          'profilePhoneVerificationOtp'
+        );
         setProfileMsg('profilePhoneVerificationMsg', 'ยืนยันเบอร์โทรศัพท์สำเร็จ', false);
     } catch (error) {
         setProfileMsg('profilePhoneVerificationMsg', 'ไม่สามารถยืนยันเบอร์โทรศัพท์ได้ กรุณาลองใหม่', true);
@@ -1101,10 +1188,33 @@ async function resetPassword() {
 
         if (response.status === 200) {
             resetToken = null;
+
             const newPwEl = document.getElementById('resetNewPassword');
             const confirmPwEl = document.getElementById('resetConfirmPassword');
+
             if (newPwEl) newPwEl.value = '';
             if (confirmPwEl) confirmPwEl.value = '';
+
+            const usernameEl = document.getElementById('resetSuccessUsername');
+            const timeEl = document.getElementById('resetSuccessTime');
+
+            const result = data.data || {};
+
+            if (usernameEl) {
+                usernameEl.textContent = result.username || '-';
+            }
+
+            if (timeEl) {
+                const resetDate = result.resetAt ? new Date(result.resetAt) : new Date();
+
+                timeEl.textContent = Number.isNaN(resetDate.getTime())
+                    ? '-'
+                    : resetDate.toLocaleString('th-TH', {
+                        dateStyle: 'short',
+                        timeStyle: 'short',
+                    });
+            }
+
             goPage('reset-success');
             return;
         }

@@ -52,6 +52,13 @@ async function decide(requestId, adminId, approved, reason = null) {
     const [rows] = await connection.execute('SELECT * FROM wallet_topup_requests WHERE id=? FOR UPDATE', [requestId]);
     const request = rows[0];
     if (!request) throw new AppError('Top-up request not found.', 404, 'TOPUP_NOT_FOUND');
+    if (request.provider === '2C2P' || request.provider === 'SLIPOK') {
+      throw new AppError(
+        request.provider + ' top-ups are finalized only by the payment provider verification flow.',
+        409,
+        'TOPUP_MANAGED_BY_PROVIDER'
+      );
+    }
     if (request.status !== 'PENDING') throw new AppError('This top-up request has already been processed.', 409, 'TOPUP_ALREADY_PROCESSED');
     if (!approved && !String(reason || '').trim()) throw new AppError('Rejection reason is required.', 400, 'REJECTION_REASON_REQUIRED');
     if (approved) {

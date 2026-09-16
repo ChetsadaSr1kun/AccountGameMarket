@@ -20,30 +20,78 @@ function mapRequest(row) {
   };
 }
 
-async function createRequest(userId, data) {
+async function createRequestWithConnection(userId, data, connection) {
   const amount = Number(data.amount);
   const paymentMethod = String(data.paymentMethod || '').toUpperCase();
   const accountName = String(data.accountName || '').trim();
   const accountNumber = String(data.accountNumber || '').trim();
 
   if (!Number.isFinite(amount) || amount < 100) {
-    throw new AppError('Minimum withdrawal amount is 100.', 400, 'INVALID_WITHDRAWAL_AMOUNT');
-  }
-  if (amount > 100000) throw new AppError('Withdrawal amount is too high.', 400, 'INVALID_WITHDRAWAL_AMOUNT');
-  if (!allowedMethods.has(paymentMethod)) throw new AppError('Unsupported withdrawal method.', 400, 'INVALID_WITHDRAWAL_METHOD');
-  if (!accountName || !accountNumber) throw new AppError('Account information is required.', 400, 'INVALID_WITHDRAWAL_ACCOUNT');
-
-  return withTransaction(async (connection) => {
-    await walletRepository.ensureWallet(userId, connection);
-    const reserved = await walletRepository.reserveBalance(userId, amount, connection);
-    if (!reserved) throw new AppError('Insufficient wallet balance.', 400, 'INSUFFICIENT_BALANCE');
-
-    const wallet = await walletRepository.findByUserId(userId, connection);
-    const request = await withdrawalRepository.create(
-      { userId, amount, paymentMethod, accountName, accountNumber },
-      connection,
+    throw new AppError(
+      'Minimum withdrawal amount is 100.',
+      400,
+      'INVALID_WITHDRAWAL_AMOUNT'
     );
-    await walletRepository.createTransaction({
+  }
+
+  if (amount > 100000) {
+    throw new AppError(
+      'Withdrawal amount is too high.',
+      400,
+      'INVALID_WITHDRAWAL_AMOUNT'
+    );
+  }
+
+  if (!allowedMethods.has(paymentMethod)) {
+    throw new AppError(
+      'Unsupported withdrawal method.',
+      400,
+      'INVALID_WITHDRAWAL_METHOD'
+    );
+  }
+
+  if (!accountName || !accountNumber) {
+    throw new AppError(
+      'Account information is required.',
+      400,
+      'INVALID_WITHDRAWAL_ACCOUNT'
+    );
+  }
+
+  await walletRepository.ensureWallet(userId, connection);
+
+  const reserved = await walletRepository.reserveBalance(
+    userId,
+    amount,
+    connection
+  );
+
+  if (!reserved) {
+    throw new AppError(
+      'Insufficient wallet balance.',
+      400,
+      'INSUFFICIENT_BALANCE'
+    );
+  }
+
+  const wallet = await walletRepository.findByUserId(
+    userId,
+    connection
+  );
+
+  const request = await withdrawalRepository.create(
+    {
+      userId,
+      amount,
+      paymentMethod,
+      accountName,
+      accountNumber,
+    },
+    connection
+  );
+
+  await walletRepository.createTransaction(
+    {
       userId,
       type: 'WITHDRAWAL',
       amount: -amount,
@@ -51,9 +99,17 @@ async function createRequest(userId, data) {
       referenceType: 'WITHDRAWAL_REQUEST',
       referenceId: Number(request.id),
       note: 'Withdrawal request pending review',
-    }, connection);
-    return mapRequest(request);
-  });
+    },
+    connection
+  );
+
+  return mapRequest(request);
+}
+
+async function createRequest(userId, data) {
+  return withTransaction((connection) =>
+    createRequestWithConnection(userId, data, connection)
+  );
 }
 
 async function listMyRequests(userId) {
@@ -61,4 +117,8 @@ async function listMyRequests(userId) {
   return rows.map(mapRequest);
 }
 
-module.exports = { createRequest, listMyRequests };
+module.exports = {
+  createRequest,
+  createRequestWithConnection,
+  listMyRequests,
+};

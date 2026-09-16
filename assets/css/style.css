@@ -42,11 +42,19 @@ h1,h2,h3{font-family:'Kanit',sans-serif}
   padding:0 28px;gap:24px;
   position:sticky;top:0;z-index:200;
 }
-.logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none}
-.logo-icon{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:#fff;box-shadow:0 0 20px rgba(59,130,246,0.4)}
-.logo-text{line-height:1}
-.logo-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:17px}
-.logo-sub{font-size:10px;color:var(--muted)}
+.logo{
+  display:flex;
+  align-items:center;
+  cursor:pointer;
+  text-decoration:none;
+}
+.logo-image{
+  display:block;
+  width:170px;
+  height:auto;
+  max-height:46px;
+  object-fit:contain;
+}
 .nav-links{display:flex;gap:4px;flex:1}
 .nav-btn{background:none;border:none;color:var(--muted);padding:6px 14px;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
 .nav-btn:hover{color:var(--text);background:var(--card)}
@@ -191,6 +199,7 @@ select.inp option{background:var(--card2)}
 .notice{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--muted)}
 .notice.warn{border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.05)}
 .notice.info{border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.05)}
+.notice.success{border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.08);color:#34d399}
 
 /* FILTER SIDEBAR */
 .filter-item{padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px;margin-bottom:4px;transition:all .15s;border:1px solid transparent}
@@ -512,3 +521,14 @@ button.history-link-card .btn{
 .notification-icon{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px}
 .notification-body{display:flex;flex-direction:column;gap:3px;min-width:0}.notification-body strong{font-size:14px}.notification-body span{color:var(--muted);font-size:13px;line-height:1.5}.notification-body time{color:var(--dim);font-size:11px;margin-top:3px}.notification-dot{margin-left:auto;margin-top:5px;width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 8px}
 @media(max-width:600px){.notification-dropdown{width:min(360px,calc(100vw - 24px));right:-8px}.notification-dropdown-head{padding:12px}.notification-item{padding:13px}}
+
+/* Phone OTP send button */
+#profilePhoneVerificationSendButton {
+  width: 112px;
+  min-width: 112px;
+  min-height: 52px;
+  padding: 4px 8px;
+  white-space: pre-line;
+  line-height: 1.25;
+  text-align: center;
+}
