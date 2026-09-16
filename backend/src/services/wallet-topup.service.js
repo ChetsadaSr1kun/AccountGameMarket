@@ -9,6 +9,38 @@ const config = require('../config/env');
 
 const allowedMethods = new Set(['BANK', 'PROMPTPAY', 'TRUEMONEY']);
 
+function normalizeDigits(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+function matchesMaskedDigits(maskedValue, expectedValue) {
+  const masked = String(maskedValue || '').replace(/[^0-9xX*]/g, '');
+  const expected = normalizeDigits(expectedValue);
+  if (!masked || !expected || masked.length !== expected.length) return false;
+  let visibleDigits = 0;
+  for (let i = 0; i < masked.length; i += 1) {
+    if (/\d/.test(masked[i])) {
+      visibleDigits += 1;
+      if (masked[i] !== expected[i]) return false;
+    }
+  }
+  return visibleDigits >= 3;
+}
+
+function assertReceiverMatches(paymentMethod, receiver) {
+  const expectedValue = paymentMethod === 'BANK'
+    ? config.slipOk.receiverAccount
+    : paymentMethod === 'PROMPTPAY'
+      ? config.slipOk.receiverPromptPay
+      : config.slipOk.receiverTrueMoney;
+  const matched = paymentMethod === 'BANK'
+    ? matchesMaskedDigits(receiver?.account?.value, expectedValue)
+    : matchesMaskedDigits(receiver?.proxy?.value, expectedValue) || matchesMaskedDigits(receiver?.account?.value, expectedValue);
+  if (!matched) {
+    throw new AppError('ปลายทางในสลิปไม่ตรงกับบัญชีรับเงินของ GameMarket', 422, 'SLIP_RECEIVER_MISMATCH');
+  }
+}
+
 function mapRequest(row) {
   return {
     id: Number(row.id), userId: Number(row.user_id), paymentMethod: row.payment_method, amount: Number(row.amount),
@@ -64,6 +96,7 @@ async function processSlipOkVerification(topupId, userId, file) {
   const transRef = String(verification.transRef || '').trim();
   if (!transRef) throw new AppError('SlipOK ไม่พบเลขอ้างอิงธุรกรรมจากสลิป', 422, 'SLIPOK_TRANS_REF_MISSING');
   if (Number(verification.amount) !== Number(current.amount)) throw new AppError('จำนวนเงินในสลิปไม่ตรงกับคำขอเติมพ้อยท์', 422, 'SLIP_AMOUNT_MISMATCH');
+  assertReceiverMatches(current.payment_method, verification.receiver);
   let transTimestamp = null;
   if (verification.transTimestamp) { const parsed = new Date(verification.transTimestamp); if (!Number.isNaN(parsed.getTime())) transTimestamp = parsed; }
 

@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { after, before, test } = require('node:test');
 
+const config = require('../../backend/src/config/env');
 const { pool } = require('../../backend/src/config/database');
 const userRepository = require('../../backend/src/repositories/user.repository');
 const topupRepository = require('../../backend/src/repositories/wallet-topup.repository');
@@ -15,6 +16,18 @@ assertTestDatabase();
 const runId = crypto.randomUUID().replaceAll('-', '');
 const email = `slipok_${runId}@example.test`;
 const username = `slip_${runId.slice(0, 20)}`;
+const testReceiverAccount = '1234567890';
+const testReceiverPromptPay = '0812345678';
+function mask(value, visibleStart = 3, visibleEnd = 4) {
+  const digits = String(value).replace(/\D/g, '');
+  return `${digits.slice(0, visibleStart)}xxx${digits.slice(-visibleEnd)}`;
+}
+
+function matchingReceiver(paymentMethod) {
+  if (paymentMethod === 'BANK') return { account: { value: mask(testReceiverAccount) } };
+  return { proxy: { value: mask(testReceiverPromptPay) } };
+}
+
 let userId;
 
 async function cleanup() {
@@ -47,12 +60,15 @@ test('creates a SlipOK-managed top-up request with no gateway redirect', async (
 test('credits a verified SlipOK slip once and creates its wallet notification', async () => {
   const request = await topupService.createRequest(userId, 'BANK', 250);
   const originalCheckSlip = slipOkService.checkSlip;
+  const originalReceiverAccount = config.slipOk.receiverAccount;
   slipOkService.checkSlip = async () => ({
     success: true,
     amount: 250,
     transRef: 'SLIP-UNIQUE-250',
     transTimestamp: '2026-09-16T03:00:00+07:00',
+    receiver: matchingReceiver('BANK'),
   });
+  config.slipOk.receiverAccount = testReceiverAccount;
 
   try {
     const first = await topupService.processSlipOkVerification(request.id, userId, {
@@ -90,6 +106,40 @@ test('credits a verified SlipOK slip once and creates its wallet notification', 
     assert.equal(Number(notification.count), 1);
   } finally {
     slipOkService.checkSlip = originalCheckSlip;
+    config.slipOk.receiverAccount = originalReceiverAccount;
+  }
+});
+
+
+test('rejects a SlipOK slip when the receiver does not match the configured bank account', async () => {
+  const request = await topupService.createRequest(userId, 'BANK', 100);
+  const originalCheckSlip = slipOkService.checkSlip;
+  const originalReceiverAccount = config.slipOk.receiverAccount;
+  slipOkService.checkSlip = async () => ({ success: true, amount: 100, transRef: 'SLIP-WRONG-RECEIVER', receiver: { account: { value: '987xxx3210' } } });
+  config.slipOk.receiverAccount = testReceiverAccount;
+  try {
+    await assert.rejects(topupService.processSlipOkVerification(request.id, userId, { buffer: Buffer.from('fake'), mimetype: 'image/png', originalname: 'slip.png' }), (error) => error?.code === 'SLIP_RECEIVER_MISMATCH');
+    const [[wallet]] = await pool.execute('SELECT balance FROM wallets WHERE user_id = ?', [userId]);
+    assert.equal(Number(wallet.balance), 250);
+  } finally {
+    slipOkService.checkSlip = originalCheckSlip;
+    config.slipOk.receiverAccount = originalReceiverAccount;
+    await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [request.id]);
+  }
+});
+
+test('rejects a SlipOK slip when the PromptPay receiver does not match', async () => {
+  const request = await topupService.createRequest(userId, 'PROMPTPAY', 100);
+  const originalCheckSlip = slipOkService.checkSlip;
+  const originalReceiverPromptPay = config.slipOk.receiverPromptPay;
+  slipOkService.checkSlip = async () => ({ success: true, amount: 100, transRef: 'SLIP-WRONG-PROMPTPAY', receiver: { proxy: { value: '099xxx4321' } } });
+  config.slipOk.receiverPromptPay = testReceiverPromptPay;
+  try {
+    await assert.rejects(topupService.processSlipOkVerification(request.id, userId, { buffer: Buffer.from('fake'), mimetype: 'image/png', originalname: 'slip.png' }), (error) => error?.code === 'SLIP_RECEIVER_MISMATCH');
+  } finally {
+    slipOkService.checkSlip = originalCheckSlip;
+    config.slipOk.receiverPromptPay = originalReceiverPromptPay;
+    await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [request.id]);
   }
 });
 
@@ -97,7 +147,9 @@ test('rejects reuse of the same SlipOK transaction reference on another request'
   const requestA = await topupService.createRequest(userId, 'BANK', 100);
   const requestB = await topupService.createRequest(userId, 'BANK', 100);
   const originalCheckSlip = slipOkService.checkSlip;
-  slipOkService.checkSlip = async () => ({ success: true, amount: 100, transRef: 'SLIP-DUPLICATE-1' });
+  const originalReceiverAccount = config.slipOk.receiverAccount;
+  slipOkService.checkSlip = async () => ({ success: true, amount: 100, transRef: 'SLIP-DUPLICATE-1', receiver: matchingReceiver('BANK') });
+  config.slipOk.receiverAccount = testReceiverAccount;
 
   try {
     await topupService.processSlipOkVerification(requestA.id, userId, {
@@ -111,6 +163,7 @@ test('rejects reuse of the same SlipOK transaction reference on another request'
     );
   } finally {
     slipOkService.checkSlip = originalCheckSlip;
+    config.slipOk.receiverAccount = originalReceiverAccount;
     await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [requestB.id]);
     await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [requestA.id]);
   }
