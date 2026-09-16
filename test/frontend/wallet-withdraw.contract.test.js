@@ -8,12 +8,7 @@ const source = fs.readFileSync(
   'utf8',
 );
 
-test('legacy withdrawal request keeps the CSRF contract required by its route', () => {
-  const functionSource = source.slice(
-    source.indexOf('async function createWithdrawalRequest()'),
-    source.indexOf('async function startWithdrawalOtpFlow()'),
-  );
-
-  assert.match(functionSource, /const csrfToken = getWithdrawalCsrfToken\(\);/);
-  assert.match(functionSource, /'X-CSRF-Token': csrfToken/);
+test('withdrawal UI uses the OTP attempt flow instead of the removed direct endpoint', () => {
+  assert.match(source, /\/api\/v1\/wallet\/withdrawal-attempts/);
+  assert.doesNotMatch(source, /\/api\/v1\/wallet\/withdrawals["'`]/);
 });

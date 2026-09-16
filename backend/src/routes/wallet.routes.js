@@ -25,16 +25,6 @@ router.get(
   withdrawalController.listMyRequests
 );
 
-// Legacy direct withdrawal endpoint.
-// Keep temporarily for compatibility, but do not use it
-// from the new frontend OTP withdrawal flow.
-router.post(
-  '/withdrawals',
-  requireAccountVerified,
-  requireCsrf,
-  withdrawalController.createRequest
-);
-
 // Withdrawal verification attempt flow.
 router.post(
   '/withdrawal-attempts',
