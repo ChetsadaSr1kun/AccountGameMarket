@@ -20,8 +20,14 @@ function renderSellerProfileRating(payload) {
 }
 async function loadProfileSellerRating() {
   const target=document.getElementById('profileSellerRating');
-  const userId = (typeof currentUser !== 'undefined' && currentUser?.id) ? Number(currentUser.id) : Number(window.currentUser?.id || 0);
-  if(!target||!Number.isInteger(userId)||userId<=0)return;
+  if(!target)return;
+  const user = typeof currentUser !== 'undefined' ? currentUser : window.currentUser;
+  const userId = Number(user?.id || 0);
+  const roles = Array.isArray(user?.roles) ? user.roles : [];
+  const isSeller = roles.includes('SELLER');
+  const card = target.closest('.card');
+  if(card) card.style.display = isSeller ? '' : 'none';
+  if(!isSeller||!Number.isInteger(userId)||userId<=0)return;
   target.innerHTML='<div class="seller-rating-loading">กำลังโหลดคะแนนรีวิว...</div>';
   try{
     const response=await fetch(`/api/v1/sellers/${userId}`,{credentials:'include'});
