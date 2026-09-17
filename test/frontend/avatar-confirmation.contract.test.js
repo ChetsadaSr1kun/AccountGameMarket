@@ -8,6 +8,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '../..');
 const script = fs.readFileSync(path.join(root, 'assets/js/script.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const style = fs.readFileSync(path.join(root, 'assets/css/style.css'), 'utf8');
 
 function functionBody(name, nextName) {
   const start = script.indexOf(`function ${name}(`);
@@ -58,7 +59,9 @@ test('profile provides readonly Phone OTP controls with CSRF-protected phone end
   const verifyBody = functionBody('verifyPhoneVerificationOtp', 'changePasswordFromProfile');
   assert.match(html, /id="profilePhone"[^>]*readonly disabled/);
   assert.match(html, /id="profilePhoneVerificationSendButton"[^>]*onclick="sendPhoneVerificationOtp\(\)"/);
-  assert.match(html, /id="profileEmailVerificationSendButton"[^>]*style="[^"]*width:140px;min-width:140px;flex:0 0 140px;white-space:normal/);
+  assert.match(html, /id="profileEmailVerificationSendButton"[^>]*onclick="sendEmailVerificationOtp\(\)"/);
+  assert.doesNotMatch(html, /id="profileEmailVerificationSendButton"[^>]*style=/);
+  assert.match(style, /#profileEmailVerificationSendButton,\s*#profilePhoneVerificationSendButton\s*\{[\s\S]*?width:\s*112px;[\s\S]*?min-width:\s*112px;[\s\S]*?min-height:\s*52px;[\s\S]*?white-space:\s*pre-line;[\s\S]*?text-align:\s*center;/);
   assert.match(html, /id="profilePhoneVerificationOtp"[^>]*maxlength="6"/);
   assert.match(html, /id="profilePhoneVerificationVerifyButton"[^>]*onclick="verifyPhoneVerificationOtp\(\)"/);
   assert.match(sendBody, /fetch\('\/api\/v1\/user\/verification\/phone\/send'/);

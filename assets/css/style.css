@@ -522,7 +522,8 @@ button.history-link-card .btn{
 .notification-body{display:flex;flex-direction:column;gap:3px;min-width:0}.notification-body strong{font-size:14px}.notification-body span{color:var(--muted);font-size:13px;line-height:1.5}.notification-body time{color:var(--dim);font-size:11px;margin-top:3px}.notification-dot{margin-left:auto;margin-top:5px;width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 8px}
 @media(max-width:600px){.notification-dropdown{width:min(360px,calc(100vw - 24px));right:-8px}.notification-dropdown-head{padding:12px}.notification-item{padding:13px}}
 
-/* Phone OTP send button */
+/* Email and Phone OTP send buttons */
+#profileEmailVerificationSendButton,
 #profilePhoneVerificationSendButton {
   width: 112px;
   min-width: 112px;
