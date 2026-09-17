@@ -17,8 +17,13 @@ function expiresAtMs(expiresAt) {
   return Date.parse(`${String(expiresAt).replace(' ', 'T')}Z`);
 }
 
-function resendCooldownError(createdAt) {
-  const retryAfterSeconds = Math.max(1, Math.ceil((RESEND_COOLDOWN_MS - (Date.now() - expiresAtMs(createdAt))) / 1000));
+function otpCreatedAtMs(expiresAt) {
+  return expiresAtMs(expiresAt) - OTP_EXPIRY_MS;
+}
+
+function resendCooldownError(expiresAt) {
+  const createdAtMs = otpCreatedAtMs(expiresAt);
+  const retryAfterSeconds = Math.max(1, Math.ceil((RESEND_COOLDOWN_MS - (Date.now() - createdAtMs)) / 1000));
   const error = new AppError('Please wait before requesting another OTP.', 429, 'OTP_RESEND_COOLDOWN');
   error.retryAfterSeconds = retryAfterSeconds;
   return error;
@@ -32,8 +37,8 @@ async function sendEmailOtp(userId) {
   const otp = generateOtp();
   const result = await withTransaction(async (connection) => {
     const activeOtp = await otpRepository.findLatestActiveForUpdate(connection, userId, CHANNEL);
-    if (activeOtp && Date.now() - expiresAtMs(activeOtp.created_at) < RESEND_COOLDOWN_MS) {
-      return { error: resendCooldownError(activeOtp.created_at) };
+    if (activeOtp && Date.now() - otpCreatedAtMs(activeOtp.expires_at) < RESEND_COOLDOWN_MS) {
+      return { error: resendCooldownError(activeOtp.expires_at) };
     }
     await otpRepository.invalidateActiveForUserChannel(connection, userId, CHANNEL);
     const otpId = await otpRepository.create(connection, {

@@ -117,7 +117,8 @@ async function ageEmailOtp(email) {
   await pool.execute(
     `UPDATE user_verification_otps
      INNER JOIN users ON users.id = user_verification_otps.user_id
-       SET user_verification_otps.created_at = DATE_SUB(UTC_TIMESTAMP(3), INTERVAL 61 SECOND)
+       SET user_verification_otps.created_at = DATE_SUB(UTC_TIMESTAMP(3), INTERVAL 61 SECOND),
+           user_verification_otps.expires_at = DATE_ADD(UTC_TIMESTAMP(3), INTERVAL 9 MINUTE)
      WHERE users.email = ? AND channel = 'EMAIL' AND used_at IS NULL AND invalidated_at IS NULL`,
     [email],
   );
@@ -466,6 +467,33 @@ test('invalidates the previous OTP when a new email OTP is sent', async () => {
   const oldResponse = await verifyEmailOtp(cookies, csrfToken, oldOtp);
   assert.equal(oldResponse.status, 422);
   assert.equal((await verifyEmailOtp(cookies, csrfToken, newOtp)).status, 200);
+});
+
+test('EMAIL resend cooldown remains bounded when DB created_at uses local timezone', async () => {
+  const { cookies, csrfToken, payload } = await registerAndLogin('verify-resend-timezone');
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
+  await pool.execute(
+    `UPDATE user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+       SET user_verification_otps.created_at = DATE_ADD(user_verification_otps.expires_at, INTERVAL 7 HOUR)
+     WHERE users.email = ? AND channel = 'EMAIL' AND used_at IS NULL AND invalidated_at IS NULL`,
+    [payload.email],
+  );
+  const cooldown = await sendEmailOtp(cookies, csrfToken);
+  assert.equal(cooldown.status, 429);
+  assert.equal(cooldown.body.error.code, 'OTP_RESEND_COOLDOWN');
+  assert.ok(cooldown.body.error.retryAfterSeconds >= 1);
+  assert.ok(cooldown.body.error.retryAfterSeconds <= 120);
+
+  await pool.execute(
+    `UPDATE user_verification_otps
+     INNER JOIN users ON users.id = user_verification_otps.user_id
+       SET user_verification_otps.expires_at = DATE_ADD(UTC_TIMESTAMP(3), INTERVAL 9 MINUTE),
+           user_verification_otps.created_at = DATE_ADD(DATE_ADD(UTC_TIMESTAMP(3), INTERVAL 9 MINUTE), INTERVAL 7 HOUR)
+     WHERE users.email = ? AND channel = 'EMAIL' AND used_at IS NULL AND invalidated_at IS NULL`,
+    [payload.email],
+  );
+  assert.equal((await sendEmailOtp(cookies, csrfToken)).status, 204);
 });
 
 test('EMAIL resend observes a server-side cooldown with a retry-after value', async () => {
