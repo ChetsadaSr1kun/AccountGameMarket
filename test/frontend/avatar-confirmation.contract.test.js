@@ -58,6 +58,7 @@ test('profile provides readonly Phone OTP controls with CSRF-protected phone end
   const verifyBody = functionBody('verifyPhoneVerificationOtp', 'changePasswordFromProfile');
   assert.match(html, /id="profilePhone"[^>]*readonly disabled/);
   assert.match(html, /id="profilePhoneVerificationSendButton"[^>]*onclick="sendPhoneVerificationOtp\(\)"/);
+  assert.match(html, /id="profileEmailVerificationSendButton"[^>]*style="[^"]*width:140px;min-width:140px;flex:0 0 140px;white-space:normal/);
   assert.match(html, /id="profilePhoneVerificationOtp"[^>]*maxlength="6"/);
   assert.match(html, /id="profilePhoneVerificationVerifyButton"[^>]*onclick="verifyPhoneVerificationOtp\(\)"/);
   assert.match(sendBody, /fetch\('\/api\/v1\/user\/verification\/phone\/send'/);
