@@ -4,6 +4,7 @@ const path = require('path');
 const mysql = require('mysql2/promise');
 const config = require('../../backend/src/config/env');
 const { pool } = require('../../backend/src/config/database');
+const { resetGlobalLimitForTests } = require('../../backend/src/middleware/rate-limit.middleware');
 
 const TEST_DATABASE_NAME = 'gamemarket_test';
 const avatarDirectory = path.resolve(__dirname, '../../uploads/avatars');
@@ -29,6 +30,7 @@ function connectionOptions(database) {
 
 async function prepareTestDatabase() {
   assertTestDatabase();
+  await resetGlobalLimitForTests();
 
   const serverConnection = await mysql.createConnection(connectionOptions());
   try {
