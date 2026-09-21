@@ -3,7 +3,7 @@ const { withTransaction } = require('../utils/transaction');
 const withdrawalRepository = require('../repositories/withdrawal.repository');
 const walletRepository = require('../repositories/wallet.repository');
 
-const allowedMethods = new Set(['BANK', 'PROMPTPAY', 'TRUEMONEY']);
+const allowedMethods = new Set(['BANK', 'PROMPTPAY']);
 
 function mapRequest(row) {
   return {

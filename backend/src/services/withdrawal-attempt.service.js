@@ -26,7 +26,6 @@ const MAX_OTP_ATTEMPTS = 5;
 const allowedMethods = new Set([
   'BANK',
   'PROMPTPAY',
-  'TRUEMONEY',
 ]);
 
 function expiresAtMs(value) {

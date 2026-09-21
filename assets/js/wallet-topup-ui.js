@@ -1,11 +1,13 @@
 let selectedWalletPaymentMethod = 'PROMPTPAY';
 let currentWalletTopupRequestId = null;
+const newWalletTopupPaymentMethods = new Set(['BANK', 'PROMPTPAY']);
 
 function walletPaymentMethodLabel(method) {
   return { BANK: 'โอนผ่านธนาคาร', PROMPTPAY: 'พร้อมเพย์', TRUEMONEY: 'TrueMoney Wallet' }[method] || method;
 }
 
 function selectWalletPaymentMethod(method, element) {
+  if (!newWalletTopupPaymentMethods.has(method)) return;
   selectedWalletPaymentMethod = method;
   document.querySelectorAll('[data-wallet-payment-method]').forEach((item) => item.style.borderColor = 'var(--border)');
   if (element) element.style.borderColor = 'var(--accent)';
@@ -38,6 +40,10 @@ async function createWalletTopupRequest() {
   const input = document.getElementById('walletTopupAmount');
   const message = document.getElementById('walletTopupMessage');
   const amount = Number(input?.value || 0);
+  if (!newWalletTopupPaymentMethods.has(selectedWalletPaymentMethod)) {
+    if (message) message.innerHTML = '<div class="notice danger">ช่องทางเติมพ้อยท์ไม่ถูกต้อง</div>';
+    return;
+  }
   if (!Number.isFinite(amount) || amount < 10) {
     if (message) message.innerHTML = '<div class="notice danger">กรุณากรอกจำนวนอย่างน้อย 10 พ้อยท์</div>';
     return;

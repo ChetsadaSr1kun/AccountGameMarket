@@ -604,6 +604,102 @@ async function createWithdrawalRequest() {
 
 window.setWithdrawalAmount = setWithdrawalAmount;
 
+const withdrawalPaymentMethodOptions = {
+  BANK: { label: 'บัญชีธนาคาร', icon: '🏦' },
+  PROMPTPAY: { label: 'พร้อมเพย์', icon: 'assets/images/promptpay-circle.png' },
+};
+
+function getWithdrawalPaymentMethodDropdown() {
+  return {
+    select: document.getElementById('withdrawPaymentMethod'),
+    wrapper: document.getElementById('withdrawPaymentMethodDropdown'),
+    control: document.getElementById('withdrawPaymentMethodControl'),
+    menu: document.getElementById('withdrawPaymentMethodOptions'),
+    selectedIcon: document.getElementById('withdrawPaymentMethodSelectedIcon'),
+    selectedLabel: document.getElementById('withdrawPaymentMethodSelectedLabel'),
+    options: Array.from(document.querySelectorAll('[data-withdraw-method]')),
+  };
+}
+
+function closeWithdrawalPaymentMethodDropdown({ focusControl = false } = {}) {
+  const { control, menu } = getWithdrawalPaymentMethodDropdown();
+  if (!control || !menu) return;
+  control.setAttribute('aria-expanded', 'false');
+  menu.style.display = 'none';
+  if (focusControl) control.focus();
+}
+
+function renderWithdrawalPaymentMethod(method) {
+  const config = withdrawalPaymentMethodOptions[method];
+  const { control, selectedIcon, selectedLabel, options } = getWithdrawalPaymentMethodDropdown();
+  if (!config || !control || !selectedIcon || !selectedLabel) return;
+
+  selectedIcon.replaceChildren();
+  if (method === 'BANK') {
+    selectedIcon.textContent = config.icon;
+  } else {
+    const image = document.createElement('img');
+    image.src = config.icon;
+    image.alt = '';
+    image.setAttribute('aria-hidden', 'true');
+    image.style.cssText = 'width:28px;height:28px;object-fit:contain';
+    selectedIcon.appendChild(image);
+  }
+  selectedLabel.textContent = config.label;
+  control.setAttribute('aria-activedescendant', `withdrawPaymentMethodOption${method === 'BANK' ? 'Bank' : 'PromptPay'}`);
+  options.forEach((option) => option.setAttribute('aria-selected', String(option.dataset.withdrawMethod === method)));
+}
+
+function setWithdrawalPaymentMethod(method) {
+  if (!withdrawalPaymentMethodOptions[method]) return;
+  const { select } = getWithdrawalPaymentMethodDropdown();
+  if (select) select.value = method;
+  renderWithdrawalPaymentMethod(method);
+  closeWithdrawalPaymentMethodDropdown();
+}
+
+function openWithdrawalPaymentMethodDropdown({ focusOption = false } = {}) {
+  const { control, menu, options, select } = getWithdrawalPaymentMethodDropdown();
+  if (!control || !menu) return;
+  control.setAttribute('aria-expanded', 'true');
+  menu.style.display = 'block';
+  if (focusOption) {
+    (options.find((option) => option.dataset.withdrawMethod === select?.value) || options[0])?.focus();
+  }
+}
+
+function initializeWithdrawalPaymentMethodDropdown() {
+  const { control, menu, options, wrapper, select } = getWithdrawalPaymentMethodDropdown();
+  if (!control || !menu || !wrapper || !select) return;
+  renderWithdrawalPaymentMethod(select.value);
+
+  control.addEventListener('click', () => {
+    control.getAttribute('aria-expanded') === 'true'
+      ? closeWithdrawalPaymentMethodDropdown()
+      : openWithdrawalPaymentMethodDropdown();
+  });
+  control.addEventListener('focus', () => { control.style.outline = '2px solid var(--accent)'; control.style.outlineOffset = '2px'; });
+  control.addEventListener('blur', () => { control.style.outline = ''; control.style.outlineOffset = ''; });
+  control.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') return closeWithdrawalPaymentMethodDropdown();
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); return openWithdrawalPaymentMethodDropdown({ focusOption: true }); }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); return openWithdrawalPaymentMethodDropdown({ focusOption: true }); }
+  });
+  options.forEach((option, index) => {
+    option.addEventListener('click', () => setWithdrawalPaymentMethod(option.dataset.withdrawMethod));
+    option.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') return closeWithdrawalPaymentMethodDropdown({ focusControl: true });
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        options[(index + (event.key === 'ArrowDown' ? 1 : options.length - 1)) % options.length].focus();
+      }
+    });
+  });
+  document.addEventListener('click', (event) => { if (!wrapper.contains(event.target)) closeWithdrawalPaymentMethodDropdown(); });
+}
+
+initializeWithdrawalPaymentMethodDropdown();
+
 async function startWithdrawalOtpFlow() {
   if (typeof isLoggedIn === 'undefined' || !isLoggedIn) {
     goPage('login');
@@ -627,6 +723,12 @@ async function startWithdrawalOtpFlow() {
     document.getElementById('withdrawAccountName')?.value.trim();
   const accountNumber =
     document.getElementById('withdrawAccountNumber')?.value.trim();
+
+  if (!['BANK', 'PROMPTPAY'].includes(paymentMethod)) {
+    return withdrawalMessage(
+      'ช่องทางถอนพ้อยท์ไม่ถูกต้อง'
+    );
+  }
 
   if (!Number.isFinite(amount) || amount < 100) {
     return withdrawalMessage(

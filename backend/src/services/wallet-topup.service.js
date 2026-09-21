@@ -7,7 +7,7 @@ const notificationService = require('./notification.service');
 const slipOkService = require('./slipok.service');
 const config = require('../config/env');
 
-const allowedMethods = new Set(['BANK', 'PROMPTPAY', 'TRUEMONEY']);
+const allowedMethods = new Set(['BANK', 'PROMPTPAY']);
 
 function normalizeDigits(value) {
   return String(value || '').replace(/\D/g, '');
