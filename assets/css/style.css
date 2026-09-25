@@ -533,3 +533,511 @@ button.history-link-card .btn{
   line-height: 1.25;
   text-align: center;
 }
+
+/* =========================================================
+   ADMIN DASHBOARD
+   ========================================================= */
+
+.admin-dashboard-page {
+  max-width: 1600px;
+  width: 100%;
+}
+
+.admin-dashboard-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.admin-dashboard-heading-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 27px;
+  background: linear-gradient(
+    145deg,
+    rgba(59,130,246,.18),
+    rgba(59,130,246,.06)
+  );
+  border: 1px solid rgba(59,130,246,.12);
+}
+
+.admin-dashboard-heading .sec-title {
+  font-size: 25px;
+  font-family: 'Kanit', sans-serif;
+}
+
+.admin-dashboard-heading .sec-sub {
+  margin-top: 2px;
+}
+
+
+/* ---------- top stats ---------- */
+
+.admin-dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.admin-dashboard-stat-card {
+  min-height: 126px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(22,29,46,.98),
+      rgba(13,24,43,.98)
+    );
+
+  border: 1px solid var(--border);
+  border-radius: 15px;
+}
+
+.admin-dashboard-stat-icon {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background: rgba(28,37,64,.82);
+
+  font-size: 32px;
+}
+
+.admin-dashboard-stat-body {
+  min-width: 0;
+}
+
+.admin-dashboard-stat-number {
+  font-family: 'Kanit', sans-serif;
+  font-size: 33px;
+  font-weight: 800;
+  line-height: 1.05;
+  margin-bottom: 3px;
+}
+
+.admin-dashboard-stat-title {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.admin-dashboard-stat-sub {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.stat-blue {
+  color: #3b82f6;
+}
+
+.stat-green {
+  color: #16b364;
+}
+
+.stat-orders {
+  color: #d7deea;
+}
+
+.stat-profit {
+  color: var(--warn);
+}
+
+
+/* ---------- action section ---------- */
+
+.admin-dashboard-action-section {
+  margin-bottom: 16px;
+  padding: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(22,29,46,.98),
+      rgba(12,25,45,.98)
+    );
+
+  border: 1px solid var(--border);
+  border-radius: 15px;
+}
+
+.admin-dashboard-section-heading {
+  margin-bottom: 14px;
+}
+
+.admin-dashboard-section-heading h3,
+.admin-dashboard-panel-heading h3 {
+  font-family: 'Kanit', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.admin-dashboard-section-heading p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.admin-dashboard-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-dashboard-action-card {
+  width: 100%;
+  min-height: 112px;
+
+  display: grid;
+  grid-template-columns: 54px 1fr 38px;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px;
+
+  border-radius: 13px;
+  border: 1px solid var(--border);
+
+  background: rgba(10,22,40,.55);
+
+  color: var(--text);
+  font-family: 'Sarabun', sans-serif;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color .18s ease,
+    background .18s ease,
+    transform .18s ease;
+}
+
+.admin-dashboard-action-card:hover {
+  background: rgba(28,37,64,.70);
+  border-color: var(--border2);
+  transform: translateY(-1px);
+}
+
+.admin-dashboard-action-icon {
+  width: 50px;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 13px;
+  background: var(--card2);
+
+  font-size: 24px;
+}
+
+.admin-dashboard-action-card strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 1px;
+}
+
+.admin-dashboard-action-card span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.admin-dashboard-action-value {
+  font-family: 'Kanit', sans-serif;
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1;
+  margin: 2px 0 3px;
+}
+
+.admin-dashboard-action-arrow {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  justify-self: end;
+
+  border-radius: 50%;
+
+  background: rgba(59,130,246,.12);
+
+  color: #c8d4e8;
+  font-size: 26px;
+}
+
+.value-blue {
+  color: var(--accent);
+}
+
+.value-yellow {
+  color: var(--warn);
+}
+
+.value-red {
+  color: #ff405e;
+}
+
+.value-purple {
+  color: #a970ff;
+}
+
+
+/* ---------- bottom panels ---------- */
+
+.admin-dashboard-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.admin-dashboard-panel {
+  padding: 16px;
+
+  border: 1px solid var(--border);
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(22,29,46,.98),
+      rgba(10,23,42,.98)
+    );
+}
+
+.admin-dashboard-panel-heading {
+  min-height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-dashboard-panel-heading span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.admin-dashboard-text-link {
+  border: 0;
+  background: transparent;
+
+  color: var(--accent);
+  font-family: 'Sarabun', sans-serif;
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+
+/* ---------- recent transaction ---------- */
+
+.admin-dashboard-recent-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+
+  min-height: 57px;
+  padding: 8px 10px;
+
+  border-top: 1px solid rgba(45,61,90,.55);
+}
+
+.admin-dashboard-recent-icon {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+  border-radius: 8px;
+
+  background: #0d1424;
+
+  font-size: 19px;
+}
+
+.admin-dashboard-recent-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-dashboard-recent-main strong {
+  display: block;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 13px;
+}
+
+.admin-dashboard-recent-main span,
+.admin-dashboard-recent-date {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.admin-dashboard-success-badge {
+  padding: 5px 11px;
+
+  border: 1px solid rgba(16,185,129,.25);
+  border-radius: 999px;
+
+  background: rgba(16,185,129,.10);
+
+  color: #34d399;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+/* ---------- popular games ---------- */
+
+.admin-dashboard-game-row {
+  display: grid;
+  grid-template-columns: 30px 34px minmax(110px, 1fr) minmax(100px, 1.5fr) 70px;
+  align-items: center;
+  gap: 9px;
+
+  min-height: 48px;
+  padding: 6px 7px;
+
+  border-top: 1px solid rgba(45,61,90,.50);
+}
+
+.admin-dashboard-game-rank {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--card2);
+
+  color: #d9e2f2;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-dashboard-game-rank.is-first {
+  color: #ffd166;
+  background: rgba(245,158,11,.18);
+}
+
+.admin-dashboard-game-image {
+  width: 30px;
+  height: 30px;
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+
+  background: #0d1424;
+}
+
+.admin-dashboard-game-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-dashboard-game-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-dashboard-game-bar {
+  height: 7px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+  background: rgba(59,130,246,.12);
+}
+
+.admin-dashboard-game-bar > span {
+  display: block;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: var(--accent);
+}
+
+.admin-dashboard-game-count {
+  color: #dce5f5;
+  font-size: 11px;
+  text-align: right;
+}
+
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1180px) {
+  .admin-dashboard-stats,
+  .admin-dashboard-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-dashboard-stats,
+  .admin-dashboard-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-dashboard-recent-row {
+    grid-template-columns: 38px 1fr auto;
+  }
+
+  .admin-dashboard-recent-date {
+    display: none;
+  }
+}

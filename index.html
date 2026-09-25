@@ -1142,29 +1142,277 @@
 <!-- ======== ADMIN PAGES ======== -->
 <!-- Admin Dashboard -->
 <div class="page" id="pg-admin-dashboard">
-<div class="admin-layout">
-<div class="admin-sidebar" id="adminSidebar"></div>
-<div class="admin-content">
-<div class="sec-header"><div class="sec-title">📊 แดชบอร์ดผู้ดูแลระบบ</div><div class="sec-sub">ภาพรวมเฉพาะโมดูลที่เชื่อมต่อ Backend แล้ว</div></div>
-<div class="card" style="margin-bottom:20px;padding:18px 20px"><strong>สถานะระบบ Admin</strong><div style="color:var(--muted);font-size:13px;margin-top:6px">Dashboard, Game Management, Transaction Report, Seller Verification, Topup และ Withdrawal เชื่อม Backend แล้ว ส่วน Chat Log และ Suspend Users ยังรอ Admin API เฉพาะโมดูล</div></div>
-<div class="grid4" style="margin-bottom:28px">
-<div class="card stat-card"><div style="font-size:24px">👥</div><div id="adminDashboardUserCount" class="stat-val" style="color:var(--accent)">—</div><div class="stat-label">สมาชิกทั้งหมด</div><div style="font-size:12px;color:var(--muted);margin-top:4px">จาก Database</div></div>
-<div class="card stat-card"><div style="font-size:24px">📦</div><div id="adminDashboardProductCount" class="stat-val" style="color:var(--success)">—</div><div class="stat-label">รายการสินค้า</div><div style="font-size:12px;color:var(--muted);margin-top:4px">ACTIVE + SOLD</div></div>
-<div class="card stat-card"><div style="font-size:24px">💰</div><div id="adminDashboardMonthlySales" class="stat-val" style="color:var(--warn)">—</div><div class="stat-label">ยอดขายเดือนนี้</div><div style="font-size:12px;color:var(--muted);margin-top:4px">PAID + COMPLETED</div></div>
-<div class="card stat-card"><div style="font-size:24px">🚨</div><div id="adminDashboardReportCount" class="stat-val" style="color:var(--danger)">—</div><div class="stat-label">รายงานที่ยังเปิดอยู่</div><div style="font-size:12px;color:var(--muted);margin-top:4px">จาก Transaction Report</div></div>
-</div>
-<div class="grid2">
-<div class="card">
-<h4 style="font-weight:700;margin-bottom:10px">📈 ธุรกรรมล่าสุด</h4>
-<div id="adminDashboardRecentTransactions" class="report-list"></div>
-</div>
-<div class="card">
-<h4 style="font-weight:700;margin-bottom:10px">🎮 เกมยอดนิยม</h4>
-<div id="adminDashboardPopularGames" class="report-list"></div>
-</div>
-</div>
-</div>
-</div>
+  <div class="admin-layout">
+
+    <div class="admin-sidebar" id="adminSidebar"></div>
+
+    <div class="admin-content admin-dashboard-page">
+
+      <!-- Header -->
+      <div class="admin-dashboard-heading">
+        <div class="admin-dashboard-heading-icon">📊</div>
+
+        <div>
+          <div class="sec-title">แดชบอร์ดผู้ดูแลระบบ</div>
+          <div class="sec-sub">
+            ภาพรวมสถานะของแพลตฟอร์ม GameMarket แบบเรียลไทม์
+          </div>
+        </div>
+      </div>
+
+      <!-- Top statistics -->
+      <div class="admin-dashboard-stats">
+
+        <!-- Users -->
+        <div class="admin-dashboard-stat-card">
+          <div class="admin-dashboard-stat-icon stat-users">👥</div>
+
+          <div class="admin-dashboard-stat-body">
+            <div
+              id="adminDashboardUserCount"
+              class="admin-dashboard-stat-number stat-blue"
+            >
+              —
+            </div>
+
+            <div class="admin-dashboard-stat-title">
+              สมาชิกทั้งหมด
+            </div>
+
+            <div class="admin-dashboard-stat-sub">
+              จาก Database
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Products -->
+        <div class="admin-dashboard-stat-card">
+          <div class="admin-dashboard-stat-icon stat-products">📦</div>
+
+          <div class="admin-dashboard-stat-body">
+            <div
+              id="adminDashboardProductCount"
+              class="admin-dashboard-stat-number stat-blue"
+            >
+              —
+            </div>
+
+            <div class="admin-dashboard-stat-title">
+              รายการสินค้า
+            </div>
+
+            <div class="admin-dashboard-stat-sub">
+              ACTIVE ในร้านค้า
+            </div>
+          </div>
+        </div>
+
+        <!-- Net Profit / Net Cash Flow -->
+        <div class="admin-dashboard-stat-card">
+          <div class="admin-dashboard-stat-icon stat-profit">💰</div>
+
+          <div class="admin-dashboard-stat-body">
+            <div class="admin-dashboard-stat-title">
+              ยอดเงินสุทธิในระบบ
+            </div>
+
+            <div
+              id="adminDashboardNetProfit"
+              class="admin-dashboard-stat-number stat-green"
+            >
+              —
+            </div>
+
+            <div class="admin-dashboard-stat-sub">
+              ยอดฝากสำเร็จ - ยอดถอนสำเร็จ
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed Orders -->
+        <div class="admin-dashboard-stat-card">
+          <div class="admin-dashboard-stat-icon stat-orders">
+            <svg
+              viewBox="0 0 24 24"
+              width="32"
+              height="32"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="9" cy="20" r="1"></circle>
+              <circle cx="18" cy="20" r="1"></circle>
+              <path d="M3 4h2l2.4 10.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"></path>
+            </svg>
+          </div>
+
+          <div class="admin-dashboard-stat-body">
+            <div class="admin-dashboard-stat-title">
+              คำสั่งซื้อทั้งหมด
+            </div>
+
+            <div
+              id="adminDashboardCompletedOrderCount"
+              class="admin-dashboard-stat-number stat-green"
+            >
+              —
+            </div>
+
+            <div class="admin-dashboard-stat-sub">
+              เฉพาะคำสั่งซื้อที่สำเร็จ
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action queue -->
+      <section class="admin-dashboard-action-section">
+
+        <div class="admin-dashboard-section-heading">
+          <div>
+            <h3>☑️ งานที่ต้องดำเนินการ</h3>
+            <p>รายการที่ต้องตรวจสอบและดำเนินการจากผู้ใช้ในระบบ</p>
+          </div>
+        </div>
+
+        <div class="admin-dashboard-action-grid">
+
+          <button
+            class="admin-dashboard-action-card"
+            type="button"
+            onclick="goAdmin('admin-seller-verifications')"
+          >
+            <div class="admin-dashboard-action-icon action-blue">👤</div>
+
+            <div>
+              <strong>ตรวจสอบผู้ขาย</strong>
+
+              <div
+                id="adminDashboardSellerPending"
+                class="admin-dashboard-action-value value-blue"
+              >
+                —
+              </div>
+
+              <span>คำขอรอการตรวจสอบ</span>
+            </div>
+
+            <div class="admin-dashboard-action-arrow">›</div>
+          </button>
+
+          <button
+            class="admin-dashboard-action-card"
+            type="button"
+            onclick="goAdmin('admin-withdraw')"
+          >
+            <div class="admin-dashboard-action-icon action-yellow">👛</div>
+
+            <div>
+              <strong>คำขอถอนเงิน</strong>
+
+              <div
+                id="adminDashboardWithdrawalPending"
+                class="admin-dashboard-action-value value-yellow"
+              >
+                —
+              </div>
+
+              <span>รอการอนุมัติ</span>
+            </div>
+
+            <div class="admin-dashboard-action-arrow">›</div>
+          </button>
+
+          <button
+            class="admin-dashboard-action-card"
+            type="button"
+            onclick="goAdmin('admin-report')"
+          >
+            <div class="admin-dashboard-action-icon action-red">📄</div>
+
+            <div>
+              <strong>รายงานธุรกรรม</strong>
+
+              <div
+                id="adminDashboardTransactionReportPending"
+                class="admin-dashboard-action-value value-red"
+              >
+                —
+              </div>
+
+              <span>รายการที่ต้องตรวจสอบ</span>
+            </div>
+
+            <div class="admin-dashboard-action-arrow">›</div>
+          </button>
+
+          <button
+            class="admin-dashboard-action-card"
+            type="button"
+            onclick="goAdmin('admin-report')"
+          >
+            <div class="admin-dashboard-action-icon action-purple">💬</div>
+
+            <div>
+              <strong>รายงานรีวิว</strong>
+
+              <div
+                id="adminDashboardReviewReportPending"
+                class="admin-dashboard-action-value value-purple"
+              >
+                —
+              </div>
+
+              <span>รีวิวที่ถูกรายงาน</span>
+            </div>
+
+            <div class="admin-dashboard-action-arrow">›</div>
+          </button>
+
+        </div>
+
+      </section>
+
+      <!-- Bottom -->
+      <div class="admin-dashboard-bottom-grid">
+
+        <section class="admin-dashboard-panel">
+
+          <div class="admin-dashboard-panel-heading">
+            <h3>📑 ธุรกรรมล่าสุด</h3>
+            <span>5 รายการล่าสุด</span>
+          </div>
+
+          <div id="adminDashboardRecentTransactions"></div>
+
+        </section>
+
+        <section class="admin-dashboard-panel">
+
+          <div class="admin-dashboard-panel-heading">
+            <h3>🎮 เกมยอดนิยม</h3>
+
+            <button
+              type="button"
+              class="admin-dashboard-text-link"
+              onclick="goAdmin('admin-games')"
+            >
+              ดูทั้งหมด →
+            </button>
+          </div>
+
+          <div id="adminDashboardPopularGames"></div>
+
+        </section>
+
+      </div>
+
+    </div>
+  </div>
 </div>
 <!-- Admin User Management -->
 <div class="page" id="pg-admin-users">

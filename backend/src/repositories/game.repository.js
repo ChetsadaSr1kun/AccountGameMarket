@@ -83,13 +83,115 @@ async function updateAdmin(id,data) {
 }
 
 async function adminDashboard() {
-  const [[users]] = await pool.execute("SELECT COUNT(*) total FROM users WHERE status <> 'DELETED'");
-  const [[products]] = await pool.execute("SELECT COUNT(*) total FROM products WHERE status IN ('ACTIVE','SOLD')");
-  const [[sales]] = await pool.execute("SELECT COALESCE(SUM(amount),0) total FROM orders WHERE status IN ('PAID','COMPLETED') AND created_at >= DATE_FORMAT(CURRENT_DATE,'%Y-%m-01')");
-  const [[reports]] = await pool.execute("SELECT COUNT(*) total FROM transaction_reports WHERE status IN ('PENDING','REVIEWED')");
-  const [recent] = await pool.execute(`SELECT o.id,o.amount,o.status,gb.name game_name,b.username buyer_username,s.username seller_username FROM orders o INNER JOIN users b ON b.id=o.buyer_id INNER JOIN users s ON s.id=o.seller_id INNER JOIN products p ON p.id=o.product_id INNER JOIN games gb ON gb.id=p.game_id ORDER BY o.created_at DESC LIMIT 5`);
-  const [popular] = await pool.execute(`SELECT g.id,g.name,COUNT(o.id) order_count FROM games g LEFT JOIN products p ON p.game_id=g.id LEFT JOIN orders o ON o.product_id=p.id AND o.status IN ('PAID','COMPLETED') GROUP BY g.id ORDER BY order_count DESC,g.name LIMIT 6`);
-  return { totals:{users:Number(users.total),products:Number(products.total),monthlySales:Number(sales.total),openReports:Number(reports.total)}, recentTransactions:recent, popularGames:popular };
+  const [[users]] = await pool.execute(
+    "SELECT COUNT(*) total FROM users WHERE status <> 'DELETED'"
+  );
+
+  const [[products]] = await pool.execute(
+    "SELECT COUNT(*) total FROM products WHERE status = 'ACTIVE'"
+  );
+
+  const [[topups]] = await pool.execute(
+    `SELECT COALESCE(SUM(amount), 0) total
+     FROM wallet_topup_requests
+     WHERE status = 'APPROVED'`
+  );
+
+  const [[withdrawals]] = await pool.execute(
+    `SELECT COALESCE(SUM(amount), 0) total
+     FROM withdrawal_requests
+     WHERE status = 'APPROVED'`
+  );
+
+  const [[orders]] = await pool.execute(
+    `SELECT COUNT(*) total
+     FROM orders
+     WHERE status = 'COMPLETED'`
+  );
+
+  const [[sellerPending]] = await pool.execute(
+    `SELECT COUNT(*) total
+     FROM seller_verification_requests
+     WHERE status = 'PENDING'`
+  );
+
+  const [[withdrawalPending]] = await pool.execute(
+    `SELECT COUNT(*) total
+     FROM withdrawal_requests
+     WHERE status = 'PENDING'`
+  );
+
+  const [[transactionReports]] = await pool.execute(
+    `SELECT COUNT(*) total
+     FROM transaction_reports
+     WHERE status IN ('PENDING', 'REVIEWED')`
+  );
+
+  const [[reviewReports]] = await pool.execute(
+    `SELECT COUNT(*) total
+     FROM review_reports
+     WHERE status = 'PENDING'`
+  );
+
+  const [recent] = await pool.execute(
+    `SELECT
+       o.id,
+       o.amount,
+       o.status,
+       o.completed_at,
+       o.created_at,
+       gb.name AS game_name,
+       gb.image_url AS game_image_url,
+       b.username AS buyer_username,
+       s.username AS seller_username
+     FROM orders o
+     INNER JOIN users b ON b.id = o.buyer_id
+     INNER JOIN users s ON s.id = o.seller_id
+     INNER JOIN products p ON p.id = o.product_id
+     INNER JOIN games gb ON gb.id = p.game_id
+     WHERE o.status = 'COMPLETED'
+     ORDER BY COALESCE(o.completed_at, o.updated_at) DESC
+     LIMIT 5`
+  );
+
+  const [popular] = await pool.execute(
+    `SELECT
+       g.id,
+       g.name,
+       g.image_url,
+       COUNT(o.id) AS order_count
+     FROM games g
+     LEFT JOIN products p
+       ON p.game_id = g.id
+     LEFT JOIN orders o
+       ON o.product_id = p.id
+       AND o.status = 'COMPLETED'
+     GROUP BY g.id
+     ORDER BY order_count DESC, g.name
+     LIMIT 6`
+  );
+
+  const approvedTopups = Number(topups.total || 0);
+  const approvedWithdrawals = Number(withdrawals.total || 0);
+
+  return {
+    totals: {
+      users: Number(users.total),
+      activeProducts: Number(products.total),
+      netCashFlow: approvedTopups - approvedWithdrawals,
+      completedOrders: Number(orders.total),
+    },
+
+    actionCounts: {
+      sellerVerificationPending: Number(sellerPending.total),
+      withdrawalPending: Number(withdrawalPending.total),
+      transactionReportsOpen: Number(transactionReports.total),
+      reviewReportsPending: Number(reviewReports.total),
+    },
+
+    recentTransactions: recent,
+    popularGames: popular,
+  };
 }
 
 module.exports = { listActive, findActiveById, listActiveAttributes, listAdmin, findAdminById, createAdmin, updateAdmin, adminDashboard };

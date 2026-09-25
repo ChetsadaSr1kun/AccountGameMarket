@@ -12,5 +12,251 @@ async function loadAdminTransactionReports(){const box=document.getElementById('
 function applyAdminReportFilter(){adminReportFilterState={query:document.getElementById('adminReportSearch')?.value.trim()||'',status:document.getElementById('adminReportStatusFilter')?.value||'ALL',reason:document.getElementById('adminReportReasonFilter')?.value||'ALL',range:document.getElementById('adminReportRangeFilter')?.value||'LATEST'};renderFilteredAdminTransactionReports();}
 function resetAdminReportFilters(){['adminReportSearch','adminReportStatusFilter','adminReportReasonFilter','adminReportRangeFilter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==='adminReportStatusFilter'||id==='adminReportReasonFilter'?'ALL':id==='adminReportRangeFilter'?'LATEST':'';});applyAdminReportFilter();}
 async function adminReviewTransactionReport(reportId,status){const labels={REVIEWED:'รับเคส',DISMISSED:'ไม่พบปัญหา',RESOLVED:'ดำเนินการแล้ว'};if(!confirm(`ยืนยันการดำเนินการ: ${labels[status]||status}`))return;const token=typeof csrfToken!=='undefined'?(csrfToken||getCookieValue('gm_csrf')):getCookieValue('gm_csrf');if(!token){alert('ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้า');return;}try{const r=await fetch(`/api/v1/transaction-reports/${Number(reportId)}`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify({status})});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'บันทึกการดำเนินการไม่สำเร็จ');await loadAdminTransactionReports();if(typeof showToast==='function')showToast('อัปเดตรายงานแล้ว','success');}catch(e){alert(e.message||'บันทึกการดำเนินการไม่สำเร็จ');}}
-async function loadAdminDashboardSummary(){const root=document.getElementById('adminDashboardReportCount');if(!root)return;try{const r=await fetch('/api/v1/admin/dashboard',{credentials:'include'}),b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'โหลด Dashboard ไม่สำเร็จ');const s=b.data?.summary||{};const t=s.totals||{};const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};set('adminDashboardUserCount',Number(t.users||0).toLocaleString('th-TH'));set('adminDashboardProductCount',Number(t.products||0).toLocaleString('th-TH'));set('adminDashboardMonthlySales',`${Number(t.monthlySales||0).toLocaleString('th-TH')} ฿`);set('adminDashboardReportCount',Number(t.openReports||0).toLocaleString('th-TH'));const recent=document.getElementById('adminDashboardRecentTransactions');if(recent){const rows=s.recentTransactions||[];recent.innerHTML=rows.length?rows.map(x=>`<div class="card" style="padding:12px"><strong>${adminReportEscape(x.buyer_username)} → ${adminReportEscape(x.seller_username)}</strong><div style="font-size:12px;color:var(--muted)">${adminReportEscape(x.game_name)} • ${Number(x.amount||0).toLocaleString('th-TH')} ฿ • ${adminReportEscape(x.status)}</div></div>`).join(''):'<div class="report-empty">ยังไม่มีธุรกรรม</div>';}const popular=document.getElementById('adminDashboardPopularGames');if(popular){const rows=s.popularGames||[];popular.innerHTML=rows.length?rows.map((x,i)=>`<div class="card" style="padding:12px;display:flex;justify-content:space-between"><strong>${i+1}. ${adminReportEscape(x.name)}</strong><span>${Number(x.order_count||0).toLocaleString('th-TH')} ออเดอร์</span></div>`).join(''):'<div class="report-empty">ยังไม่มีข้อมูลเกม</div>';}}catch(e){root.textContent='—';console.error('loadAdminDashboardSummary failed:',e);}}
+async function loadAdminDashboardSummary() {
+  const root = document.getElementById('adminDashboardUserCount');
+
+  if (!root) return;
+
+  const set = (id, value) => {
+    const element = document.getElementById(id);
+
+    if (element) {
+      element.textContent = value;
+    }
+  };
+
+  try {
+    const response = await fetch('/api/v1/admin/dashboard', {
+      credentials: 'include',
+    });
+
+    const body = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        body.error?.message || 'โหลด Dashboard ไม่สำเร็จ'
+      );
+    }
+
+    const summary = body.data?.summary || {};
+    const totals = summary.totals || {};
+    const actions = summary.actionCounts || {};
+
+    set(
+      'adminDashboardUserCount',
+      Number(totals.users || 0).toLocaleString('th-TH')
+    );
+
+    set(
+      'adminDashboardProductCount',
+      Number(totals.activeProducts || 0).toLocaleString('th-TH')
+    );
+
+    const netCashFlow = Number(totals.netCashFlow || 0);
+
+    set(
+      'adminDashboardNetProfit',
+      `${netCashFlow.toLocaleString('th-TH')} ฿`
+    );
+
+    const profitElement =
+      document.getElementById('adminDashboardNetProfit');
+
+    if (profitElement) {
+      profitElement.style.color =
+        netCashFlow < 0 ? 'var(--danger)' : '#16b364';
+    }
+
+    set(
+      'adminDashboardCompletedOrderCount',
+      Number(totals.completedOrders || 0).toLocaleString('th-TH')
+    );
+
+    set(
+      'adminDashboardSellerPending',
+      Number(actions.sellerVerificationPending || 0)
+        .toLocaleString('th-TH')
+    );
+
+    set(
+      'adminDashboardWithdrawalPending',
+      Number(actions.withdrawalPending || 0)
+        .toLocaleString('th-TH')
+    );
+
+    set(
+      'adminDashboardTransactionReportPending',
+      Number(actions.transactionReportsOpen || 0)
+        .toLocaleString('th-TH')
+    );
+
+    set(
+      'adminDashboardReviewReportPending',
+      Number(actions.reviewReportsPending || 0)
+        .toLocaleString('th-TH')
+    );
+
+
+    /* =====================
+       Recent transactions
+       ===================== */
+
+    const recent =
+      document.getElementById('adminDashboardRecentTransactions');
+
+    if (recent) {
+      const rows = summary.recentTransactions || [];
+
+      recent.innerHTML = rows.length
+        ? rows.map((item) => {
+            const image = item.game_image_url
+              ? `
+                <img
+                  src="${adminReportEscape(item.game_image_url)}"
+                  alt=""
+                  loading="lazy"
+                >
+              `
+              : '🎮';
+
+            const dateValue =
+              item.completed_at || item.created_at;
+
+            const date = dateValue
+              ? new Date(dateValue).toLocaleString('th-TH')
+              : '-';
+
+            return `
+              <div class="admin-dashboard-recent-row">
+
+                <div class="admin-dashboard-recent-icon">
+                  ${image}
+                </div>
+
+                <div class="admin-dashboard-recent-main">
+                  <strong>
+                    ${adminReportEscape(item.buyer_username)}
+                    →
+                    ${adminReportEscape(item.seller_username)}
+                  </strong>
+
+                  <span>
+                    ${adminReportEscape(item.game_name)}
+                    •
+                    ${Number(item.amount || 0).toLocaleString('th-TH')} ฿
+                  </span>
+                </div>
+
+                <div class="admin-dashboard-recent-date">
+                  ${date}
+                </div>
+
+                <span class="admin-dashboard-success-badge">
+                  สำเร็จ
+                </span>
+
+              </div>
+            `;
+          }).join('')
+        : `
+          <div class="report-empty">
+            ยังไม่มีธุรกรรมที่สำเร็จ
+          </div>
+        `;
+    }
+
+
+    /* =====================
+       Popular games
+       ===================== */
+
+    const popular =
+      document.getElementById('adminDashboardPopularGames');
+
+    if (popular) {
+      const rows = summary.popularGames || [];
+
+      const maxOrders = Math.max(
+        0,
+        ...rows.map(
+          (item) => Number(item.order_count || 0)
+        )
+      );
+
+      popular.innerHTML = rows.length
+        ? rows.map((item, index) => {
+            const count =
+              Number(item.order_count || 0);
+
+            const percentage =
+              maxOrders > 0
+                ? Math.round(
+                    (count / maxOrders) * 100
+                  )
+                : 0;
+
+            const image = item.image_url
+              ? `
+                <img
+                  src="${adminReportEscape(item.image_url)}"
+                  alt=""
+                  loading="lazy"
+                >
+              `
+              : '🎮';
+
+            return `
+              <div class="admin-dashboard-game-row">
+
+                <div
+                  class="admin-dashboard-game-rank
+                    ${index === 0 ? 'is-first' : ''}"
+                >
+                  ${index + 1}
+                </div>
+
+                <div class="admin-dashboard-game-image">
+                  ${image}
+                </div>
+
+                <div class="admin-dashboard-game-name">
+                  ${adminReportEscape(item.name)}
+                </div>
+
+                <div class="admin-dashboard-game-bar">
+                  <span style="width:${percentage}%"></span>
+                </div>
+
+                <div class="admin-dashboard-game-count">
+                  ${count.toLocaleString('th-TH')} ออเดอร์
+                </div>
+
+              </div>
+            `;
+          }).join('')
+        : `
+          <div class="report-empty">
+            ยังไม่มีข้อมูลเกม
+          </div>
+        `;
+    }
+
+  } catch (error) {
+    console.error(
+      'loadAdminDashboardSummary failed:',
+      error
+    );
+
+    [
+      'adminDashboardUserCount',
+      'adminDashboardProductCount',
+      'adminDashboardNetProfit',
+      'adminDashboardCompletedOrderCount',
+      'adminDashboardSellerPending',
+      'adminDashboardWithdrawalPending',
+      'adminDashboardTransactionReportPending',
+      'adminDashboardReviewReportPending',
+    ].forEach((id) => set(id, '—'));
+  }
+}
 window.loadAdminTransactionReports=loadAdminTransactionReports;window.adminReviewTransactionReport=adminReviewTransactionReport;window.applyAdminReportFilter=applyAdminReportFilter;window.resetAdminReportFilters=resetAdminReportFilters;window.loadAdminDashboardSummary=loadAdminDashboardSummary;

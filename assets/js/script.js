@@ -194,15 +194,7 @@ function updateNav() {
   const rightEl = document.getElementById('navRight');
   const username = currentUser?.username || 'User';
   if (isAdmin) {
-    linksEl.innerHTML = `
-      <button class="nav-btn ${currentPage==='admin-dashboard'?'active':''}" onclick="goAdmin('admin-dashboard')">📊 Dashboard</button>
-      <button class="nav-btn ${currentPage==='admin-games'?'active':''}" onclick="goAdmin('admin-games')">🎮 หมวดหมู่</button>
-      <button class="nav-btn ${currentPage==='admin-seller-verifications'?'active':''}" onclick="goAdmin('admin-seller-verifications')">🪪 ตรวจสอบผู้ขาย</button>
-      <button class="nav-btn ${currentPage==='admin-chat-log'?'active':''}" onclick="goAdmin('admin-chat-log')">💬 ประวัติแชท</button>
-      <button class="nav-btn ${currentPage==='admin-withdraw'?'active':''}" onclick="goAdmin('admin-withdraw')">💸 ถอนเงิน</button>
-      <button class="nav-btn ${currentPage==='admin-report'?'active':''}" onclick="goAdmin('admin-report')">🚨 รายงาน</button>
-      <button class="nav-btn ${currentPage==='admin-suspended-users'?'active':''}" onclick="goAdmin('admin-suspended-users')">⛔ ผู้ใช้ถูกระงับ</button>
-    `;
+    linksEl.innerHTML = '';
     rightEl.innerHTML = `<span style="color:var(--muted);font-size:13px">Admin Panel</span><button class="btn btn-secondary btn-sm" onclick="logout()">ออกจากระบบ</button>`;
     const adminPage = document.getElementById('pg-' + currentPage);
     if (adminPage && adminPages.includes(currentPage)) {
@@ -427,12 +419,9 @@ document.addEventListener('click', function(e) { if (!e.target.closest('.dropdow
 const adminNavItems = [
   ['admin-dashboard','📊','Dashboard'],
   ['admin-users','👥','จัดการผู้ใช้'],
-  ['admin-products','📦','จัดการสินค้า'],
   ['admin-games','🎮','หมวดหมู่เกม'],
-  ['admin-chat-log','💬','ประวัติแชท'],
-  ['admin-withdraw','💸','อนุมัติถอนเงิน'],
-  ['admin-topup','➕','อนุมัติเติมพ้อยท์'],
   ['admin-seller-verifications','🪪','ตรวจสอบผู้ขาย'],
+  ['admin-withdraw','💸','อนุมัติถอนเงิน'],
   ['admin-report','🚨','รายงาน'],
   ['admin-suspended-users','⛔','รายชื่อผู้ใช้ที่ถูกระงับ'],
 ];
