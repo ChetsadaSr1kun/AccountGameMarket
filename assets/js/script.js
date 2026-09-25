@@ -847,27 +847,95 @@ async function confirmAvatarChangeFromProfile() {
 }
 
 async function sendEmailVerificationOtp() {
-    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    const button = document.getElementById(
+        'profileEmailVerificationSendButton'
+    );
+
+    const activeCsrfToken =
+        csrfToken || getCookieValue('gm_csrf');
+
     if (!activeCsrfToken) {
-        setProfileMsg('profileEmailVerificationMsg', 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        setProfileMsg(
+            'profileEmailVerificationMsg',
+            'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่',
+            true
+        );
         return;
     }
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'กำลังส่ง...';
+    }
+
     try {
-        const response = await fetch('/api/v1/user/verification/email/send', {
-            method: 'POST', credentials: 'include', headers: { 'X-CSRF-Token': activeCsrfToken },
-        });
+        const response = await fetch(
+            '/api/v1/user/verification/email/send',
+            {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'X-CSRF-Token': activeCsrfToken
+                },
+            }
+        );
+
         if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            if (data.error?.code === 'OTP_RESEND_COOLDOWN' && data.error?.retryAfterSeconds) startOtpCooldown('email', data.error.retryAfterSeconds);
-            setProfileMsg('profileEmailVerificationMsg', data.error?.message || 'ส่งรหัสยืนยันไม่สำเร็จ', true);
+            const data =
+                await response.json().catch(() => ({}));
+
+            if (
+                data.error?.code === 'OTP_RESEND_COOLDOWN' &&
+                data.error?.retryAfterSeconds
+            ) {
+                startOtpCooldown(
+                    'email',
+                    data.error.retryAfterSeconds
+                );
+            }
+
+            setProfileMsg(
+                'profileEmailVerificationMsg',
+                data.error?.message ||
+                    'ส่งรหัสยืนยันไม่สำเร็จ',
+                true
+            );
+
             return;
         }
-        const otpInput = document.getElementById('profileEmailVerificationOtp');
-        if (otpInput) otpInput.value = '';
+
+        const otpInput =
+            document.getElementById(
+                'profileEmailVerificationOtp'
+            );
+
+        if (otpInput) {
+            otpInput.value = '';
+        }
+
         startOtpCooldown('email');
-        setProfileMsg('profileEmailVerificationMsg', 'ส่งรหัสยืนยันไปยังอีเมลของคุณแล้ว', false);
+
+        setProfileMsg(
+            'profileEmailVerificationMsg',
+            'ส่งรหัสยืนยันไปยังอีเมลของคุณแล้ว',
+            false
+        );
+
     } catch (error) {
-        setProfileMsg('profileEmailVerificationMsg', 'ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่', true);
+        setProfileMsg(
+            'profileEmailVerificationMsg',
+            'ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่',
+            true
+        );
+
+    } finally {
+        const cooldownActive =
+            otpCooldowns.email.endsAt > Date.now();
+
+        if (button && !cooldownActive) {
+            button.disabled = false;
+            button.textContent = 'ส่งรหัส OTP';
+        }
     }
 }
 
@@ -903,29 +971,91 @@ async function verifyEmailVerificationOtp() {
 }
 
 async function sendPhoneVerificationOtp() {
-    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    const button = document.getElementById(
+        'profilePhoneVerificationSendButton'
+    );
+
+    const activeCsrfToken =
+        csrfToken || getCookieValue('gm_csrf');
+
     if (!activeCsrfToken) {
-        setProfileMsg('profilePhoneVerificationMsg', 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        setProfileMsg(
+            'profilePhoneVerificationMsg',
+            'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่',
+            true
+        );
         return;
     }
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'กำลังส่ง...';
+    }
+
     try {
-        const response = await fetch('/api/v1/user/verification/phone/send', {
-            method: 'POST', credentials: 'include', headers: { 'X-CSRF-Token': activeCsrfToken },
-        });
+        const response = await fetch(
+            '/api/v1/user/verification/phone/send',
+            {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'X-CSRF-Token': activeCsrfToken
+                },
+            }
+        );
+
         if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            if (data.error?.code === 'OTP_RESEND_COOLDOWN' && data.error?.retryAfterSeconds) startOtpCooldown('phone', data.error.retryAfterSeconds);
-            setProfileMsg('profilePhoneVerificationMsg', data.error?.message || 'ส่งรหัสยืนยันทาง SMS ไม่สำเร็จ', true);
+            const data =
+                await response.json().catch(() => ({}));
+
+            if (
+                data.error?.code === 'OTP_RESEND_COOLDOWN' &&
+                data.error?.retryAfterSeconds
+            ) {
+                startOtpCooldown(
+                    'phone',
+                    data.error.retryAfterSeconds
+                );
+            }
+
+            setProfileMsg(
+                'profilePhoneVerificationMsg',
+                data.error?.message ||
+                    'ส่งรหัสยืนยันทาง SMS ไม่สำเร็จ',
+                true
+            );
+
             return;
         }
+
         clearOtpBoxes(
-          'profilePhoneVerificationOtpWrap',
-          'profilePhoneVerificationOtp'
+            'profilePhoneVerificationOtpWrap',
+            'profilePhoneVerificationOtp'
         );
+
         startOtpCooldown('phone');
-        setProfileMsg('profilePhoneVerificationMsg', 'ส่งรหัสยืนยันทาง SMS แล้ว', false);
+
+        setProfileMsg(
+            'profilePhoneVerificationMsg',
+            'ส่งรหัสยืนยันทาง SMS แล้ว',
+            false
+        );
+
     } catch (error) {
-        setProfileMsg('profilePhoneVerificationMsg', 'ไม่สามารถส่งรหัสยืนยันทาง SMS ได้ กรุณาลองใหม่', true);
+        setProfileMsg(
+            'profilePhoneVerificationMsg',
+            'ไม่สามารถส่งรหัสยืนยันทาง SMS ได้ กรุณาลองใหม่',
+            true
+        );
+
+    } finally {
+        const cooldownActive =
+            otpCooldowns.phone.endsAt > Date.now();
+
+        if (button && !cooldownActive) {
+            button.disabled = false;
+            button.textContent = 'ส่งรหัส OTP';
+        }
     }
 }
 

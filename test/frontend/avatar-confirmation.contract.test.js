@@ -64,8 +64,15 @@ test('profile provides readonly Phone OTP controls with CSRF-protected phone end
   assert.match(style, /#profileEmailVerificationSendButton,\s*#profilePhoneVerificationSendButton\s*\{[\s\S]*?width:\s*112px;[\s\S]*?min-width:\s*112px;[\s\S]*?min-height:\s*52px;[\s\S]*?white-space:\s*pre-line;[\s\S]*?text-align:\s*center;/);
   assert.match(html, /id="profilePhoneVerificationOtp"[^>]*maxlength="6"/);
   assert.match(html, /id="profilePhoneVerificationVerifyButton"[^>]*onclick="verifyPhoneVerificationOtp\(\)"/);
-  assert.match(sendBody, /fetch\('\/api\/v1\/user\/verification\/phone\/send'/);
-  assert.match(verifyBody, /fetch\('\/api\/v1\/user\/verification\/phone\/verify'/);
+  assert.match(
+    sendBody,
+    /fetch\s*\(\s*['"]\/api\/v1\/user\/verification\/phone\/send['"]/
+  );
+
+  assert.match(
+    verifyBody,
+    /fetch\s*\(\s*['"]\/api\/v1\/user\/verification\/phone\/verify['"]/
+  );
   assert.doesNotMatch(sendBody, /JSON\.stringify/);
   assert.match(verifyBody, /JSON\.stringify\(\{ otp \}\)/);
 });
