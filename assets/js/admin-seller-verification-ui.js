@@ -13,6 +13,284 @@
   async function action(id,a,body){const r=await req(`/api/v1/seller-verification/${id}/${a}`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf()},body:body?JSON.stringify(body):undefined}),b=await r.json().catch(()=>({}));if(!r.ok)throw Error(b.error?.message||'ดำเนินการไม่สำเร็จ');}
   window.adminApproveSellerVerification=async id=>{if(!confirm('ยืนยันการอนุมัติผู้ขายรายนี้?'))return;try{await action(id,'approve');await window.loadAdminSellerVerificationRequests();}catch(e){alert(e.message);}};
   window.adminRejectSellerVerification=async id=>{const reason=prompt('ระบุเหตุผลที่ปฏิเสธ');if(reason===null)return;try{await action(id,'reject',{reason});await window.loadAdminSellerVerificationRequests();}catch(e){alert(e.message);}};
-  window.adminViewSellerVerification=async id=>{try{const r=await req(`/api/v1/seller-verification/admin/${id}`),b=await r.json().catch(()=>({}));if(!r.ok)throw Error(b.error?.message||'โหลดรายละเอียดไม่สำเร็จ');const x=b.data?.request,m=document.getElementById('adminSellerVerificationModal'),body=document.getElementById('adminSellerVerificationModalBody');if(!x||!m||!body)return;const docs=x.documents||[],url=t=>`/api/v1/seller-verification/admin/${id}/documents/${t}`,doc=(t,n)=>{const d=docs.find(y=>y.document_type===t);return d?`<div class="seller-admin-doc"><div class="inp-label">${n}</div><img src="${url(t)}" alt="${n}"><div class="seller-admin-doc-meta">${Math.ceil(d.file_size/1024)} KB</div></div>`:`<div class="seller-admin-doc seller-admin-doc-empty"><strong>${n}</strong><div>ไม่พบเอกสาร</div></div>`};body.innerHTML=`<div class="admin-verification-profile"><div><span>Username</span><strong>@${esc(x.username)}</strong></div><div><span>ชื่อ</span><strong>${esc(`${x.first_name||''} ${x.last_name||''}`.trim()||'-')}</strong></div><div><span>Email</span><strong>${esc(x.email||'-')}</strong></div><div><span>โทรศัพท์</span><strong>${esc(x.phone||'-')}</strong></div><div><span>สถานะ</span><strong>${label(x.status)}</strong></div></div><h4 style="margin:18px 0 10px">📄 เอกสารยืนยัน</h4><div class="seller-admin-doc-grid">${doc('ID_FRONT','บัตรประชาชนด้านหน้า')}${doc('ID_BACK','บัตรประชาชนด้านหลัง')}${doc('SELFIE','รูป Selfie')}</div>${x.rejection_reason?`<div class="notice warn" style="margin-top:16px"><strong>เหตุผลปฏิเสธ</strong><div style="margin-top:5px">${esc(x.rejection_reason)}</div></div>`:''}${x.status==='PENDING'?`<div class="report-actions" style="margin-top:18px"><button class="btn btn-danger btn-sm" onclick="adminRejectSellerVerification(${id});closeAdminSellerVerificationModal()">✗ ปฏิเสธ</button><button class="btn btn-success btn-sm" onclick="adminApproveSellerVerification(${id});closeAdminSellerVerificationModal()">✓ อนุมัติ</button></div>`:''}`;m.hidden=false;}catch(e){alert(e.message);}};
-  window.closeAdminSellerVerificationModal=()=>{const m=document.getElementById('adminSellerVerificationModal');if(m)m.hidden=true;};
+  window.adminViewSellerVerification = async id => {
+  try {
+    const r = await req(
+      `/api/v1/seller-verification/admin/${id}`
+    );
+
+    const b = await r.json().catch(() => ({}));
+
+    if (!r.ok) {
+      throw Error(
+        b.error?.message || 'โหลดรายละเอียดไม่สำเร็จ'
+      );
+    }
+
+    const x = b.data?.request;
+    const m = document.getElementById(
+      'adminSellerVerificationModal'
+    );
+    const body = document.getElementById(
+      'adminSellerVerificationModalBody'
+    );
+
+    if (!x || !m || !body) return;
+
+    const docs = x.documents || [];
+
+    const url = type =>
+      `/api/v1/seller-verification/admin/${id}/documents/${type}`;
+
+    const doc = (type, name) => {
+      const documentInfo = docs.find(
+        item => item.document_type === type
+      );
+
+      if (!documentInfo) {
+        return `
+          <div class="seller-admin-doc seller-admin-doc-empty">
+            <strong>${name}</strong>
+            <div>ไม่พบเอกสาร</div>
+          </div>
+        `;
+      }
+
+      const imageUrl = url(type);
+
+      return `
+        <div class="seller-admin-doc">
+
+          <div class="inp-label">
+            ${name}
+          </div>
+
+          <button
+            type="button"
+            class="seller-admin-doc-preview-btn"
+            onclick="openSellerDocumentPreview(
+              '${imageUrl}',
+              '${name}'
+            )"
+            aria-label="ขยายรูป ${name}"
+          >
+            <img
+              src="${imageUrl}"
+              alt="${name}"
+            >
+
+            <span class="seller-admin-doc-zoom">
+              🔍
+            </span>
+          </button>
+
+          <div class="seller-admin-doc-meta">
+            ${Math.ceil(documentInfo.file_size / 1024)} KB
+          </div>
+
+        </div>
+      `;
+    };
+
+    body.innerHTML = `
+      <div class="admin-verification-profile">
+
+        <div>
+          <span>Username</span>
+          <strong>@${esc(x.username)}</strong>
+        </div>
+
+        <div>
+          <span>ชื่อ</span>
+          <strong>
+            ${esc(
+              `${x.first_name || ''} ${x.last_name || ''}`.trim() || '-'
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span>Email</span>
+          <strong>${esc(x.email || '-')}</strong>
+        </div>
+
+        <div>
+          <span>โทรศัพท์</span>
+          <strong>${esc(x.phone || '-')}</strong>
+        </div>
+
+        <div>
+          <span>สถานะ</span>
+          <strong>${label(x.status)}</strong>
+        </div>
+
+      </div>
+
+      <h4 style="margin:18px 0 10px">
+        📄 เอกสารยืนยัน
+      </h4>
+
+      <div class="seller-admin-doc-grid">
+        ${doc('ID_FRONT', 'บัตรประชาชนด้านหน้า')}
+        ${doc('ID_BACK', 'บัตรประชาชนด้านหลัง')}
+        ${doc('SELFIE', 'รูป Selfie')}
+      </div>
+
+      ${
+        x.rejection_reason
+          ? `
+            <div class="notice warn" style="margin-top:16px">
+              <strong>เหตุผลปฏิเสธ</strong>
+              <div style="margin-top:5px">
+                ${esc(x.rejection_reason)}
+              </div>
+            </div>
+          `
+          : ''
+      }
+
+      ${
+        x.status === 'PENDING'
+          ? `
+            <div
+              class="report-actions"
+              style="margin-top:18px"
+            >
+              <button
+                class="btn btn-danger btn-sm"
+                onclick="
+                  adminRejectSellerVerification(${id});
+                  closeAdminSellerVerificationModal();
+                "
+              >
+                ✗ ปฏิเสธ
+              </button>
+
+              <button
+                class="btn btn-success btn-sm"
+                onclick="
+                  adminApproveSellerVerification(${id});
+                  closeAdminSellerVerificationModal();
+                "
+              >
+                ✓ อนุมัติ
+              </button>
+            </div>
+          `
+          : ''
+      }
+    `;
+
+    m.hidden = false;
+
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+
+window.openSellerDocumentPreview = (src, title) => {
+  let modal = document.getElementById(
+    'sellerDocumentPreviewModal'
+  );
+
+  if (!modal) {
+    modal = document.createElement('div');
+
+    modal.id = 'sellerDocumentPreviewModal';
+    modal.className = 'seller-document-preview';
+    modal.hidden = true;
+
+    modal.innerHTML = `
+      <div
+        class="seller-document-preview-backdrop"
+        onclick="closeSellerDocumentPreview()"
+      ></div>
+
+      <div
+        class="seller-document-preview-dialog"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="seller-document-preview-head">
+
+          <strong
+            id="sellerDocumentPreviewTitle"
+          ></strong>
+
+          <button
+            type="button"
+            class="seller-document-preview-close"
+            onclick="closeSellerDocumentPreview()"
+            aria-label="ปิด"
+          >
+            ✕
+          </button>
+
+        </div>
+
+        <div class="seller-document-preview-image-wrap">
+          <img
+            id="sellerDocumentPreviewImage"
+            alt=""
+          >
+        </div>
+
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+  }
+
+  const image = document.getElementById(
+    'sellerDocumentPreviewImage'
+  );
+
+  const heading = document.getElementById(
+    'sellerDocumentPreviewTitle'
+  );
+
+  image.src = src;
+  image.alt = title || 'เอกสารยืนยัน';
+  heading.textContent = title || 'เอกสารยืนยัน';
+
+  modal.hidden = false;
+
+  document.body.classList.add(
+    'seller-document-preview-open'
+  );
+};
+
+
+window.closeSellerDocumentPreview = () => {
+  const modal = document.getElementById(
+    'sellerDocumentPreviewModal'
+  );
+
+  if (!modal) return;
+
+  modal.hidden = true;
+
+  document.body.classList.remove(
+    'seller-document-preview-open'
+  );
+};
+
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    window.closeSellerDocumentPreview?.();
+  }
+});
+
+
+window.closeAdminSellerVerificationModal = () => {
+  const m = document.getElementById(
+    'adminSellerVerificationModal'
+  );
+
+  if (m) {
+    m.hidden = true;
+  }
+};
 })();
