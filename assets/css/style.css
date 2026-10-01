@@ -289,6 +289,16 @@ html {
 .report-field input,.report-field select{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-size:14px}
 .report-field .icon{color:var(--muted);font-size:14px}
 
+/* Admin report dropdown dark theme */
+.report-field select{
+  color-scheme: dark;
+}
+
+.report-field select option{
+  background:var(--card2);
+  color:var(--text);
+}
+
 .report-list{display:flex;flex-direction:column;gap:14px}
 .report-entry{background:linear-gradient(180deg,rgba(24,33,59,.98),rgba(19,27,49,.98));border:1px solid var(--border);border-radius:18px;padding:18px 18px 16px 18px;position:relative;overflow:hidden}
 .report-entry:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:18px 0 0 18px;background:#4c8cff}
