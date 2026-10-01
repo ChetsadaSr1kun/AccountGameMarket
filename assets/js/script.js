@@ -423,7 +423,6 @@ const adminNavItems = [
   ['admin-seller-verifications','🪪','ตรวจสอบผู้ขาย'],
   ['admin-withdraw','💸','อนุมัติถอนเงิน'],
   ['admin-report','🚨','รายงาน'],
-  ['admin-suspended-users','⛔','รายชื่อผู้ใช้ที่ถูกระงับ'],
 ];
 function renderAdminSidebars() {
   ['','2','3','4','5','6','7','8','9','10'].forEach(sfx => {

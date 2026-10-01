@@ -1416,12 +1416,477 @@
 </div>
 <!-- Admin User Management -->
 <div class="page" id="pg-admin-users">
-<div class="admin-layout"><div class="admin-sidebar" id="adminSidebar9"></div><div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">👥 จัดการผู้ใช้</div><div class="sec-sub">ดูสมาชิกและจัดการสถานะบัญชีจาก Database จริง</div></div><button class="btn btn-secondary btn-sm" onclick="adminLoadUsers()">↻ รีเฟรช</button></div>
-<div class="grid4" style="margin-bottom:20px"><div class="card stat-card"><div style="font-size:22px">👥</div><div id="adminUserTotal" class="stat-val">0</div><div class="stat-label">สมาชิกทั้งหมด</div></div><div class="card stat-card"><div style="font-size:22px">🟢</div><div id="adminUserActive" class="stat-val">0</div><div class="stat-label">ใช้งาน</div></div><div class="card stat-card"><div style="font-size:22px">⏸</div><div id="adminUserSuspended" class="stat-val">0</div><div class="stat-label">ระงับ</div></div><div class="card stat-card"><div style="font-size:22px">🚫</div><div id="adminUserBanned" class="stat-val">0</div><div class="stat-label">แบน</div></div></div>
-<div class="card" style="padding:18px"><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminUserSearch" oninput="adminFilterUsers()" placeholder="ค้นหา Username / Email / ชื่อ"></div><div class="report-field"><select id="adminUserRole" onchange="adminFilterUsers()"><option value="ALL">ทุกบทบาท</option><option value="USER">USER</option><option value="SELLER">SELLER</option><option value="ADMIN">ADMIN</option></select></div><div class="report-field"><select id="adminUserStatus" onchange="adminFilterUsers()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">ใช้งาน</option><option value="SUSPENDED">ระงับ</option><option value="BANNED">แบน</option></select></div></div><div id="adminUserList" class="report-list"></div></div>
-</div></div></div>
-<div class="modal-backdrop" id="adminUserModal" hidden onclick="if(event.target===this)closeAdminUserModal()"><div class="modal-dialog" role="dialog" aria-modal="true" style="max-width:680px"><div class="sec-header"><div class="sec-title">👤 รายละเอียดผู้ใช้</div><button class="btn btn-ghost btn-sm" onclick="closeAdminUserModal()">✕</button></div><div id="adminUserModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminUserModal()">ปิด</button></div></div></div>
+
+  <div class="admin-layout">
+
+    <div
+      class="admin-sidebar"
+      id="adminSidebar9"
+    ></div>
+
+    <div class="admin-content">
+
+      <div class="admin-users-page">
+
+        <!-- Header -->
+        <div class="admin-users-header">
+
+          <div>
+            <div class="admin-users-title">
+              <span class="admin-users-title-icon">👥</span>
+
+              <div>
+                <h2>จัดการผู้ใช้</h2>
+                <p>
+                  ดูแลและจัดการสถานะผู้ใช้จาก Database จริง
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm admin-users-refresh"
+              onclick="adminLoadUsers()"
+            >
+              ↻ รีเฟรช
+            </button>
+          </div>
+
+        </div>
+
+
+        <!-- Stats -->
+        <div class="admin-users-stats">
+
+          <div class="admin-users-stat-card stat-users-total">
+
+            <div class="admin-users-stat-icon">
+              👥
+            </div>
+
+            <div class="admin-users-stat-content">
+
+              <div
+                id="adminUserTotal"
+                class="admin-users-stat-number"
+              >
+                0
+              </div>
+
+              <div class="admin-users-stat-title">
+                สมาชิกทั้งหมด
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-users-stat-card stat-users-active">
+
+            <div class="admin-users-stat-icon">
+              ●
+            </div>
+
+            <div class="admin-users-stat-content">
+
+              <div
+                id="adminUserActive"
+                class="admin-users-stat-number"
+              >
+                0
+              </div>
+
+              <div class="admin-users-stat-title">
+                ผู้ใช้งาน
+              </div>
+
+              <div class="admin-users-stat-sub">
+                รวมผู้ใช้ที่สามารถเข้าสู่ระบบได้
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-users-stat-card stat-users-seller">
+
+            <div class="admin-users-stat-icon">
+              🏪
+            </div>
+
+            <div class="admin-users-stat-content">
+
+              <div
+                id="adminUserSeller"
+                class="admin-users-stat-number"
+              >
+                0
+              </div>
+
+              <div class="admin-users-stat-title">
+                ผู้ขาย
+              </div>
+
+              <div class="admin-users-stat-sub">
+                ผู้ใช้ที่ผ่านการยืนยันเป็นผู้ขายแล้ว
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-users-stat-card stat-users-banned">
+
+            <div class="admin-users-stat-icon">
+              🚫
+            </div>
+
+            <div class="admin-users-stat-content">
+
+              <div
+                id="adminUserBanned"
+                class="admin-users-stat-number"
+              >
+                0
+              </div>
+
+              <div class="admin-users-stat-title">
+                แบนถาวร
+              </div>
+
+              <div class="admin-users-stat-sub">
+                บัญชีที่ถูกแบนถาวร
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- User panel -->
+        <div
+          id="adminUsersWorkspace"
+          class="admin-users-workspace"
+        >
+
+        <section class="admin-users-panel admin-users-list-panel">
+
+          <!-- Tabs -->
+          <div class="admin-users-tabs">
+
+            <div class="admin-users-tab-list">
+
+              <button
+                type="button"
+                class="admin-users-tab active"
+                data-admin-user-view="ALL"
+                onclick="adminSetUserView('ALL')"
+              >
+                <span>👥</span>
+                ผู้ใช้ทั้งหมด
+              </button>
+
+              <button
+                type="button"
+                class="admin-users-tab"
+                data-admin-user-view="USER"
+                onclick="adminSetUserView('USER')"
+              >
+                <span class="admin-user-tab-active-dot"></span>
+                ผู้ใช้งาน
+              </button>
+
+              <button
+                type="button"
+                class="admin-users-tab"
+                data-admin-user-view="SELLER"
+                onclick="adminSetUserView('SELLER')"
+              >
+                <span>🏪</span>
+                ผู้ขาย
+              </button>
+
+              <button
+                type="button"
+                class="admin-users-tab"
+                data-admin-user-view="BANNED"
+                onclick="adminSetUserView('BANNED')"
+              >
+                <span>🚫</span>
+                บัญชีที่ถูกแบน
+              </button>
+
+            </div>
+
+            <div
+              id="adminUserResultCount"
+              class="admin-users-result-count"
+            >
+              ทั้งหมด 0 รายการ
+            </div>
+
+          </div>
+
+
+          <!-- Filters -->
+          <div class="admin-users-toolbar">
+
+            <div class="admin-users-search">
+
+              <span>⌕</span>
+
+              <input
+                id="adminUserSearch"
+                type="text"
+                placeholder="ค้นหา Username / Email / ชื่อ / เบอร์โทร..."
+                oninput="adminFilterUsers()"
+              >
+
+            </div>
+
+
+            <select
+              id="adminUserRole"
+              class="admin-users-select"
+              onchange="adminFilterUsers()"
+            >
+              <option value="ALL">
+                ทุกบทบาท
+              </option>
+
+              <option value="USER">
+                USER
+              </option>
+
+              <option value="SELLER">
+                SELLER
+              </option>
+
+              <option value="ADMIN">
+                ADMIN
+              </option>
+            </select>
+
+
+            <select
+              id="adminUserStatus"
+              class="admin-users-select"
+              onchange="adminFilterUsers()"
+            >
+              <option value="ALL">
+                ทุกสถานะ
+              </option>
+
+              <option value="ACTIVE">
+                ใช้งาน
+              </option>
+
+              <option value="BANNED">
+                บัญชีที่ถูกแบนถาวร
+              </option>
+            </select>
+
+
+            <select
+              id="adminUserSort"
+              class="admin-users-select"
+              onchange="adminFilterUsers()"
+            >
+              <option value="NEWEST">
+                เรียงล่าสุด
+              </option>
+
+              <option value="OLDEST">
+                เก่าสุด
+              </option>
+
+              <option value="USERNAME_ASC">
+                Username A-Z
+              </option>
+
+              <option value="WALLET_DESC">
+                Wallet มากสุด
+              </option>
+            </select>
+
+          </div>
+
+
+          <!-- Database user rows -->
+          <div
+            id="adminUserList"
+            class="admin-users-list"
+          ></div>
+
+        </section>
+
+        <!-- User detail panel -->
+        <section
+          id="adminUserDetailPanel"
+          class="admin-user-detail-panel"
+          hidden
+        >
+
+          <div
+            id="adminUserDetailEmpty"
+            class="admin-user-detail-empty"
+          >
+            <div class="admin-user-detail-empty-icon">
+              👤
+            </div>
+
+            <h3>
+              เลือกผู้ใช้เพื่อดูรายละเอียด
+            </h3>
+
+            <p>
+              คลิกที่รายการผู้ใช้ทางด้านซ้าย
+            </p>
+          </div>
+
+
+          <div
+            id="adminUserDetailContent"
+            class="admin-user-detail-content"
+            hidden
+          >
+
+            <!-- Profile header -->
+            <div class="admin-user-detail-header">
+
+              <div class="admin-user-detail-profile">
+
+                <div
+                  id="adminUserDetailAvatar"
+                  class="admin-user-detail-avatar"
+                >
+                  U
+                </div>
+
+                <div class="admin-user-detail-profile-text">
+
+                  <div class="admin-user-detail-name-row">
+
+                    <h2 id="adminUserDetailUsername">
+                      Username
+                    </h2>
+
+                    <span
+                      id="adminUserDetailStatus"
+                      class="admin-user-status-badge"
+                    >
+                    </span>
+
+                    <span
+                      id="adminUserDetailRole"
+                      class="admin-user-role-badge"
+                    >
+                    </span>
+
+                  </div>
+
+                  <div
+                    id="adminUserDetailEmail"
+                    class="admin-user-detail-email"
+                  >
+                  </div>
+
+                  <div
+                    id="adminUserDetailJoined"
+                    class="admin-user-detail-joined"
+                  >
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="admin-user-detail-close"
+                onclick="closeAdminUserDetail()"
+                aria-label="ปิดรายละเอียด"
+              >
+                ✕
+              </button>
+
+            </div>
+
+
+            <!-- Moderation actions -->
+            <div
+              id="adminUserDetailActions"
+              class="admin-user-detail-actions"
+            ></div>
+
+
+            <!-- Tabs -->
+            <div class="admin-user-detail-tabs">
+
+              <button
+                type="button"
+                class="admin-user-detail-tab active"
+                data-admin-user-detail-tab="GENERAL"
+                onclick="adminSetUserDetailTab('GENERAL')"
+              >
+                👤 ข้อมูลทั่วไป
+              </button>
+
+              <button
+                type="button"
+                class="admin-user-detail-tab"
+                data-admin-user-detail-tab="PRODUCTS"
+                onclick="adminSetUserDetailTab('PRODUCTS')"
+              >
+                🛒 รายการสินค้า
+              </button>
+
+              <button
+                type="button"
+                class="admin-user-detail-tab"
+                data-admin-user-detail-tab="PURCHASES"
+                onclick="adminSetUserDetailTab('PURCHASES')"
+              >
+                🛍 รายการที่ซื้อ
+              </button>
+
+              <button
+                type="button"
+                class="admin-user-detail-tab"
+                data-admin-user-detail-tab="REVIEWS"
+                onclick="adminSetUserDetailTab('REVIEWS')"
+              >
+                ☆ รีวิว
+              </button>
+
+            </div>
+
+
+            <!-- Dynamic real DB content -->
+            <div
+              id="adminUserDetailBody"
+              class="admin-user-detail-body"
+            ></div>
+
+          </div>
+
+        </section>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 <div class="page" id="pg-admin-products">
 <div class="admin-layout"><div class="admin-sidebar" id="adminSidebar10"></div><div class="admin-content">
 <div class="sec-header"><div><div class="sec-title">📦 จัดการสินค้า</div><div class="sec-sub">ตรวจสอบและจัดการรายการสินค้าจากผู้ขาย</div></div><button class="btn btn-secondary btn-sm" onclick="adminLoadProducts()">↻ รีเฟรช</button></div>

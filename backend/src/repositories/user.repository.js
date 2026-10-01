@@ -109,7 +109,20 @@ async function markPhoneVerified(executor, userId) {
 }
 
 async function listAdminSuspended() {
-  const [rows] = await pool.execute(`SELECT id,username,email,account_mode,status,suspension_reason,suspended_until,updated_at FROM users WHERE status IN ('SUSPENDED','BANNED') ORDER BY updated_at DESC`);
+  const [rows] = await pool.execute(`
+    SELECT
+      id,
+      username,
+      email,
+      account_mode,
+      status,
+      suspension_reason,
+      suspended_until,
+      updated_at
+    FROM users
+    WHERE status = 'BANNED'
+    ORDER BY updated_at DESC
+  `);
   return rows.map((row) => ({ id:row.id,username:row.username,email:row.email,accountMode:row.account_mode,status:row.status,suspensionReason:row.suspension_reason,suspendedUntil:row.suspended_until,updatedAt:row.updated_at }));
 }
 async function adminSetStatus(executor,userId,status,reason=null,suspendedUntil=null) {

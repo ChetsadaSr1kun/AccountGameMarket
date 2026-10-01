@@ -152,60 +152,204 @@ after(async () => {
   await closeTestDatabasePool();
 });
 
-test('suspends and restores a customer while invalidating the prior session', async () => {
-  const nonAdminAttempt = await api
-    .patch(`/api/v1/admin/moderation/users/${customer.id}/status`)
-    .set('Cookie', cookies(nonAdmin.auth))
-    .set('X-CSRF-Token', csrf(nonAdmin.auth))
-    .send({ status: 'SUSPENDED', reason: 'Unauthorized moderation attempt fixture.' });
-  assert.equal(nonAdminAttempt.status, 403);
-  assert.equal(nonAdminAttempt.body.error.code, 'FORBIDDEN');
+test(
+  'bans and restores a customer while invalidating the prior session',
+  async () => {
 
-  const selfAttempt = await api
-    .patch(`/api/v1/admin/moderation/users/${admin.id}/status`)
-    .set('Cookie', cookies(admin.auth))
-    .set('X-CSRF-Token', csrf(admin.auth))
-    .send({ status: 'SUSPENDED', reason: 'Self moderation is forbidden.' });
-  assert.equal(selfAttempt.status, 403);
-  assert.equal(selfAttempt.body.error.code, 'SELF_MODERATION_FORBIDDEN');
+    const nonAdminAttempt = await api
+      .patch(
+        `/api/v1/admin/moderation/users/${customer.id}/status`
+      )
+      .set(
+        'Cookie',
+        cookies(nonAdmin.auth)
+      )
+      .set(
+        'X-CSRF-Token',
+        csrf(nonAdmin.auth)
+      )
+      .send({
+        status: 'BANNED',
+        reason:
+          'Unauthorized moderation attempt fixture.',
+      });
 
-  const reason = 'Repeated policy violations.';
-  const suspension = await api
-    .patch(`/api/v1/admin/moderation/users/${customer.id}/status`)
-    .set('Cookie', cookies(admin.auth))
-    .set('X-CSRF-Token', csrf(admin.auth))
-    .send({ status: 'SUSPENDED', reason });
-  assert.equal(suspension.status, 200);
-  assert.equal(suspension.body.data.user.status, 'SUSPENDED');
+    assert.equal(
+      nonAdminAttempt.status,
+      403
+    );
 
-  const [[suspended]] = await pool.execute(
-    'SELECT status, suspension_reason, token_version FROM users WHERE id = ?',
-    [customer.id],
-  );
-  assert.equal(suspended.status, 'SUSPENDED');
-  assert.equal(suspended.suspension_reason, reason);
-  assert.ok(Number(suspended.token_version) > 0);
+    assert.equal(
+      nonAdminAttempt.body.error.code,
+      'FORBIDDEN'
+    );
 
-  const staleSession = await api.get('/api/v1/auth/me').set('Cookie', cookies(customer.auth));
-  assert.equal(staleSession.status, 401);
-  assert.equal(staleSession.body.error.code, 'INVALID_SESSION');
 
-  const restoration = await api
-    .patch(`/api/v1/admin/moderation/users/${customer.id}/status`)
-    .set('Cookie', cookies(admin.auth))
-    .set('X-CSRF-Token', csrf(admin.auth))
-    .send({ status: 'ACTIVE' });
-  assert.equal(restoration.status, 200);
-  assert.equal(restoration.body.data.user.status, 'ACTIVE');
+    const selfAttempt = await api
+      .patch(
+        `/api/v1/admin/moderation/users/${admin.id}/status`
+      )
+      .set(
+        'Cookie',
+        cookies(admin.auth)
+      )
+      .set(
+        'X-CSRF-Token',
+        csrf(admin.auth)
+      )
+      .send({
+        status: 'BANNED',
+        reason:
+          'Self moderation is forbidden.',
+      });
 
-  const [[active]] = await pool.execute(
-    'SELECT status, suspension_reason, suspended_until FROM users WHERE id = ?',
-    [customer.id],
-  );
-  assert.equal(active.status, 'ACTIVE');
-  assert.equal(active.suspension_reason, null);
-  assert.equal(active.suspended_until, null);
-});
+    assert.equal(
+      selfAttempt.status,
+      403
+    );
+
+    assert.equal(
+      selfAttempt.body.error.code,
+      'SELF_MODERATION_FORBIDDEN'
+    );
+
+
+    const reason =
+      'Repeated policy violations.';
+
+    const ban = await api
+      .patch(
+        `/api/v1/admin/moderation/users/${customer.id}/status`
+      )
+      .set(
+        'Cookie',
+        cookies(admin.auth)
+      )
+      .set(
+        'X-CSRF-Token',
+        csrf(admin.auth)
+      )
+      .send({
+        status: 'BANNED',
+        reason,
+      });
+
+    assert.equal(
+      ban.status,
+      200
+    );
+
+    assert.equal(
+      ban.body.data.user.status,
+      'BANNED'
+    );
+
+
+    const [[banned]] =
+      await pool.execute(
+        `
+          SELECT
+            status,
+            suspension_reason,
+            token_version
+          FROM users
+          WHERE id = ?
+        `,
+        [customer.id]
+      );
+
+    assert.equal(
+      banned.status,
+      'BANNED'
+    );
+
+    assert.equal(
+      banned.suspension_reason,
+      reason
+    );
+
+    assert.ok(
+      Number(
+        banned.token_version
+      ) > 0
+    );
+
+
+    const staleSession =
+      await api
+        .get('/api/v1/auth/me')
+        .set(
+          'Cookie',
+          cookies(customer.auth)
+        );
+
+    assert.equal(
+      staleSession.status,
+      401
+    );
+
+    assert.equal(
+      staleSession.body.error.code,
+      'INVALID_SESSION'
+    );
+
+
+    const restoration = await api
+      .patch(
+        `/api/v1/admin/moderation/users/${customer.id}/status`
+      )
+      .set(
+        'Cookie',
+        cookies(admin.auth)
+      )
+      .set(
+        'X-CSRF-Token',
+        csrf(admin.auth)
+      )
+      .send({
+        status: 'ACTIVE',
+      });
+
+    assert.equal(
+      restoration.status,
+      200
+    );
+
+    assert.equal(
+      restoration.body.data.user.status,
+      'ACTIVE'
+    );
+
+
+    const [[active]] =
+      await pool.execute(
+        `
+          SELECT
+            status,
+            suspension_reason,
+            suspended_until
+          FROM users
+          WHERE id = ?
+        `,
+        [customer.id]
+      );
+
+    assert.equal(
+      active.status,
+      'ACTIVE'
+    );
+
+    assert.equal(
+      active.suspension_reason,
+      null
+    );
+
+    assert.equal(
+      active.suspended_until,
+      null
+    );
+  }
+);
 
 test('pauses and restores a product through the public marketplace boundary', async () => {
   const beforeModeration = await api.get(`/api/v1/products/${moderatedProductId}`);
