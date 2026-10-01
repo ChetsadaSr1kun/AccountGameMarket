@@ -52,6 +52,10 @@ for (const paymentMethod of ['BANK', 'PROMPTPAY']) {
     const attempt = await withdrawalAttemptService.createAttempt(userId, {
       amount: 100,
       paymentMethod,
+      bankCode:
+        paymentMethod === 'BANK'
+          ? 'KBANK'
+          : null,
       accountName: 'Payment Methods',
       accountNumber: '0812345678',
     });
@@ -110,6 +114,7 @@ test('completes a BANK withdrawal attempt after the email and phone OTP flow', a
     const attempt = await withdrawalAttemptService.createAttempt(userId, {
       amount: 100,
       paymentMethod: 'BANK',
+      bankCode: 'KBANK',
       accountName: 'Payment Methods',
       accountNumber: '0812345678',
     });
@@ -127,6 +132,7 @@ test('completes a BANK withdrawal attempt after the email and phone OTP flow', a
     const requests = await withdrawalService.listMyRequests(userId);
     const request = requests.find((item) => item.id === completed.withdrawalRequestId);
     assert.equal(request?.paymentMethod, 'BANK');
+    assert.equal(request?.bankCode, 'KBANK');
     assert.equal(request?.status, 'PENDING');
 
     const wallet = await walletRepository.findByUserId(userId);

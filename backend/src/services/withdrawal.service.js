@@ -5,12 +5,23 @@ const walletRepository = require('../repositories/wallet.repository');
 
 const allowedMethods = new Set(['BANK', 'PROMPTPAY']);
 
+const allowedBankCodes = new Set([
+  'KBANK',
+  'KTB',
+  'GSB',
+  'BBL',
+  'SCB',
+  'BAY',
+  'TTB',
+]);
+
 function mapRequest(row) {
   return {
     id: Number(row.id),
     userId: row.user_id ? Number(row.user_id) : undefined,
     amount: Number(row.amount),
     paymentMethod: row.payment_method,
+    bankCode: row.bank_code || null,
     accountName: row.account_name,
     accountNumber: row.account_number,
     status: row.status,
@@ -22,9 +33,17 @@ function mapRequest(row) {
 
 async function createRequestWithConnection(userId, data, connection) {
   const amount = Number(data.amount);
-  const paymentMethod = String(data.paymentMethod || '').toUpperCase();
-  const accountName = String(data.accountName || '').trim();
-  const accountNumber = String(data.accountNumber || '').trim();
+  const paymentMethod =
+    String(data.paymentMethod || '').toUpperCase();
+
+  const bankCode =
+    String(data.bankCode || '').toUpperCase();
+
+  const accountName =
+    String(data.accountName || '').trim();
+
+  const accountNumber =
+    String(data.accountNumber || '').trim();
 
   if (!Number.isFinite(amount) || amount < 100) {
     throw new AppError(
@@ -47,6 +66,17 @@ async function createRequestWithConnection(userId, data, connection) {
       'Unsupported withdrawal method.',
       400,
       'INVALID_WITHDRAWAL_METHOD'
+    );
+  }
+
+  if (
+    paymentMethod === 'BANK' &&
+    !allowedBankCodes.has(bankCode)
+  ) {
+    throw new AppError(
+      'A valid bank is required.',
+      400,
+      'INVALID_WITHDRAWAL_BANK'
     );
   }
 
@@ -84,6 +114,10 @@ async function createRequestWithConnection(userId, data, connection) {
       userId,
       amount,
       paymentMethod,
+      bankCode:
+        paymentMethod === 'BANK'
+          ? bankCode
+          : null,
       accountName,
       accountNumber,
     },

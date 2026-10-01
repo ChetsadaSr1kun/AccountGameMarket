@@ -5,12 +5,21 @@ const { pool } = require('../config/database');
 async function createAttempt(data, executor = pool) {
   const [result] = await executor.execute(
     `INSERT INTO withdrawal_attempts
-      (user_id, amount, payment_method, account_name, account_number, expires_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+      (
+        user_id,
+        amount,
+        payment_method,
+        bank_code,
+        account_name,
+        account_number,
+        expires_at
+      )
+    VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       data.userId,
       data.amount,
       data.paymentMethod,
+      data.bankCode,
       data.accountName,
       data.accountNumber,
       data.expiresAt,
@@ -22,7 +31,7 @@ async function createAttempt(data, executor = pool) {
 
 async function findById(id, executor = pool) {
   const [rows] = await executor.execute(
-    `SELECT id, user_id, amount, payment_method, account_name, account_number,
+    `SELECT id, user_id, amount, payment_method, bank_code, account_name, account_number,
             status, email_verified_at, phone_verified_at,
             expires_at, created_at, updated_at
        FROM withdrawal_attempts
@@ -36,7 +45,7 @@ async function findById(id, executor = pool) {
 
 async function findByIdForUpdate(id, executor = pool) {
   const [rows] = await executor.execute(
-    `SELECT id, user_id, amount, payment_method, account_name, account_number,
+    `SELECT id, user_id, amount, payment_method, bank_code, account_name, account_number,
             status, email_verified_at, phone_verified_at,
             expires_at, created_at, updated_at
        FROM withdrawal_attempts

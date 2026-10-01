@@ -584,6 +584,7 @@ test('approves an authentic reserved withdrawal without deducting the wallet twi
   const request = await withdrawalService.createRequest(withdrawalApprovalUser.id, {
     amount: withdrawalAmount,
     paymentMethod: 'BANK',
+    bankCode: 'KBANK',
     accountName: 'Withdrawal Approval Fixture',
     accountNumber: '1234567890',
   });
@@ -602,7 +603,14 @@ test('approves an authentic reserved withdrawal without deducting the wallet twi
 
   const pending = await api.get('/api/v1/admin/wallet/withdrawal/pending').set('Cookie', cookies(admin.auth));
   assert.equal(pending.status, 200);
-  assert.ok(pending.body.data.requests.some((item) => Number(item.id) === approvalWithdrawalId && item.status === 'PENDING'));
+  assert.ok(
+    pending.body.data.requests.some(
+      (item) =>
+        Number(item.id) === approvalWithdrawalId &&
+        item.status === 'PENDING' &&
+        item.bankCode === 'KBANK'
+    )
+  );
 
   const nonAdminAttempt = await api
     .post(`/api/v1/admin/wallet/withdrawal/${approvalWithdrawalId}/approve`)

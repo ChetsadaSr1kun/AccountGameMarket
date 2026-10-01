@@ -10,6 +10,12 @@ router.get('/topup/pending', authenticate, authorize('ADMIN'), controller.listPe
 router.post('/topup/:id/approve', authenticate, authorize('ADMIN'), requireCsrf, controller.approve);
 router.post('/topup/:id/reject', authenticate, authorize('ADMIN'), requireCsrf, controller.reject);
 router.get('/withdrawal/pending', authenticate, authorize('ADMIN'), controller.listPendingWithdrawals);
+router.get(
+  '/withdrawal/history',
+  authenticate,
+  authorize('ADMIN'),
+  controller.listWithdrawalHistory
+);
 router.post('/withdrawal/:id/approve', authenticate, authorize('ADMIN'), requireCsrf, controller.approveWithdrawal);
 router.post('/withdrawal/:id/reject', authenticate, authorize('ADMIN'), requireCsrf, controller.rejectWithdrawal);
 

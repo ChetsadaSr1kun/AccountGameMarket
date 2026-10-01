@@ -28,6 +28,16 @@ const allowedMethods = new Set([
   'PROMPTPAY',
 ]);
 
+const allowedBankCodes = new Set([
+  'KBANK',
+  'KTB',
+  'GSB',
+  'BBL',
+  'SCB',
+  'BAY',
+  'TTB',
+]);
+
 function expiresAtMs(value) {
   return Date.parse(`${String(value).replace(' ', 'T')}Z`);
 }
@@ -48,6 +58,7 @@ function mapAttempt(row) {
     userId: Number(row.user_id),
     amount: Number(row.amount),
     paymentMethod: row.payment_method,
+    bankCode: row.bank_code || null,
     accountName: row.account_name,
     accountNumber: row.account_number,
     status: row.status,
@@ -61,9 +72,17 @@ function mapAttempt(row) {
 
 function validateWithdrawalData(data) {
   const amount = Number(data.amount);
-  const paymentMethod = String(data.paymentMethod || '').toUpperCase();
-  const accountName = String(data.accountName || '').trim();
-  const accountNumber = String(data.accountNumber || '').trim();
+  const paymentMethod =
+    String(data.paymentMethod || '').toUpperCase();
+
+  const bankCode =
+    String(data.bankCode || '').toUpperCase();
+
+  const accountName =
+    String(data.accountName || '').trim();
+
+  const accountNumber =
+    String(data.accountNumber || '').trim();
 
   if (!Number.isFinite(amount) || amount < MIN_WITHDRAWAL_AMOUNT) {
     throw new AppError(
@@ -89,6 +108,17 @@ function validateWithdrawalData(data) {
     );
   }
 
+  if (
+    paymentMethod === 'BANK' &&
+    !allowedBankCodes.has(bankCode)
+  ) {
+    throw new AppError(
+      'A valid bank is required.',
+      400,
+      'INVALID_WITHDRAWAL_BANK'
+    );
+  }
+
   if (!accountName || !accountNumber) {
     throw new AppError(
       'Account information is required.',
@@ -100,6 +130,10 @@ function validateWithdrawalData(data) {
   return {
     amount,
     paymentMethod,
+    bankCode:
+      paymentMethod === 'BANK'
+        ? bankCode
+        : null,
     accountName,
     accountNumber,
   };
@@ -652,6 +686,7 @@ async function markCompleted(userId, attemptId) {
         {
           amount: attempt.amount,
           paymentMethod: attempt.payment_method,
+          bankCode: attempt.bank_code,
           accountName: attempt.account_name,
           accountNumber: attempt.account_number,
         },

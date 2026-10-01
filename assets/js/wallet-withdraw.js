@@ -325,12 +325,19 @@ async function sendWithdrawalPhoneOtp() {
     button.disabled = true;
     button.textContent = 'กำลังส่ง...';
   }
+  const controller = new AbortController();
+
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    12000
+  );
 
   try {
     const body = await withdrawalApiFetch(
       `/api/v1/wallet/withdrawal-attempts/${pendingWithdrawal.attemptId}/phone/send`,
       {
         method: 'POST',
+        signal: controller.signal,
       }
     );
 
@@ -351,11 +358,19 @@ async function sendWithdrawalPhoneOtp() {
       error
     );
 
-    withdrawalPhoneOtpMessage(
-      error.message ||
-        'ไม่สามารถส่ง OTP ได้ กรุณาลองใหม่อีกครั้ง'
-    );
+    if (error.name === 'AbortError') {
+      withdrawalPhoneOtpMessage(
+        'ระบบส่ง OTP ใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง'
+      );
+    } else {
+      withdrawalPhoneOtpMessage(
+        error.message ||
+          'ไม่สามารถส่ง OTP ได้ กรุณาลองใหม่อีกครั้ง'
+      );
+    }
   } finally {
+    clearTimeout(timeoutId);
+
     if (button && !button.dataset.cooldownTimer) {
       button.disabled = false;
       button.textContent = 'ส่งรหัส OTP';
@@ -439,6 +454,14 @@ async function verifyWithdrawalPhoneOtp() {
       'withdrawSummaryMethod'
     );
 
+    const bankRow = document.getElementById(
+      'withdrawSummaryBankRow'
+    );
+
+    const bankEl = document.getElementById(
+      'withdrawSummaryBank'
+    );
+
     const accountEl = document.getElementById(
       'withdrawSummaryAccount'
     );
@@ -453,6 +476,35 @@ async function verifyWithdrawalPhoneOtp() {
     if (methodEl) {
       methodEl.textContent =
         pendingWithdrawal.paymentMethodLabel;
+    }
+
+    const bankLabels = {
+      KBANK: 'กสิกรไทย',
+      KTB: 'กรุงไทย',
+      GSB: 'ออมสิน',
+      BBL: 'กรุงเทพ',
+      SCB: 'ไทยพาณิชย์',
+      BAY: 'กรุงศรีอยุธยา',
+      TTB: 'ทีเอ็มบีธนชาต',
+    };
+
+    if (
+      pendingWithdrawal.paymentMethod === 'BANK' &&
+      pendingWithdrawal.bankCode
+    ) {
+      if (bankRow) {
+        bankRow.style.display = '';
+      }
+
+      if (bankEl) {
+        bankEl.textContent =
+          bankLabels[pendingWithdrawal.bankCode] ||
+          pendingWithdrawal.bankCode;
+      }
+    } else {
+      if (bankRow) {
+        bankRow.style.display = 'none';
+      }
     }
 
     if (accountEl) {
@@ -650,11 +702,48 @@ function renderWithdrawalPaymentMethod(method) {
   options.forEach((option) => option.setAttribute('aria-selected', String(option.dataset.withdrawMethod === method)));
 }
 
+function updateWithdrawalBankVisibility(method) {
+  const bankGroup =
+    document.getElementById(
+      'withdrawBankGroup'
+    );
+
+  const bankSelect =
+    document.getElementById(
+      'withdrawBankCode'
+    );
+
+  if (!bankGroup) return;
+
+  if (method === 'BANK') {
+    bankGroup.style.display = '';
+  } else {
+    bankGroup.style.display = 'none';
+
+    if (bankSelect) {
+      bankSelect.value = '';
+    }
+  }
+}
+
 function setWithdrawalPaymentMethod(method) {
-  if (!withdrawalPaymentMethodOptions[method]) return;
-  const { select } = getWithdrawalPaymentMethodDropdown();
-  if (select) select.value = method;
+  if (!withdrawalPaymentMethodOptions[method]) {
+    return;
+  }
+
+  const { select } =
+    getWithdrawalPaymentMethodDropdown();
+
+  if (select) {
+    select.value = method;
+  }
+
   renderWithdrawalPaymentMethod(method);
+
+  updateWithdrawalBankVisibility(
+    method
+  );
+
   closeWithdrawalPaymentMethodDropdown();
 }
 
@@ -672,6 +761,9 @@ function initializeWithdrawalPaymentMethodDropdown() {
   const { control, menu, options, wrapper, select } = getWithdrawalPaymentMethodDropdown();
   if (!control || !menu || !wrapper || !select) return;
   renderWithdrawalPaymentMethod(select.value);
+  updateWithdrawalBankVisibility(
+    select.value
+  );
 
   control.addEventListener('click', () => {
     control.getAttribute('aria-expanded') === 'true'
@@ -723,6 +815,10 @@ async function startWithdrawalOtpFlow() {
     document.getElementById('withdrawAccountName')?.value.trim();
   const accountNumber =
     document.getElementById('withdrawAccountNumber')?.value.trim();
+  const bankCode =
+  document.getElementById(
+    'withdrawBankCode'
+  )?.value || '';
 
   if (!['BANK', 'PROMPTPAY'].includes(paymentMethod)) {
     return withdrawalMessage(
@@ -741,6 +837,15 @@ async function startWithdrawalOtpFlow() {
       'จำนวนถอนสูงสุดคือ 100,000 พ้อยท์'
     );
   }
+
+  if (
+  paymentMethod === 'BANK' &&
+  !bankCode
+) {
+  return withdrawalMessage(
+    'กรุณาเลือกธนาคาร'
+  );
+}
 
   if (!paymentMethod || !accountName || !accountNumber) {
     return withdrawalMessage(
@@ -776,6 +881,10 @@ async function startWithdrawalOtpFlow() {
           paymentMethod,
           accountName,
           accountNumber,
+          bankCode:
+            paymentMethod === 'BANK'
+              ? bankCode
+              : null,
         }),
       }
     );
@@ -796,6 +905,10 @@ async function startWithdrawalOtpFlow() {
       paymentMethodLabel:
         paymentMethodLabels[paymentMethod] ||
         paymentMethod,
+      bankCode:
+        paymentMethod === 'BANK'
+          ? bankCode
+          : null,
       accountName,
       accountNumber,
     };

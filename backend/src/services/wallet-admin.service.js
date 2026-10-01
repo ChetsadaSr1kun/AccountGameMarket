@@ -79,17 +79,121 @@ async function decide(requestId, adminId, approved, reason = null) {
 
 async function listPendingWithdrawals() {
   const { pool } = require('../config/database');
-  const [rows] = await pool.execute(`SELECT r.id,r.user_id,u.username,r.payment_method,r.amount,
-    r.account_name,r.account_number,r.status,r.rejection_reason,r.created_at
+  const [rows] = await pool.execute(`SELECT r.id,r.user_id,u.username,u.avatar_url,r.payment_method,r.bank_code,r.amount,
+  r.account_name,r.account_number,r.status,r.rejection_reason,r.created_at
     FROM withdrawal_requests r INNER JOIN users u ON u.id=r.user_id
     WHERE r.status='PENDING' ORDER BY r.id ASC`);
   return rows.map((row) => ({
-    id: Number(row.id), userId: Number(row.user_id), username: row.username,
-    paymentMethod: row.payment_method, amount: Number(row.amount),
-    accountName: row.account_name, accountNumber: row.account_number,
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    username: row.username,
+    avatarUrl: row.avatar_url || null,
+    paymentMethod: row.payment_method,
+    bankCode: row.bank_code || null,
+    amount: Number(row.amount),
+    accountName: row.account_name,
+    accountNumber: row.account_number,
     status: row.status, rejectionReason: row.rejection_reason,
     createdAt: row.created_at,
   }));
+}
+
+async function listWithdrawalHistory(limit = 100) {
+  const { pool } = require('../config/database');
+
+  const safeLimit = Math.min(
+    100,
+    Math.max(
+      1,
+      Number.parseInt(limit, 10) || 100
+    )
+  );
+
+  const [rows] = await pool.execute(`
+    SELECT
+      r.id,
+      r.user_id,
+      u.username,
+      u.avatar_url,
+      r.payment_method,
+      r.bank_code,
+      r.amount,
+      r.account_name,
+      r.account_number,
+      r.status,
+      r.rejection_reason,
+      r.reviewed_at,
+      r.created_at
+    FROM withdrawal_requests r
+    INNER JOIN users u
+      ON u.id = r.user_id
+    ORDER BY r.id DESC
+    LIMIT ${safeLimit}
+  `);
+
+  return rows.map((row) => ({
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    username: row.username,
+    avatarUrl: row.avatar_url || null,
+    paymentMethod: row.payment_method,
+    bankCode: row.bank_code || null,
+    amount: Number(row.amount),
+    accountName: row.account_name,
+    accountNumber: row.account_number,
+    status: row.status,
+    rejectionReason:
+      row.rejection_reason || null,
+    reviewedAt:
+      row.reviewed_at || null,
+    createdAt: row.created_at,
+  }));
+}
+
+async function getWithdrawalSummary() {
+  const { pool } = require('../config/database');
+
+  const [rows] = await pool.execute(`
+    SELECT
+      SUM(
+        CASE
+          WHEN status = 'PENDING'
+          THEN 1
+          ELSE 0
+        END
+      ) AS pending_count,
+
+      SUM(
+        CASE
+          WHEN status = 'APPROVED'
+          THEN 1
+          ELSE 0
+        END
+      ) AS approved_count,
+
+      SUM(
+        CASE
+          WHEN status = 'REJECTED'
+          THEN 1
+          ELSE 0
+        END
+      ) AS rejected_count
+
+    FROM withdrawal_requests
+  `);
+
+  const row = rows[0] || {};
+
+  return {
+    pendingCount:
+      Number(row.pending_count || 0),
+
+    approvedCount:
+      Number(row.approved_count || 0),
+
+    rejectedCount:
+      Number(row.rejected_count || 0),
+  };
 }
 
 async function decideWithdrawal(requestId, adminId, approved, reason = null) {
@@ -118,4 +222,13 @@ async function decideWithdrawal(requestId, adminId, approved, reason = null) {
   });
 }
 
-module.exports = { listPending, decide, listTopupHistory, getTopupSummary, listPendingWithdrawals, decideWithdrawal };
+module.exports = {
+  listPending,
+  decide,
+  listTopupHistory,
+  getTopupSummary,
+  listPendingWithdrawals,
+  listWithdrawalHistory,
+  getWithdrawalSummary,
+  decideWithdrawal
+};
