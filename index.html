@@ -1967,61 +1967,258 @@
 <div class="modal-backdrop" id="adminSellerVerificationModal" hidden onclick="if(event.target===this)closeAdminSellerVerificationModal()"><div class="modal-dialog admin-seller-verification-modal" role="dialog" aria-modal="true"><div class="sec-header"><div><div class="sec-title">🪪 รายละเอียดการตรวจสอบ</div><div class="sec-sub">ตรวจสอบข้อมูลและเอกสารของผู้สมัคร</div></div><button class="btn btn-ghost btn-sm" onclick="closeAdminSellerVerificationModal()">✕</button></div><div id="adminSellerVerificationModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminSellerVerificationModal()">ปิด</button></div></div></div>
 <!-- Admin Report -->
 <div class="page" id="pg-admin-report">
-<div class="admin-layout">
-<div class="admin-sidebar" id="adminSidebar5"></div>
-<div class="admin-content">
-<div class="sec-header"><div class="sec-title">🚨 รายงาน</div><div class="sec-sub">จัดการรายงานจากผู้ใช้และปัญหาของระบบ</div></div>
-<div class="card">
-<div class="report-panel">
-  <div class="report-summary-grid">
-    <div class="report-stat danger"><div class="label">รายงานทั้งหมด</div><div id="adminReportStatTotal" class="value">0</div><div id="adminReportUpdatedAt" class="sub">กำลังโหลดข้อมูล...</div></div>
-    <div class="report-stat warn"><div class="label">กำลังตรวจสอบ</div><div id="adminReportStatPending" class="value">0</div><div class="sub">รอตรวจสอบ + กำลังตรวจสอบ</div></div>
-    <div class="report-stat success"><div class="label">ปิดเคสแล้ว</div><div id="adminReportStatClosed" class="value">0</div><div class="sub">ไม่พบปัญหา + ดำเนินการแล้ว</div></div>
-    <div class="report-stat info"><div class="label">บัคระบบ</div><div class="value">—</div><div class="sub">อยู่ในหมวดรายงานบัค</div></div>
-  </div>
+  <div class="admin-layout">
 
-  <div class="tabs" style="margin-bottom:18px">
-    <button class="tab-btn active" onclick="switchTab(this,'rpt-user')">🚨 รายงานผู้ใช้</button>
-    <button class="tab-btn" onclick="switchTab(this,'rpt-transaction')">🧾 รายงานการทำรายการ</button>
-    <button class="tab-btn" onclick="switchTab(this,'rpt-bug')">🐛 รายงานบัค</button>
-  </div>
+    <div
+      class="admin-sidebar"
+      id="adminSidebar5"
+    ></div>
 
-  <div id="rpt-transaction" style="display:none">
-    <div class="report-summary-box">
-      <div class="report-summary-item"><div class="label">สถานะการตรวจ</div><strong>ข้อมูลจาก Transaction Report จริง</strong><div class="sub">แสดงทั้งเคสที่เปิดอยู่และเคสที่ปิดแล้ว</div></div>
-      <div class="report-summary-item"><div class="label">การจัดการ</div><strong>รับเคส • ไม่พบปัญหา • ดำเนินการแล้ว</strong><div class="sub">การเปลี่ยนสถานะยังตรวจสิทธิ์ Admin + CSRF</div></div>
+    <div class="admin-content">
+
+      <div class="sec-header">
+        <div>
+          <div class="sec-title">
+            🚨 รายงาน
+          </div>
+
+          <div class="sec-sub">
+            ตรวจสอบและจัดการรายงานการซื้อขายจากผู้ใช้งาน
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="report-panel">
+
+          <!-- Summary -->
+          <div class="report-summary-grid">
+
+            <div class="report-stat danger">
+              <div class="label">
+                ⏳ รอตรวจสอบ
+              </div>
+
+              <div
+                id="adminReportStatPending"
+                class="value"
+              >
+                0
+              </div>
+
+              <div class="sub">
+                รายงานที่ยังไม่ได้รับเคส
+              </div>
+            </div>
+
+            <div class="report-stat warn">
+              <div class="label">
+                🔎 กำลังตรวจสอบ
+              </div>
+
+              <div
+                id="adminReportStatReviewed"
+                class="value"
+              >
+                0
+              </div>
+
+              <div class="sub">
+                รายงานที่ Admin รับเคสแล้ว
+              </div>
+            </div>
+
+            <div class="report-stat success">
+              <div class="label">
+                ✅ ดำเนินการแล้ว
+              </div>
+
+              <div
+                id="adminReportStatResolved"
+                class="value"
+              >
+                0
+              </div>
+
+              <div class="sub">
+                เคสที่ตรวจสอบและดำเนินการแล้ว
+              </div>
+            </div>
+
+            <div class="report-stat info">
+              <div class="label">
+                ✓ ไม่พบปัญหา
+              </div>
+
+              <div
+                id="adminReportStatDismissed"
+                class="value"
+              >
+                0
+              </div>
+
+              <div class="sub">
+                ตรวจสอบแล้วไม่พบความผิดปกติ
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Filters -->
+          <div class="report-toolbar">
+
+            <div class="report-field">
+              <span class="icon">🔍</span>
+
+              <input
+                id="adminReportSearch"
+                oninput="applyAdminReportFilter()"
+                placeholder="ค้นหา Report ID, ผู้ใช้, Order หรือสินค้า"
+              />
+            </div>
+
+            <div class="report-field">
+              <span class="icon">📌</span>
+
+              <select
+                id="adminReportStatusFilter"
+                onchange="applyAdminReportFilter()"
+              >
+                <option value="ALL">
+                  ทุกสถานะ
+                </option>
+
+                <option value="PENDING">
+                  รอตรวจสอบ
+                </option>
+
+                <option value="REVIEWED">
+                  กำลังตรวจสอบ
+                </option>
+
+                <option value="RESOLVED">
+                  ดำเนินการแล้ว
+                </option>
+
+                <option value="DISMISSED">
+                  ไม่พบปัญหา
+                </option>
+              </select>
+            </div>
+
+            <div class="report-field">
+              <span class="icon">🗂️</span>
+
+              <select
+                id="adminReportReasonFilter"
+                onchange="applyAdminReportFilter()"
+              >
+                <option value="ALL">
+                  ทุกเหตุผล
+                </option>
+
+                <option value="SCAM">
+                  หลอกลวง / พยายามโกง
+                </option>
+
+                <option value="ITEM_NOT_AS_DESCRIBED">
+                  สินค้าไม่ตรงรายละเอียด
+                </option>
+
+                <option value="NO_DELIVERY">
+                  ไม่ได้รับสินค้า / ไม่ส่งข้อมูล
+                </option>
+
+                <option value="HARASSMENT">
+                  คำหยาบ / การคุกคาม
+                </option>
+
+                <option value="CHAT_ABUSE">
+                  พฤติกรรมไม่เหมาะสมในการพูดคุย
+                </option>
+
+                <option value="OTHER">
+                  อื่น ๆ
+                </option>
+              </select>
+            </div>
+
+            <div class="report-field">
+              <span class="icon">🕒</span>
+
+              <select
+                id="adminReportRangeFilter"
+                onchange="applyAdminReportFilter()"
+              >
+                <option value="LATEST">
+                  ทุกช่วงเวลา
+                </option>
+
+                <option value="TODAY">
+                  วันนี้
+                </option>
+
+                <option value="7D">
+                  7 วันที่ผ่านมา
+                </option>
+
+                <option value="30D">
+                  30 วันที่ผ่านมา
+                </option>
+              </select>
+            </div>
+
+          </div>
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              margin:4px 0 14px;
+              gap:12px;
+            "
+          >
+            <div>
+              <div style="font-weight:700">
+                รายการรายงาน
+              </div>
+
+              <div
+                id="adminReportUpdatedAt"
+                style="
+                  font-size:12px;
+                  color:var(--muted);
+                  margin-top:3px;
+                "
+              >
+                กำลังโหลดข้อมูล...
+              </div>
+            </div>
+
+            <button
+              class="btn btn-secondary btn-sm"
+              onclick="resetAdminReportFilters()"
+            >
+              ↻ รีเซ็ตตัวกรอง
+            </button>
+          </div>
+
+          <!-- Real transaction reports -->
+          <div
+            id="adminTransactionReportList"
+            class="report-list"
+          >
+            <div class="report-empty">
+              กำลังโหลดรายงาน...
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
-    <div class="report-toolbar">
-      <div class="report-field"><span class="icon">🔍</span><input id="adminReportSearch" oninput="applyAdminReportFilter()" placeholder="ค้นหา User, Order ID, สินค้า หรือเหตุผล"/></div>
-      <div class="report-field"><span class="icon">📌</span><select id="adminReportStatusFilter" onchange="applyAdminReportFilter()"><option value="ALL">ทุกสถานะ</option><option value="PENDING">รอตรวจสอบ</option><option value="REVIEWED">กำลังตรวจสอบ</option><option value="DISMISSED">ปิดรายงาน</option><option value="RESOLVED">ดำเนินการแล้ว</option></select></div>
-      <div class="report-field"><span class="icon">🗂️</span><select id="adminReportReasonFilter" onchange="applyAdminReportFilter()"><option value="ALL">ทุกประเภท</option><option value="SCAM">หลอกลวง</option><option value="ITEM_NOT_AS_DESCRIBED">สินค้าไม่ตรงรายละเอียด</option><option value="NO_DELIVERY">ไม่ได้รับสินค้า</option><option value="HARASSMENT">คุกคาม</option><option value="CHAT_ABUSE">พฤติกรรมไม่เหมาะสม</option><option value="OTHER">อื่น ๆ</option></select></div>
-      <div class="report-field"><span class="icon">🕒</span><select id="adminReportRangeFilter" onchange="applyAdminReportFilter()"><option value="LATEST">ทั้งหมด</option><option value="TODAY">วันนี้</option><option value="7D">7 วันที่ผ่านมา</option><option value="30D">30 วันที่ผ่านมา</option></select></div>
-      <button class="btn btn-secondary btn-sm" onclick="resetAdminReportFilters()">รีเซ็ต</button>
-    </div>
-    <div id="adminTransactionReportList" class="report-list"></div>
   </div>
-
-  <div id="rpt-user">
-    <div class="report-summary-box">
-      <div class="report-summary-item"><div class="label">สถานะ</div><strong>ยังไม่เชื่อมกับข้อมูลจริง</strong><div class="sub">ส่วนนี้จะเปิดใช้งานเมื่อ User Report API ถูกพัฒนาแยกจาก Transaction Report</div></div>
-      <div class="report-summary-item"><div class="label">หมายเหตุ</div><strong>ไม่มีข้อมูลตัวอย่างแสดงในระบบ</strong><div class="sub">เพื่อไม่ให้ข้อมูล Mockup ถูกเข้าใจว่าเป็นข้อมูลจาก Database</div></div>
-    </div>
-    <div class="report-empty">ระบบยังไม่มี User Report API สำหรับส่วนนี้ จึงไม่แสดงข้อมูลตัวอย่าง</div>
-
-
-
-  <div id="rpt-bug" style="display:none">
-    <div class="report-summary-box">
-      <div class="report-summary-item"><div class="label">สถานะ</div><strong>ยังไม่เชื่อมกับ Bug Tracker</strong><div class="sub">หน้านี้ยังไม่มี Backend สำหรับดึงรายการบัคจากระบบจริง</div></div>
-      <div class="report-summary-item"><div class="label">หมายเหตุ</div><strong>ไม่มีข้อมูลตัวอย่างแสดงในระบบ</strong><div class="sub">จะเพิ่มการเชื่อมต่อเมื่อมีโมดูล Bug Report โดยเฉพาะ</div></div>
-    </div>
-    <div class="report-empty">ระบบยังไม่มี Bug Report API สำหรับส่วนนี้ จึงไม่แสดงข้อมูล Mockup</div>
-  </div>
-</div>
-</div>
-</div>
-</div>
-</div>
 </div>
 <!-- Admin Suspended Users -->
 <div class="page" id="pg-admin-suspended-users">

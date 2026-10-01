@@ -2,12 +2,245 @@ let adminTransactionReports=[];
 let adminReportFilterState={query:'',status:'ALL',reason:'ALL',range:'LATEST'};
 function adminReportEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function adminReportReason(r){return ({SCAM:'หลอกลวง / พยายามโกง',ITEM_NOT_AS_DESCRIBED:'สินค้าไม่ตรงตามรายละเอียด',NO_DELIVERY:'ไม่ได้รับสินค้า / ไม่ส่งข้อมูล',HARASSMENT:'คำหยาบ / การคุกคาม',CHAT_ABUSE:'พฤติกรรมไม่เหมาะสมในการพูดคุย',OTHER:'อื่น ๆ'})[r]||r;}
-function adminReportStatus(s){return ({PENDING:['รอตรวจสอบ','warn'],REVIEWED:['กำลังตรวจสอบ','info'],DISMISSED:['ปิดรายงาน','success'],RESOLVED:['ดำเนินการแล้ว','danger']})[s]||[s,'info'];}
-function updateAdminReportSummary(reports){const total=reports.length,pending=reports.filter(r=>r.status==='PENDING').length,reviewed=reports.filter(r=>r.status==='REVIEWED').length,closed=reports.filter(r=>['DISMISSED','RESOLVED'].includes(r.status)).length;const ids={total:'adminReportStatTotal',pending:'adminReportStatPending',closed:'adminReportStatClosed'};Object.entries({[ids.total]:total,[ids.pending]:pending+reviewed,[ids.closed]:closed}).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.textContent=String(value);});const meta=document.getElementById('adminReportUpdatedAt');if(meta)meta.textContent=`ข้อมูลจาก Database • ${new Date().toLocaleString('th-TH')}`;}
+function adminReportStatus(status) {
+  return ({
+    PENDING: [
+      'รอตรวจสอบ',
+      'danger',
+    ],
+
+    REVIEWED: [
+      'กำลังตรวจสอบ',
+      'warn',
+    ],
+
+    RESOLVED: [
+      'ดำเนินการแล้ว',
+      'success',
+    ],
+
+    DISMISSED: [
+      'ไม่พบปัญหา',
+      'info',
+    ],
+  })[status] || [status, 'info'];
+}
+function updateAdminReportSummary(reports) {
+  const pending = reports.filter(
+    (report) =>
+      report.status === 'PENDING'
+  ).length;
+
+  const reviewed = reports.filter(
+    (report) =>
+      report.status === 'REVIEWED'
+  ).length;
+
+  const resolved = reports.filter(
+    (report) =>
+      report.status === 'RESOLVED'
+  ).length;
+
+  const dismissed = reports.filter(
+    (report) =>
+      report.status === 'DISMISSED'
+  ).length;
+
+  const set = (id, value) => {
+    const element =
+      document.getElementById(id);
+
+    if (element) {
+      element.textContent = String(value);
+    }
+  };
+
+  set(
+    'adminReportStatPending',
+    pending
+  );
+
+  set(
+    'adminReportStatReviewed',
+    reviewed
+  );
+
+  set(
+    'adminReportStatResolved',
+    resolved
+  );
+
+  set(
+    'adminReportStatDismissed',
+    dismissed
+  );
+
+  const meta =
+    document.getElementById(
+      'adminReportUpdatedAt'
+    );
+
+  if (meta) {
+    meta.textContent =
+      `ทั้งหมด ${reports.length.toLocaleString(
+        'th-TH'
+      )} รายการ • อัปเดต ${new Date()
+        .toLocaleString('th-TH')}`;
+  }
+}
 function adminReportMatchesRange(r){const created=new Date(r.createdAt||0).getTime();if(Number.isNaN(created))return true;const now=Date.now();const day=86400000;switch(adminReportFilterState.range){case'TODAY':return created>=new Date(new Date().setHours(0,0,0,0)).getTime();case'7D':return created>=now-7*day;case'30D':return created>=now-30*day;default:return true;}}
 function getFilteredAdminReports(){const q=adminReportFilterState.query.toLowerCase();return adminTransactionReports.filter(r=>{if(adminReportFilterState.status!=='ALL'&&r.status!==adminReportFilterState.status)return false;if(adminReportFilterState.reason!=='ALL'&&r.reason!==adminReportFilterState.reason)return false;if(!adminReportMatchesRange(r))return false;if(!q)return true;return [r.reporterUsername,r.reportedUsername,r.productTitle,r.orderId,r.reason,r.description].some(v=>String(v??'').toLowerCase().includes(q));});}
 function renderAdminTransactionReports(reports){adminTransactionReports=Array.isArray(reports)?reports:[];window.__adminTransactionReports=adminTransactionReports;updateAdminReportSummary(adminTransactionReports);renderFilteredAdminTransactionReports();}
-function renderFilteredAdminTransactionReports(){const box=document.getElementById('adminTransactionReportList');if(!box)return;const reports=getFilteredAdminReports();if(!reports.length){box.innerHTML='<div class="report-empty">ไม่พบรายงานตามเงื่อนไขที่เลือก</div>';return;}box.innerHTML=reports.map(r=>{const [label,tone]=adminReportStatus(r.status);const actions=r.status==='PENDING'?`<button class="btn btn-primary btn-sm" onclick="window.openAdminTransactionReportDetail(${r.id})">🔍 ดูรายละเอียด</button><button class="btn btn-secondary btn-sm" onclick="adminReviewTransactionReport(${r.id},'REVIEWED')">📝 รับเคส</button><button class="btn btn-secondary btn-sm" onclick="adminReviewTransactionReport(${r.id},'DISMISSED')">✅ ไม่พบปัญหา</button><button class="btn btn-danger btn-sm" onclick="adminReviewTransactionReport(${r.id},'RESOLVED')">🚫 ดำเนินการแล้ว</button>`:r.status==='REVIEWED'?`<button class="btn btn-primary btn-sm" onclick="window.openAdminTransactionReportDetail(${r.id})">🔍 ดูรายละเอียด</button><button class="btn btn-secondary btn-sm" onclick="adminReviewTransactionReport(${r.id},'DISMISSED')">✅ ไม่พบปัญหา</button><button class="btn btn-danger btn-sm" onclick="adminReviewTransactionReport(${r.id},'RESOLVED')">🚫 ดำเนินการแล้ว</button>`:`<button class="btn btn-ghost btn-sm" onclick="window.openAdminTransactionReportDetail(${r.id})">🔍 ดูรายละเอียด</button>`;return `<article class="report-entry priority-mid"><div class="report-top"><div style="flex:1"><div class="report-title-row"><span class="inline-badge ${tone}">${label}</span><span class="inline-badge info">Transaction Report</span><div class="report-title">${adminReportEscape(r.reporterUsername||'ผู้ใช้')} รายงาน ${adminReportEscape(r.reportedUsername||'คู่กรณี')}</div></div><div class="report-meta"><span>🧾 Order #${Number(r.orderId)}</span><span>📦 ${adminReportEscape(r.productTitle||'สินค้า')}</span><span>💰 ${Number(r.amount||0).toLocaleString('th-TH')} ฿</span><span>🕒 ${r.createdAt?new Date(r.createdAt).toLocaleString('th-TH'):'-'}</span></div><div class="report-desc"><strong>เหตุผล:</strong> ${adminReportEscape(adminReportReason(r.reason))}<br><strong>รายละเอียด:</strong> ${adminReportEscape(r.description||'ไม่ได้ระบุรายละเอียด')}</div></div><div class="report-actions">${actions}</div></div></article>`;}).join('');}
+function renderFilteredAdminTransactionReports() {
+  const box =
+    document.getElementById(
+      'adminTransactionReportList'
+    );
+
+  if (!box) return;
+
+  const reports =
+    getFilteredAdminReports();
+
+  if (!reports.length) {
+    box.innerHTML = `
+      <div class="report-empty">
+        ไม่พบรายงานตามเงื่อนไขที่เลือก
+      </div>
+    `;
+
+    return;
+  }
+
+  box.innerHTML = reports
+    .map((report) => {
+      const [statusLabel, statusTone] =
+        adminReportStatus(
+          report.status
+        );
+
+      const date = report.createdAt
+        ? new Date(
+            report.createdAt
+          ).toLocaleString('th-TH')
+        : '-';
+
+      return `
+        <article
+          class="report-entry admin-report-row"
+          onclick="
+            window.openAdminTransactionReportDetail(
+              ${Number(report.id)}
+            )
+          "
+        >
+          <div class="admin-report-row-id">
+            <strong>
+              #${Number(report.id)}
+            </strong>
+
+            <span>
+              ${date}
+            </span>
+          </div>
+
+          <div class="admin-report-row-users">
+            <div>
+              <span class="admin-report-user-icon">
+                👤
+              </span>
+
+              <div>
+                <strong>
+                  ${adminReportEscape(
+                    report.reporterUsername ||
+                    '-'
+                  )}
+                </strong>
+
+                <span>
+                  ผู้รายงาน
+                </span>
+              </div>
+            </div>
+
+            <span class="admin-report-arrow">
+              →
+            </span>
+
+            <div>
+              <span class="admin-report-user-icon muted">
+                👤
+              </span>
+
+              <div>
+                <strong>
+                  ${adminReportEscape(
+                    report.reportedUsername ||
+                    '-'
+                  )}
+                </strong>
+
+                <span>
+                  ผู้ถูกรายงาน
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-report-row-info">
+            <strong>
+              ${adminReportEscape(
+                adminReportReason(
+                  report.reason
+                )
+              )}
+            </strong>
+
+            <span>
+              Order #${Number(
+                report.orderId
+              )}
+              •
+              ${adminReportEscape(
+                report.productTitle ||
+                'สินค้า'
+              )}
+            </span>
+          </div>
+
+          <div class="admin-report-row-amount">
+            <span>
+              ยอดทำรายการ
+            </span>
+
+            <strong>
+              ${Number(
+                report.amount || 0
+              ).toLocaleString(
+                'th-TH'
+              )} ฿
+            </strong>
+          </div>
+
+          <div class="admin-report-row-status">
+            <span
+              class="inline-badge ${statusTone}"
+            >
+              ${adminReportEscape(
+                statusLabel
+              )}
+            </span>
+
+            <span class="admin-report-chevron">
+              ›
+            </span>
+          </div>
+        </article>
+      `;
+    })
+    .join('');
+}
 async function loadAdminTransactionReports(){const box=document.getElementById('adminTransactionReportList');if(!box)return;box.innerHTML='<div class="report-empty">กำลังโหลดรายงานการทำรายการ...</div>';try{const r=await fetch('/api/v1/transaction-reports/admin',{credentials:'include'});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'โหลดรายงานไม่สำเร็จ');renderAdminTransactionReports(b.data?.reports||b.reports||[]);}catch(e){console.error('loadAdminTransactionReports failed:',e);box.innerHTML=`<div class="notice danger">${adminReportEscape(e.message||'โหลดรายงานไม่สำเร็จ')}</div>`;}}
 function applyAdminReportFilter(){adminReportFilterState={query:document.getElementById('adminReportSearch')?.value.trim()||'',status:document.getElementById('adminReportStatusFilter')?.value||'ALL',reason:document.getElementById('adminReportReasonFilter')?.value||'ALL',range:document.getElementById('adminReportRangeFilter')?.value||'LATEST'};renderFilteredAdminTransactionReports();}
 function resetAdminReportFilters(){['adminReportSearch','adminReportStatusFilter','adminReportReasonFilter','adminReportRangeFilter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==='adminReportStatusFilter'||id==='adminReportReasonFilter'?'ALL':id==='adminReportRangeFilter'?'LATEST':'';});applyAdminReportFilter();}
