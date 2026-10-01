@@ -87,6 +87,22 @@ app.get('/', (req, res) => {
 });
 app.use('/assets', express.static(path.join(projectRoot, 'assets'), { index: false }));
 app.use('/uploads/avatars', express.static(path.join(projectRoot, 'uploads', 'avatars'), { dotfiles: 'deny', fallthrough: false, index: false, redirect: false }));
+app.use(
+  '/uploads/games',
+  express.static(
+    path.join(
+      projectRoot,
+      'uploads',
+      'games'
+    ),
+    {
+      dotfiles: 'deny',
+      fallthrough: false,
+      index: false,
+      redirect: false
+    }
+  )
+);
 app.use('/uploads/products', express.static(path.join(projectRoot, 'uploads', 'products'), { dotfiles: 'deny', fallthrough: false, index: false, redirect: false }));
 
 app.use('/api', notFound);

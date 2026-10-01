@@ -23,7 +23,7 @@ async function findPublicById(productId, executor = pool) {
      FROM products p
      INNER JOIN games g ON g.id = p.game_id
      INNER JOIN users u ON u.id = p.seller_id
-     WHERE p.id = ? AND p.status IN ('ACTIVE', 'PUBLISHED') LIMIT 1`,
+     WHERE p.id = ? AND p.status IN ('ACTIVE', 'PUBLISHED') AND g.status = 'ACTIVE' LIMIT 1`,
     [productId],
   );
   return mapProduct(rows[0]);

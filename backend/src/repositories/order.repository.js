@@ -3,7 +3,34 @@ function mapOrder(row) {
   if (!row) return null;
   return { id:Number(row.id), productId:Number(row.product_id), buyerId:Number(row.buyer_id), sellerId:Number(row.seller_id), amount:Number(row.amount), status:row.status, createdAt:row.created_at, updatedAt:row.updated_at, completedAt:row.completed_at };
 }
-async function findProductForPurchase(productId,executor=pool){const [rows]=await executor.execute('SELECT id,seller_id,price,status FROM products WHERE id=? FOR UPDATE',[productId]);return rows[0]||null;}
+async function findProductForPurchase(
+  productId,
+  executor = pool
+) {
+  const [rows] = await executor.execute(
+    `
+    SELECT
+      p.id,
+      p.seller_id,
+      p.price,
+      p.status
+
+    FROM products p
+
+    INNER JOIN games g
+      ON g.id = p.game_id
+
+    WHERE
+      p.id = ?
+      AND g.status = 'ACTIVE'
+
+    FOR UPDATE
+    `,
+    [productId]
+  );
+
+  return rows[0] || null;
+}
 async function findPendingByBuyerAndProduct(buyerId,productId,executor=pool){const [rows]=await executor.execute("SELECT * FROM orders WHERE buyer_id=? AND product_id=? AND status='PENDING' LIMIT 1",[buyerId,productId]);return mapOrder(rows[0]);}
 async function create(data,executor=pool){const [result]=await executor.execute("INSERT INTO orders (product_id,buyer_id,seller_id,amount,status) VALUES (?,?,?,?, 'PENDING')",[data.productId,data.buyerId,data.sellerId,data.amount]);return result.insertId;}
 async function findByIdForPayment(orderId,buyerId,executor=pool){const [rows]=await executor.execute('SELECT o.*,p.status AS product_status FROM orders o INNER JOIN products p ON p.id=o.product_id WHERE o.id=? AND o.buyer_id=? LIMIT 1 FOR UPDATE',[orderId,buyerId]);return rows[0]||null;}

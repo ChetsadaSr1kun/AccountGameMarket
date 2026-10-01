@@ -15,7 +15,7 @@ function mapRow(row) {
 }
 
 async function listPublic(filters = {}, executor = pool) {
-  const where = ["p.status IN ('ACTIVE','PUBLISHED')"];
+  const where = ["p.status IN ('ACTIVE','PUBLISHED')", "g.status = 'ACTIVE'"];
   const params = [];
   if (filters.gameId) { where.push('p.game_id = ?'); params.push(filters.gameId); }
   if (filters.search) {

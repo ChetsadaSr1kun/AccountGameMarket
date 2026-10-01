@@ -56,8 +56,50 @@ async function listActiveAttributes(gameId) {
 }
 
 async function listAdmin() {
-  const [rows] = await pool.execute(`SELECT g.id,g.name,g.slug,g.description,g.image_url,g.status,g.created_at,g.updated_at,COUNT(p.id) AS product_count FROM games g LEFT JOIN products p ON p.game_id=g.id GROUP BY g.id ORDER BY g.name`);
-  return rows.map((row) => ({ ...mapGame(row), productCount: Number(row.product_count), createdAt: row.created_at, updatedAt: row.updated_at }));
+  const [rows] = await pool.execute(`
+    SELECT
+      g.id,
+      g.name,
+      g.slug,
+      g.description,
+      g.image_url,
+      g.status,
+      g.created_at,
+      g.updated_at,
+
+      SUM(
+        CASE
+          WHEN g.status = 'ACTIVE'
+            AND p.status IN ('ACTIVE', 'PUBLISHED')
+          THEN 1
+          ELSE 0
+        END
+      ) AS active_product_count
+
+    FROM games g
+
+    LEFT JOIN products p
+      ON p.game_id = g.id
+
+    GROUP BY g.id
+
+    ORDER BY g.name
+  `);
+
+  return rows.map((row) => ({
+    ...mapGame(row),
+
+    activeProductCount:
+      Number(
+        row.active_product_count || 0
+      ),
+
+    createdAt:
+      row.created_at,
+
+    updatedAt:
+      row.updated_at,
+  }));
 }
 
 async function createAdmin(data) {
@@ -66,9 +108,60 @@ async function createAdmin(data) {
 }
 
 async function findAdminById(id) {
-  const [rows] = await pool.execute(`SELECT g.id,g.name,g.slug,g.description,g.image_url,g.status,g.created_at,g.updated_at,COUNT(p.id) AS product_count FROM games g LEFT JOIN products p ON p.game_id=g.id WHERE g.id=? GROUP BY g.id LIMIT 1`, [id]);
+  const [rows] =
+    await pool.execute(
+      `
+        SELECT
+          g.id,
+          g.name,
+          g.slug,
+          g.description,
+          g.image_url,
+          g.status,
+          g.created_at,
+          g.updated_at,
+
+          SUM(
+            CASE
+              WHEN g.status = 'ACTIVE'
+                AND p.status IN ('ACTIVE', 'PUBLISHED')
+              THEN 1
+              ELSE 0
+            END
+          ) AS active_product_count
+
+        FROM games g
+
+        LEFT JOIN products p
+          ON p.game_id = g.id
+
+        WHERE g.id = ?
+
+        GROUP BY g.id
+
+        LIMIT 1
+      `,
+      [id]
+    );
+
   const row = rows[0];
-  return row ? { ...mapGame(row), productCount: Number(row.product_count), createdAt: row.created_at, updatedAt: row.updated_at } : null;
+
+  return row
+    ? {
+        ...mapGame(row),
+
+        activeProductCount:
+          Number(
+            row.active_product_count || 0
+          ),
+
+        createdAt:
+          row.created_at,
+
+        updatedAt:
+          row.updated_at,
+      }
+    : null;
 }
 
 async function updateAdmin(id,data) {

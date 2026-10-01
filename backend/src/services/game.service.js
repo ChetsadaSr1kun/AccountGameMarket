@@ -1,6 +1,7 @@
 "use strict";
 
 const gameRepository = require("../repositories/game.repository");
+const gameImageService = require("./game-image.service");
 const AppError = require("../utils/app-error");
 
 async function listGames() {
@@ -59,10 +60,63 @@ async function updateAdminGame(id,data) {
   }
 }
 
+async function updateAdminGameImage(
+  id,
+  file
+) {
+  const game =
+    await gameRepository.findAdminById(
+      Number(id)
+    );
+
+  if (!game) {
+    throw new AppError(
+      "Game not found.",
+      404,
+      "GAME_NOT_FOUND"
+    );
+  }
+
+  const saved =
+    await gameImageService.saveGameImage(
+      file
+    );
+
+  try {
+    const updated =
+      await gameRepository.updateAdmin(
+        Number(id),
+        {
+          imageUrl:
+            saved.imageUrl,
+        }
+      );
+
+    try {
+      await gameImageService
+        .removeManagedGameImage(
+          game.imageUrl
+        );
+    } catch (error) {
+      // New image is already committed.
+      // Keep it even if stale-file cleanup fails.
+    }
+
+    return updated;
+  } catch (error) {
+    await gameImageService
+      .removeFileIfPresent(
+        saved.filePath
+      );
+
+    throw error;
+  }
+}
+
 async function deactivateAdminGame(id) {
   const game=await gameRepository.findAdminById(Number(id));
   if(!game) throw new AppError('Game not found.',404,'GAME_NOT_FOUND');
   return gameRepository.updateAdmin(Number(id),{status:'INACTIVE'});
 }
 
-module.exports = { listGames, getGame, getGameAttributes, listAdminGames, createAdminGame, updateAdminGame, deactivateAdminGame };
+module.exports = { listGames, getGame, getGameAttributes, listAdminGames, createAdminGame, updateAdminGame, updateAdminGameImage, deactivateAdminGame };

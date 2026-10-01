@@ -1956,13 +1956,71 @@
 <div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminGameSearch" oninput="adminFilterGames()" placeholder="ค้นหาชื่อเกมหรือ slug"/></div><div class="report-field"><span class="icon">📌</span><select id="adminGameStatusFilter" onchange="adminFilterGames()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">เปิดใช้งาน</option><option value="INACTIVE">ปิดใช้งาน</option></select></div><button class="btn btn-secondary btn-sm" onclick="adminLoadGames()">↻ รีเฟรช</button></div>
 <div id="adminGameList" class="grid2"></div>
 </div>
-<div class="card" style="padding:24px;display:none">
-<div class="report-summary-box">
-<div class="report-summary-item"><div class="label">สถานะ</div><strong>ยังไม่เชื่อม Backend</strong><div class="sub">ข้อมูลเกมปัจจุบันถูกใช้งานผ่าน Public Game API</div></div>
-<div class="report-summary-item"><div class="label">การดำเนินการ</div><strong>เพิ่ม • แก้ไข • ลบ ถูกปิดไว้</strong><div class="sub">เพื่อป้องกันปุ่ม Mockup ทำให้ข้อมูลระบบจริงสับสน</div></div>
+<div
+  id="adminGameProductsPanel"
+  class="modal-backdrop"
+  hidden
+  onclick="
+    if(event.target === this){
+      adminCloseGameProducts();
+    }
+  "
+>
+  <div
+    class="modal-dialog admin-user-product-detail-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="adminGameProductsTitle"
+    style="
+      width:min(1100px,94vw);
+      max-height:88vh;
+    "
+  >
+
+    <div class="admin-user-product-detail-head">
+
+      <div>
+        <div
+          id="adminGameProductsTitle"
+          class="admin-user-product-detail-title"
+        >
+          📦 รายการสินค้า
+        </div>
+
+        <div
+          id="adminGameProductsSubtitle"
+          class="admin-user-product-detail-subtitle"
+        >
+          เลือกหมวดหมู่เกมเพื่อดูสินค้า
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="admin-user-product-detail-close"
+        onclick="adminCloseGameProducts()"
+        aria-label="ปิดรายการสินค้า"
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <div
+      id="adminGameProductsList"
+      style="
+        padding:20px;
+        overflow-y:auto;
+        display:grid;
+        grid-template-columns:
+          repeat(auto-fill,minmax(240px,1fr));
+        gap:12px;
+      "
+    ></div>
+
+  </div>
 </div>
-<div class="report-empty">ยังไม่สามารถจัดการเกมจากหน้า Admin ได้ จนกว่าจะมี Game Management API สำหรับ Admin โดยเฉพาะ</div>
-</div>
+
 </div>
 </div>
 </div>

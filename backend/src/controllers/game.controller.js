@@ -38,8 +38,31 @@ async function createAdminGame(req, res, next) {
 async function updateAdminGame(req, res, next) {
   try { return res.status(200).json({ data: { game: await gameService.updateAdminGame(Number(req.params.id), req.body || {}) } }); } catch (error) { return next(error); }
 }
+async function updateAdminGameImage(
+  req,
+  res,
+  next
+) {
+  try {
+    const game =
+      await gameService
+        .updateAdminGameImage(
+          Number(req.params.id),
+          req.file
+        );
+
+    return res.status(200).json({
+      data: {
+        game
+      }
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function deactivateAdminGame(req, res, next) {
   try { return res.status(200).json({ data: { game: await gameService.deactivateAdminGame(Number(req.params.id)) } }); } catch (error) { return next(error); }
 }
 
-module.exports = { listGames, getGame, getGameAttributes, listAdminGames, createAdminGame, updateAdminGame, deactivateAdminGame };
+module.exports = { listGames, getGame, getGameAttributes, listAdminGames, createAdminGame, updateAdminGame, updateAdminGameImage, deactivateAdminGame };

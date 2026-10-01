@@ -4053,3 +4053,20 @@ body.seller-document-preview-open {
   }
 
 }
+
+/* ===== Admin Games: status dropdown ===== */
+
+#adminGameStatusFilter {
+  background: #0b1526;
+  color: var(--text);
+
+  font-family: 'Sarabun', sans-serif;
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+#adminGameStatusFilter option {
+  background: #0b1526;
+  color: var(--text);
+}
