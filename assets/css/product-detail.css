@@ -38,11 +38,18 @@
 #pg-product-detail .product-detail-shell{max-width:976px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 294px;gap:28px;align-items:start}
 #pg-product-detail .product-detail-hero{display:contents;background:none;border:0;padding:0;box-shadow:none}
 #pg-product-detail .product-detail-gallery{grid-column:1;min-width:0}
-#pg-product-detail .product-detail-main-media{height:auto;aspect-ratio:2.55/1;min-height:210px;border-radius:11px;background:#0b101b;border:1px solid var(--border2);cursor:zoom-in;position:relative;box-shadow:0 8px 24px rgba(0,0,0,.16)}
+#pg-product-detail .product-detail-main-media{height:auto;aspect-ratio:16/9;min-height:210px;border-radius:11px;background:#0b101b;border:1px solid var(--border2);cursor:zoom-in;position:relative;box-shadow:0 8px 24px rgba(0,0,0,.16)}
 #pg-product-detail .product-detail-main-media img{width:100%;height:100%;object-fit:cover;display:block}
 #pg-product-detail .product-detail-main-media::after{content:'🔍 คลิกเพื่อดูรูปใหญ่';position:absolute;right:10px;bottom:10px;padding:5px 9px;border-radius:7px;background:rgba(5,9,18,.76);border:1px solid rgba(255,255,255,.10);color:#dce6f7;font:500 11px 'Sarabun',sans-serif;pointer-events:none;opacity:.88}
-#pg-product-detail .product-detail-thumbs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;overflow:visible;padding:10px 0 0}
-#pg-product-detail .product-detail-thumb{width:100%;height:62px;border-radius:9px;opacity:.72}
+#pg-product-detail .product-detail-thumbs{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,110px);
+  gap:8px;
+  overflow:visible;
+  padding:10px 0 0;
+  justify-content:start;
+}
+#pg-product-detail .product-detail-thumb{width:100%;height:auto;aspect-ratio:16/9;;border-radius:9px;opacity:.72}
 #pg-product-detail .product-detail-summary{grid-column:2;grid-row:1 / span 5;align-self:start;position:sticky;top:80px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.20)}
 #pg-product-detail .product-detail-game{font-size:12px;padding:5px 9px}
 #pg-product-detail .product-detail-title{font-size:21px;line-height:1.28;margin:12px 0 8px}
@@ -106,4 +113,4 @@
 @media(max-width:600px){#pg-product-detail .product-review-summary{grid-template-columns:1fr;gap:8px}.product-image-lightbox-body{width:96vw}.product-image-lightbox-body>img{max-height:68vh}.product-image-lightbox-thumbs{justify-content:flex-start}.product-image-lightbox-hint{font-size:11px}.product-image-lightbox-prev{left:8px}.product-image-lightbox-next{right:8px}.product-image-lightbox-thumb{width:70px;height:50px}}
 @media(max-width:900px){#pg-product-detail .product-detail-shell{grid-template-columns:minmax(0,1fr) 280px;gap:20px}}
 @media(max-width:760px){#pg-product-detail .product-detail-shell{display:block}.product-detail-summary{position:static!important;margin-top:16px}#pg-product-detail .product-detail-info-card{margin-top:16px}#pg-product-detail .product-detail-stats{grid-template-columns:repeat(2,minmax(0,1fr))}#pg-product-detail .product-detail-stats>.product-detail-stat:nth-child(7){grid-column:span 2}}
-@media(max-width:520px){#pg-product-detail .page-wrap{padding-left:14px!important;padding-right:14px!important}#pg-product-detail .product-detail-main-media{aspect-ratio:16/9;min-height:0}#pg-product-detail .product-detail-main-media::after{content:'🔍 ดูรูปใหญ่';font-size:10px}#pg-product-detail .product-detail-thumbs{grid-template-columns:repeat(4,1fr);gap:6px}#pg-product-detail .product-detail-thumb{height:58px}#pg-product-detail .product-detail-title{font-size:20px}#pg-product-detail .product-detail-stats{grid-template-columns:1fr 1fr}.product-image-lightbox{padding:14px}.product-image-lightbox-close{top:10px;right:10px}.product-image-lightbox-body>img{max-width:92vw;max-height:62vh}.product-image-lightbox-hint{bottom:10px}.product-image-lightbox-count{top:12px}.product-image-lightbox-prev,.product-image-lightbox-next{top:36%;width:38px;height:38px;font-size:28px}}
+@media(max-width:520px){#pg-product-detail .page-wrap{padding-left:14px!important;padding-right:14px!important}#pg-product-detail .product-detail-main-media{aspect-ratio:16/9;min-height:0}#pg-product-detail .product-detail-main-media::after{content:'🔍 ดูรูปใหญ่';font-size:10px}#pg-product-detail .product-detail-thumbs{grid-template-columns:repeat(4,1fr);gap:6px}#pg-product-detail .product-detail-thumb{height:auto;aspect-ratio:16/9;}#pg-product-detail .product-detail-title{font-size:20px}#pg-product-detail .product-detail-stats{grid-template-columns:1fr 1fr}.product-image-lightbox{padding:14px}.product-image-lightbox-close{top:10px;right:10px}.product-image-lightbox-body>img{max-width:92vw;max-height:62vh}.product-image-lightbox-hint{bottom:10px}.product-image-lightbox-count{top:12px}.product-image-lightbox-prev,.product-image-lightbox-next{top:36%;width:38px;height:38px;font-size:28px}}
