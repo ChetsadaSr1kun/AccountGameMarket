@@ -41,9 +41,9 @@ module.exports = {
   resetGlobalLimitForTests,
   loginLimit: limit('Too many login attempts.', 30 * 1000, 100),
   forgotPasswordLimit: limit('Too many reset requests. Please try again later.', 60 * 60 * 1000, 3),
-  resetPasswordLimit: limit('Too many password reset attempts. Please try again later.', 15 * 60 * 1000, 10),
-  emailVerificationSendLimit: authenticatedUserLimit('Too many verification emails. Please try again later.', 15 * 60 * 1000, 3),
+  resetPasswordLimit: limit('Too many password reset attempts. Please try again later.', 3 * 60 * 1000, 10),
+  emailVerificationSendLimit: authenticatedUserLimit('Too many verification emails. Please try again later.', 15 * 60 * 1000, 10),
   emailVerificationVerifyLimit: authenticatedUserLimit('Too many verification attempts. Please try again later.', 15 * 60 * 1000, 10),
-  phoneVerificationSendLimit: authenticatedUserLimit('Too many verification SMS requests. Please try again later.', 15 * 60 * 1000, 3),
+  phoneVerificationSendLimit: authenticatedUserLimit('Too many verification SMS requests. Please try again later.', 15 * 60 * 1000, 10),
   phoneVerificationVerifyLimit: authenticatedUserLimit('Too many phone verification attempts. Please try again later.', 15 * 60 * 1000, 10),
 };

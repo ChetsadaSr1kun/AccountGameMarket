@@ -65,7 +65,10 @@ class ProviderSmsSender {
 
     this.client = twilio(
       options.twilioAccountSid,
-      options.twilioAuthToken
+      options.twilioAuthToken,
+      {
+        timeout: 10000,
+      }
     );
 
     this.serviceSid = options.twilioVerifyServiceSid;
