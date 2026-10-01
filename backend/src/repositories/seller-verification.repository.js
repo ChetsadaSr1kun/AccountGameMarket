@@ -67,7 +67,7 @@ async function listAdminHistory(executor = pool) {
 
 async function findRequestWithUser(userId, executor = pool) {
   const [rows] = await executor.execute(`SELECT r.id,r.user_id,r.status,r.rejection_reason,r.reviewed_by,r.reviewed_at,r.created_at,r.updated_at,
-    u.username,u.email,u.first_name,u.last_name,u.phone FROM seller_verification_requests r
+    u.username,u.email,u.first_name,u.last_name,u.phone,u.date_of_birth FROM seller_verification_requests r
     INNER JOIN users u ON u.id=r.user_id WHERE r.user_id=? LIMIT 1`, [userId]);
   return rows[0] || null;
 }

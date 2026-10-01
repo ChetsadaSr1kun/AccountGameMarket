@@ -120,6 +120,22 @@
         </div>
 
         <div>
+          <span>วันเกิด</span>
+          <strong>
+            ${
+              x.date_of_birth
+                ? esc(
+                    x.date_of_birth
+                      .split('-')
+                      .reverse()
+                      .join('/')
+                  )
+                : '-'
+            }
+          </strong>
+        </div>
+
+        <div>
           <span>สถานะ</span>
           <strong>${label(x.status)}</strong>
         </div>
