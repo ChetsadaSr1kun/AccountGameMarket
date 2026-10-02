@@ -252,10 +252,6 @@ function updateNav() {
         <div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:18px;cursor:pointer;overflow:hidden" onclick="toggleDropdown()">${avatarContent(username, currentUser?.avatarUrl)}</div>
         <div class="dropdown-menu" id="userDropdown">
           <button class="dropdown-item" onclick="closeDropdown();loginAndGo('profile')">✏️ แก้ไขข้อมูล</button>
-          <button class="dropdown-item" onclick="closeDropdown();loginAndGo('wallet')">💰 ฝาก/ถอน</button>
-          <button class="dropdown-item" onclick="closeDropdown();loginAndGo('history')">📋 ประวัติ</button>
-          <button class="dropdown-item" onclick="closeDropdown();loginAndGo('seller-verify')">🏷️ ลงขายสินค้า</button>
-          <button class="dropdown-item" onclick="closeDropdown();loginAndGo('my-listings')">📦 ประกาศของฉัน</button>
           <button class="dropdown-item danger" onclick="closeDropdown();logout()">🚪 ออกจากระบบ</button>
         </div>
       </div>
