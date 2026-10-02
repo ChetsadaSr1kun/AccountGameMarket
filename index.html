@@ -1940,7 +1940,56 @@
 <div class="grid4" style="margin-bottom:20px"><div class="card stat-card"><div>📦</div><div id="adminProductTotal" class="stat-val">0</div><div class="stat-label">สินค้าทั้งหมด</div></div><div class="card stat-card"><div>🟢</div><div id="adminProductActive" class="stat-val">0</div><div class="stat-label">กำลังขาย</div></div><div class="card stat-card"><div>⏸</div><div id="adminProductPaused" class="stat-val">0</div><div class="stat-label">ซ่อน</div></div><div class="card stat-card"><div>✅</div><div id="adminProductSold" class="stat-val">0</div><div class="stat-label">ขายแล้ว</div></div></div>
 <div class="card" style="padding:18px"><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminProductSearch" oninput="adminFilterProducts()" placeholder="ค้นหาชื่อสินค้า / ผู้ขาย"></div><div class="report-field"><select id="adminProductGame" onchange="adminFilterProducts()"><option value="ALL">ทุกเกม</option></select></div><div class="report-field"><select id="adminProductStatus" onchange="adminFilterProducts()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">กำลังขาย</option><option value="PAUSED">ซ่อน</option><option value="SOLD">ขายแล้ว</option><option value="DRAFT">ฉบับร่าง</option><option value="CANCELLED">ยกเลิก</option></select></div></div><div id="adminProductList" class="report-list"></div></div>
 </div></div></div>
-<div class="modal-backdrop" id="adminProductModal" hidden onclick="if(event.target===this)closeAdminProductModal()"><div class="modal-dialog" role="dialog" aria-modal="true" style="max-width:720px"><div class="sec-header"><div class="sec-title">📦 รายละเอียดสินค้า</div><button class="btn btn-ghost btn-sm" onclick="closeAdminProductModal()">✕</button></div><div id="adminProductModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminProductModal()">ปิด</button></div></div></div>
+<div
+  class="modal-backdrop"
+  id="adminProductModal"
+  hidden
+  onclick="
+    if(event.target === this){
+      closeAdminProductModal();
+    }
+  "
+>
+  <div
+    class="modal-dialog admin-user-product-detail-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="adminProductModalTitle"
+  >
+
+    <div class="admin-user-product-detail-head">
+
+      <div>
+        <div
+          id="adminProductModalTitle"
+          class="admin-user-product-detail-title"
+        >
+          📦 รายละเอียดสินค้า
+        </div>
+
+        <div class="admin-user-product-detail-subtitle">
+          ข้อมูลสินค้าสำหรับผู้ดูแลระบบ
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="admin-user-product-detail-close"
+        onclick="closeAdminProductModal()"
+        aria-label="ปิดรายละเอียดสินค้า"
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <div
+      id="adminProductModalBody"
+      class="admin-user-product-detail-body"
+    ></div>
+
+  </div>
+</div>
 <!-- Admin Games -->
 <div class="page" id="pg-admin-games">
 <div class="admin-layout">

@@ -1,5 +1,7 @@
 const AppError = require('../utils/app-error');
 const { pool } = require('../config/database');
+const imageRepository =
+  require('../repositories/product-image.repository');
 
 function mapProduct(row) {
   return {
@@ -39,7 +41,75 @@ async function getProduct(productId) {
   const id = Number(productId); if (!Number.isInteger(id) || id <= 0) throw new AppError('Invalid product id.', 400, 'INVALID_PRODUCT_ID');
   const [rows] = await pool.execute(`SELECT p.id,p.seller_id,p.game_id,p.title,p.description,p.price,p.status,p.moderation_reason,p.moderated_at,p.created_at,p.updated_at,u.username seller_username,g.name game_name,(SELECT COUNT(*) FROM product_images pi WHERE pi.product_id=p.id) image_count,(SELECT COUNT(*) FROM transaction_reports tr INNER JOIN orders ro ON ro.id=tr.order_id WHERE ro.product_id=p.id) report_count FROM products p INNER JOIN users u ON u.id=p.seller_id INNER JOIN games g ON g.id=p.game_id WHERE p.id=? LIMIT 1`, [id]);
   if (!rows[0]) throw new AppError('Product not found.', 404, 'PRODUCT_NOT_FOUND');
-  return mapProduct(rows[0]);
+  const product =
+  mapProduct(rows[0]);
+
+  const [
+    images,
+    orderRows,
+  ] = await Promise.all([
+    imageRepository.listByProductId(id),
+
+    pool.execute(
+      `
+      SELECT
+        o.id,
+        o.buyer_id,
+        o.amount,
+        o.status,
+        o.created_at,
+        o.completed_at,
+        buyer.username AS buyer_username
+
+      FROM orders o
+
+      INNER JOIN users buyer
+        ON buyer.id = o.buyer_id
+
+      WHERE o.product_id = ?
+
+      ORDER BY
+        o.created_at DESC,
+        o.id DESC
+
+      LIMIT 1
+      `,
+      [id]
+    ),
+  ]);
+  const order =
+    orderRows[0]?.[0] || null;
+
+  return {
+    ...product,
+
+    images,
+
+    order: order
+      ? {
+          id:
+            Number(order.id),
+
+          buyerId:
+            Number(order.buyer_id),
+
+          buyerUsername:
+            order.buyer_username,
+
+          amount:
+            Number(order.amount),
+
+          status:
+            order.status,
+
+          createdAt:
+            order.created_at,
+
+          completedAt:
+            order.completed_at,
+        }
+      : null,
+  };
 }
 
 async function summary() {
