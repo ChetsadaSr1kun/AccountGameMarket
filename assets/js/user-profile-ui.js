@@ -496,6 +496,227 @@ function renderUserProfileSellerStats(
   );
 }
 
+function renderUserProfileSellerProducts(
+  sellerProfile
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target || !sellerProfile) return;
+
+  const products =
+    Array.isArray(
+      sellerProfile.activeProducts
+    )
+      ? sellerProfile.activeProducts
+      : [];
+
+  const productsHtml =
+    products.length
+      ? products.map((product) => {
+          const imageHtml =
+            product.primaryImageUrl
+              ? `
+                <img
+                  src="${userProfileEscape(
+                    product.primaryImageUrl
+                  )}"
+                  alt="${userProfileEscape(
+                    product.title
+                  )}"
+                  style="
+                    width:100%;
+                    height:150px;
+                    object-fit:cover;
+                    border-radius:10px;
+                    margin-bottom:12px;
+                  "
+                >
+              `
+              : `
+                <div
+                  style="
+                    height:150px;
+                    border-radius:10px;
+                    background:var(--bg3);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:36px;
+                    margin-bottom:12px;
+                  "
+                >
+                  🎮
+                </div>
+              `;
+
+          return `
+            <div
+              class="card card-hover"
+              style="
+                padding:14px;
+                cursor:pointer;
+              "
+              onclick="openProductDetail(
+                ${Number(product.id)}
+              )"
+            >
+              ${imageHtml}
+
+              <div
+                style="
+                  color:var(--muted);
+                  font-size:12px;
+                  margin-bottom:6px;
+                "
+              >
+                ${userProfileEscape(
+                  product.game?.name || '-'
+                )}
+              </div>
+
+              <div
+                style="
+                  font-weight:700;
+                  margin-bottom:10px;
+                  overflow:hidden;
+                  text-overflow:ellipsis;
+                  white-space:nowrap;
+                "
+              >
+                ${userProfileEscape(
+                  product.title || 'สินค้า'
+                )}
+              </div>
+
+              <div
+                style="
+                  display:flex;
+                  align-items:center;
+                  justify-content:space-between;
+                  gap:10px;
+                "
+              >
+                <div
+                  class="kanit"
+                  style="
+                    font-size:18px;
+                    font-weight:800;
+                    color:var(--accent);
+                  "
+                >
+                  ${Number(
+                    product.price || 0
+                  ).toLocaleString(
+                    'th-TH'
+                  )} pts
+                </div>
+
+                <span
+                  class="badge badge-green"
+                >
+                  กำลังขาย
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('')
+      : `
+        <div
+          style="
+            grid-column:1/-1;
+            padding:30px;
+            text-align:center;
+            color:var(--muted);
+          "
+        >
+          <div
+            style="
+              font-size:32px;
+              margin-bottom:10px;
+            "
+          >
+            🎮
+          </div>
+
+          <div style="margin-bottom:14px">
+            ยังไม่มีสินค้าที่กำลังขาย
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            onclick="goPage('add-listing')"
+          >
+            ＋ ลงขายสินค้า
+          </button>
+        </div>
+      `;
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:26px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:20px;
+          "
+        >
+          <div
+            style="
+              font-family:'Kanit',sans-serif;
+              font-size:18px;
+              font-weight:800;
+            "
+          >
+            🎮 สินค้าที่กำลังขาย
+          </div>
+
+          ${
+            products.length
+              ? `
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  onclick="goPage('my-listings')"
+                >
+                  ดูทั้งหมด →
+                </button>
+              `
+              : ''
+          }
+        </div>
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:
+              repeat(
+                auto-fit,
+                minmax(210px,1fr)
+              );
+            gap:14px;
+          "
+        >
+          ${productsHtml}
+        </div>
+      </div>
+    `
+  );
+}
+
 function renderUserProfileSellerCta(
   user
 ) {
