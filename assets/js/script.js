@@ -15,7 +15,7 @@ const otpCooldowns = {
 const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
 const adminPages = ['admin-dashboard','admin-users','admin-products','admin-games','admin-seller-verifications','admin-chat-log','admin-withdraw','admin-topup','admin-report','admin-suspended-users'];
-const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat','notifications',
+const userPages = ['home-user','listings-user','product-user','profile','user-profile','wallet','history','chat','notifications',
   'order-confirm','order-otp','order-success','withdraw-otp','order-info','order-detail','review','user-report',
   'seller-verify','add-listing','edit-listing','my-listings','seller-profile'];
 const guestPages = ['home','login','register','forgot','otp-reset','reset-success','listings','product','product-detail'];
