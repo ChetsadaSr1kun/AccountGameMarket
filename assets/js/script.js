@@ -64,6 +64,7 @@ function goPage(pageId) {
     window.loadCreateProductGames?.();
   }
   if (pageId === 'my-listings') window.loadMyProducts?.();
+  if (pageId === 'user-profile') window.loadUserProfile?.();
   if (pageId === 'profile') window.loadProfileSellerRating?.();
   if (pageId === 'review') window.loadReviewPage?.();
   if (pageId === 'user-report') window.loadUserReportPage?.();
