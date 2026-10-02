@@ -717,6 +717,265 @@ function renderUserProfileSellerProducts(
   );
 }
 
+function renderUserProfileSellerReviews(
+  sellerProfile
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target || !sellerProfile) return;
+
+  const reviews =
+    Array.isArray(sellerProfile.reviews)
+      ? sellerProfile.reviews
+      : [];
+
+  const rating =
+    sellerProfile.rating || {};
+
+  window.sellerRatingReviews =
+    reviews;
+
+  const averageRating =
+    Number(
+      rating.averageRating || 0
+    );
+
+  const reviewsHtml =
+    reviews.length
+      ? reviews.map((review) => {
+          const stars =
+            '★★★★★'
+              .split('')
+              .map((star, index) => `
+                <span
+                  style="
+                    color:${
+                      index <
+                      Math.round(
+                        Number(
+                          review.rating || 0
+                        )
+                      )
+                        ? '#f5b942'
+                        : 'var(--dim)'
+                    };
+                  "
+                >
+                  ${star}
+                </span>
+              `)
+              .join('');
+
+          return `
+            <div
+              style="
+                padding:18px 0;
+                border-bottom:
+                  1px solid var(--border);
+              "
+            >
+              <div
+                style="
+                  display:flex;
+                  align-items:flex-start;
+                  justify-content:space-between;
+                  gap:16px;
+                  margin-bottom:8px;
+                "
+              >
+                <div>
+                  <div
+                    style="
+                      font-weight:700;
+                      margin-bottom:4px;
+                    "
+                  >
+                    ${userProfileEscape(
+                      review.buyerUsername ||
+                      'ผู้ซื้อ'
+                    )}
+                  </div>
+
+                  <div>
+                    ${stars}
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    color:var(--muted);
+                    font-size:12px;
+                    white-space:nowrap;
+                  "
+                >
+                  ${
+                    review.createdAt
+                      ? new Date(
+                          review.createdAt
+                        ).toLocaleDateString(
+                          'th-TH'
+                        )
+                      : '-'
+                  }
+                </div>
+              </div>
+
+              <div
+                style="
+                  color:var(--text);
+                  margin-top:10px;
+                "
+              >
+                ${userProfileEscape(
+                  review.comment ||
+                  'ไม่ได้เขียนความคิดเห็น'
+                )}
+              </div>
+
+              ${
+                review.sellerReply
+                  ? `
+                    <div
+                      style="
+                        margin-top:12px;
+                        padding:12px 14px;
+                        background:var(--bg3);
+                        border-radius:10px;
+                      "
+                    >
+                      <div
+                        style="
+                          font-weight:700;
+                          font-size:13px;
+                          margin-bottom:5px;
+                        "
+                      >
+                        ↳ คำตอบจากผู้ขาย
+                      </div>
+
+                      <div
+                        style="
+                          color:var(--muted);
+                          font-size:13px;
+                        "
+                      >
+                        ${userProfileEscape(
+                          review.sellerReply
+                        )}
+                      </div>
+                    </div>
+                  `
+                  : ''
+              }
+
+              <div
+                style="
+                  display:flex;
+                  gap:8px;
+                  justify-content:flex-end;
+                  flex-wrap:wrap;
+                  margin-top:12px;
+                "
+              >
+                ${
+                  !review.sellerReply
+                    ? `
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-sm"
+                        onclick="
+                          openSellerReplyModal(
+                            ${Number(review.id)}
+                          )
+                        "
+                      >
+                        💬 ตอบกลับ
+                      </button>
+                    `
+                    : ''
+                }
+
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm"
+                  onclick="
+                    openSellerReviewReportModal(
+                      ${Number(review.id)}
+                    )
+                  "
+                >
+                  🚩 รายงานรีวิวนี้
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')
+      : `
+        <div
+          style="
+            padding:30px;
+            text-align:center;
+            color:var(--muted);
+          "
+        >
+          ยังไม่มีรีวิวจากผู้ซื้อ
+        </div>
+      `;
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:26px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:8px;
+          "
+        >
+          <div
+            style="
+              font-family:'Kanit',sans-serif;
+              font-size:18px;
+              font-weight:800;
+            "
+          >
+            ⭐ รีวิวจากผู้ซื้อ
+          </div>
+
+          <div
+            style="
+              color:var(--muted);
+              font-size:13px;
+            "
+          >
+            ${averageRating.toFixed(1)} / 5
+            ·
+            ${reviews.length.toLocaleString(
+              'th-TH'
+            )} รีวิว
+          </div>
+        </div>
+
+        <div>
+          ${reviewsHtml}
+        </div>
+      </div>
+    `
+  );
+}
+
 function renderUserProfileSellerCta(
   user
 ) {

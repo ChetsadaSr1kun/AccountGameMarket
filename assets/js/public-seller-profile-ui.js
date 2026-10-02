@@ -455,7 +455,27 @@ async function submitSellerReviewReport(reviewId) {
     }
   }
 }
-async function submitSellerReply(reviewId){const input=document.getElementById('sellerReplyInput'),msg=document.getElementById('sellerReplyMessage'),btn=document.getElementById('sellerReplySubmit');const text=input?.value.trim()||'';const token=typeof csrfToken!=='undefined'?(csrfToken||getCookieValue('gm_csrf')):getCookieValue('gm_csrf');if(!text){msg.textContent='กรุณาเขียนคำตอบ';return;}if(!token){msg.textContent='ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้า';return;}btn.disabled=true;btn.textContent='กำลังส่ง...';try{const r=await fetch(`/api/v1/reviews/${Number(reviewId)}/reply`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify({reply:text})});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'ส่งคำตอบไม่สำเร็จ');closeSellerReplyModal();openSellerProfile(Number(document.querySelector('.seller-public-hero')?.dataset?.sellerId||0)||Number((window.currentUser||{}).id));}catch(e){msg.textContent=e.message||'ส่งคำตอบไม่สำเร็จ';}finally{btn.disabled=false;btn.textContent='ส่งคำตอบ';}}
+async function submitSellerReply(reviewId){const input=document.getElementById('sellerReplyInput'),msg=document.getElementById('sellerReplyMessage'),btn=document.getElementById('sellerReplySubmit');const text=input?.value.trim()||'';const token=typeof csrfToken!=='undefined'?(csrfToken||getCookieValue('gm_csrf')):getCookieValue('gm_csrf');if(!text){msg.textContent='กรุณาเขียนคำตอบ';return;}if(!token){msg.textContent='ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้า';return;}btn.disabled=true;btn.textContent='กำลังส่ง...';try{const r=await fetch(`/api/v1/reviews/${Number(reviewId)}/reply`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify({reply:text})});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'ส่งคำตอบไม่สำเร็จ');closeSellerReplyModal();if (
+  typeof currentPage !== 'undefined' &&
+  currentPage === 'user-profile'
+) {
+  window.loadUserProfile?.();
+} else {
+  openSellerProfile(
+    Number(
+      document.querySelector(
+        '.seller-public-hero'
+      )?.dataset?.sellerId || 0
+    ) ||
+    Number(
+      (
+        typeof currentUser !== 'undefined'
+          ? currentUser
+          : window.currentUser
+      )?.id || 0
+    )
+  );
+}}catch(e){msg.textContent=e.message||'ส่งคำตอบไม่สำเร็จ';}finally{btn.disabled=false;btn.textContent='ส่งคำตอบ';}}
 async function openSellerProfile(sellerId){const id=Number(sellerId),page=document.getElementById('pg-seller-profile'),content=document.getElementById('seller-profile-content');if(!page||!content||!Number.isInteger(id)||id<=0)return;goPage('seller-profile');content.innerHTML='<div class="card" style="padding:32px;text-align:center;color:var(--muted)">กำลังโหลดโปรไฟล์ผู้ขาย...</div>';try{const r=await fetch(`/api/v1/sellers/${id}`,{credentials:'include'}),body=await r.json().catch(()=>({}));if(!r.ok)throw new Error(body.error?.message||'โหลดโปรไฟล์ผู้ขายไม่สำเร็จ');renderPublicSellerProfile(body.data||body,id);}catch(e){console.error('openSellerProfile failed:',e);content.innerHTML=`<div class="notice danger">${publicSellerEscape(e.message||'โหลดโปรไฟล์ผู้ขายไม่สำเร็จ')}</div>`;}}
 function renderPublicSellerProfile(data,sellerId){
   const c=document.getElementById('seller-profile-content');
