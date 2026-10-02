@@ -4762,3 +4762,14 @@ body.seller-document-preview-open {
   background: #0b1526;
   color: var(--text);
 }
+
+/* ===== Admin Seller Verification: status dropdown ===== */
+
+#adminSellerVerificationStatus {
+  color: #ffffff;
+}
+
+#adminSellerVerificationStatus option {
+  background: #1c2540;
+  color: #e8eef7;
+}
