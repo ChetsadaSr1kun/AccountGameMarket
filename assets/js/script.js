@@ -188,10 +188,46 @@ function updateVerificationStatus() {
   });
 }
 
+function updateHomeUserSidebar() {
+  const sellerAction =
+    document.getElementById(
+      'homeUserSellerAction'
+    );
+
+  const myListings =
+    document.getElementById(
+      'homeUserMyListings'
+    );
+
+  if (!sellerAction || !myListings) {
+    return;
+  }
+
+  const roles =
+    Array.isArray(currentUser?.roles)
+      ? currentUser.roles
+      : [];
+
+  const isSeller =
+    roles.includes('SELLER');
+
+  sellerAction.textContent =
+    isSeller
+      ? '🏷️ ลงขายสินค้า'
+      : '🏪 สมัครเป็นผู้ขาย';
+
+  sellerAction.onclick = () =>
+    goPage('seller-verify');
+
+  myListings.style.display =
+    isSeller ? '' : 'none';
+}
+
 function updateNav() {
   const linksEl = document.getElementById('navLinks');
   const rightEl = document.getElementById('navRight');
   const username = currentUser?.username || 'User';
+  updateHomeUserSidebar();
   if (isAdmin) {
     linksEl.innerHTML = '';
     rightEl.innerHTML = `<span style="color:var(--muted);font-size:13px">Admin Panel</span><button class="btn btn-secondary btn-sm" onclick="logout()">ออกจากระบบ</button>`;
