@@ -228,30 +228,63 @@ async function loadUserProfile() {
   }
 
   try {
-    const response =
-      await fetch(
+    const [
+    ordersResponse,
+    walletResponse,
+    ] = await Promise.all([
+    fetch(
         '/api/v1/orders',
         {
-          credentials: 'include',
+        credentials: 'include',
         }
-      );
+    ),
+    fetch(
+        '/api/v1/wallet',
+        {
+        credentials: 'include',
+        }
+    ),
+    ]);
 
-    const body =
-      await response
+    const ordersBody =
+    await ordersResponse
         .json()
         .catch(() => ({}));
 
-    if (!response.ok) {
-      throw new Error(
-        body.error?.message ||
-        'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ'
-      );
+    const walletBody =
+    await walletResponse
+        .json()
+        .catch(() => ({}));
+
+    if (!ordersResponse.ok) {
+    throw new Error(
+        ordersBody.error?.message ||
+        'โหลดข้อมูลคำสั่งซื้อไม่สำเร็จ'
+    );
+    }
+
+    if (!walletResponse.ok) {
+    throw new Error(
+        walletBody.error?.message ||
+        'โหลดข้อมูลกระเป๋าไม่สำเร็จ'
+    );
     }
 
     const orders =
-      body.data?.orders ||
-      body.orders ||
-      [];
+    ordersBody.data?.orders ||
+    ordersBody.orders ||
+    [];
+
+    const wallet =
+    walletBody.data?.wallet ||
+    walletBody.data ||
+    walletBody.wallet ||
+    {};
+
+    const walletTransactions =
+    Array.isArray(wallet.transactions)
+        ? wallet.transactions
+        : [];
 
     const completedPurchases =
       (
