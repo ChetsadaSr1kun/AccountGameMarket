@@ -170,36 +170,147 @@ function renderUserProfileOverview(
     <div
       class="card"
       style="
-        padding:28px;
+        padding:26px;
         margin-bottom:16px;
-        text-align:center;
       "
     >
       <div
         style="
-          color:var(--muted);
-          font-size:14px;
-          font-weight:600;
-          margin-bottom:8px;
+          font-family:'Kanit',sans-serif;
+          font-size:18px;
+          font-weight:800;
+          margin-bottom:22px;
         "
       >
-        รายการซื้อสำเร็จ
+        👤 ข้อมูลส่วนตัว
       </div>
 
       <div
-        class="kanit"
         style="
-          font-size:34px;
-          font-weight:800;
-          color:var(--accent);
-          line-height:1;
+          display:grid;
+          grid-template-columns:
+            repeat(2,minmax(0,1fr));
+          gap:20px 32px;
         "
       >
-        ${Number(
-          completedPurchases || 0
-        ).toLocaleString('th-TH')}
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            ชื่อจริง
+          </div>
+
+          <div style="font-weight:700">
+            ${userProfileEscape(
+              user?.firstName || 'ยังไม่ได้ระบุ'
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            นามสกุล
+          </div>
+
+          <div style="font-weight:700">
+            ${userProfileEscape(
+              user?.lastName || 'ยังไม่ได้ระบุ'
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            อีเมล
+          </div>
+
+          <div style="font-weight:700">
+            ${userProfileEscape(
+              user?.email || '-'
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            เบอร์โทรศัพท์
+          </div>
+
+          <div style="font-weight:700">
+            ${userProfileEscape(
+              user?.phone || 'ยังไม่ได้ระบุ'
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            วันเกิด
+          </div>
+
+          <div style="font-weight:700">
+            ${
+              user?.dateOfBirth
+                ? new Date(
+                    user.dateOfBirth
+                  ).toLocaleDateString(
+                    'th-TH'
+                  )
+                : 'ยังไม่ได้ระบุ'
+            }
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            สถานะบัญชี
+          </div>
+
+          <div style="font-weight:700">
+            ${
+              verified
+                ? '✓ ยืนยันตัวตนแล้ว'
+                : 'ยังไม่ยืนยันตัวตน'
+            }
+          </div>
+        </div>
       </div>
     </div>
+
   `;
 }
 
@@ -228,31 +339,16 @@ async function loadUserProfile() {
   }
 
   try {
-    const [
-    ordersResponse,
-    walletResponse,
-    ] = await Promise.all([
-    fetch(
-        '/api/v1/orders',
-        {
-        credentials: 'include',
-        }
-    ),
-    fetch(
-        '/api/v1/wallet',
-        {
-        credentials: 'include',
-        }
-    ),
-    ]);
+    const ordersResponse =
+        await fetch(
+            '/api/v1/orders',
+            {
+            credentials: 'include',
+            }
+        );
 
     const ordersBody =
     await ordersResponse
-        .json()
-        .catch(() => ({}));
-
-    const walletBody =
-    await walletResponse
         .json()
         .catch(() => ({}));
 
@@ -263,28 +359,10 @@ async function loadUserProfile() {
     );
     }
 
-    if (!walletResponse.ok) {
-    throw new Error(
-        walletBody.error?.message ||
-        'โหลดข้อมูลกระเป๋าไม่สำเร็จ'
-    );
-    }
-
     const orders =
     ordersBody.data?.orders ||
     ordersBody.orders ||
     [];
-
-    const wallet =
-    walletBody.data?.wallet ||
-    walletBody.data ||
-    walletBody.wallet ||
-    {};
-
-    const walletTransactions =
-    Array.isArray(wallet.transactions)
-        ? wallet.transactions
-        : [];
 
     const completedPurchases =
       (
@@ -302,17 +380,24 @@ async function loadUserProfile() {
           ).toUpperCase();
 
         return (
-          isBuyer &&
-          (
-            status === 'COMPLETED' ||
-            status === 'PAID'
-          )
+        isBuyer &&
+        status === 'COMPLETED'
         );
       }).length;
 
     renderUserProfileOverview(
       user,
       completedPurchases
+    );
+
+    const activities =
+    buildUserProfileActivities(
+        orders,
+        user.id
+    );
+
+    renderUserProfileActivities(
+    activities
     );
 
   } catch (error) {
@@ -367,7 +452,6 @@ function userProfileActivityDate(value) {
 
 function buildUserProfileActivities(
   orders,
-  walletTransactions,
   userId
 ) {
   const activities = [];
@@ -387,11 +471,8 @@ function buildUserProfileActivities(
       ).toUpperCase();
 
     if (
-      isBuyer &&
-      (
-        status === 'COMPLETED' ||
-        status === 'PAID'
-      )
+    isBuyer &&
+    status === 'COMPLETED'
     ) {
       const occurredAt =
         order.completedAt ||
@@ -410,63 +491,6 @@ function buildUserProfileActivities(
     }
   });
 
-  (
-    Array.isArray(walletTransactions)
-      ? walletTransactions
-      : []
-  ).forEach((transaction) => {
-    const type =
-      String(
-        transaction.type || ''
-      ).toUpperCase();
-
-    const occurredAt =
-      transaction.createdAt;
-
-    if (type === 'TOP_UP') {
-      activities.push({
-        type,
-        icon: '💰',
-        title: 'ฝากพ้อยท์',
-        detail:
-          `+${Number(
-            transaction.amount || 0
-          ).toLocaleString('th-TH')} pts`,
-        occurredAt,
-      });
-    }
-
-    if (type === 'WITHDRAWAL') {
-      activities.push({
-        type,
-        icon: '📤',
-        title: 'ถอนพ้อยท์',
-        detail:
-          `-${Math.abs(
-            Number(
-              transaction.amount || 0
-            )
-          ).toLocaleString('th-TH')} pts`,
-        occurredAt,
-      });
-    }
-
-    if (type === 'REFUND') {
-      activities.push({
-        type,
-        icon: '↩️',
-        title: 'คืนพ้อยท์',
-        detail:
-          `+${Math.abs(
-            Number(
-              transaction.amount || 0
-            )
-          ).toLocaleString('th-TH')} pts`,
-        occurredAt,
-      });
-    }
-  });
-
   return activities
     .sort(
       (a, b) =>
@@ -478,4 +502,157 @@ function buildUserProfileActivities(
         )
     )
     .slice(0, 5);
+}
+
+function renderUserProfileActivities(
+  activities
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target) return;
+
+  const items =
+    Array.isArray(activities)
+      ? activities
+      : [];
+
+  const listHtml =
+    items.length
+      ? items.map((activity) => `
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:14px;
+              padding:14px 0;
+              border-bottom:
+                1px solid var(--border);
+            "
+          >
+            <div
+              style="
+                width:38px;
+                height:38px;
+                border-radius:10px;
+                background:var(--bg3);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:18px;
+                flex-shrink:0;
+              "
+            >
+              ${activity.icon}
+            </div>
+
+            <div
+              style="
+                flex:1;
+                min-width:0;
+              "
+            >
+              <div
+                style="
+                  font-weight:700;
+                  margin-bottom:3px;
+                "
+              >
+                ${userProfileEscape(
+                  activity.title
+                )}
+              </div>
+
+              <div
+                style="
+                  color:var(--muted);
+                  font-size:13px;
+                "
+              >
+                ${userProfileEscape(
+                  activity.detail
+                )}
+              </div>
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                white-space:nowrap;
+              "
+            >
+              ${userProfileEscape(
+                userProfileActivityDate(
+                  activity.occurredAt
+                )
+              )}
+            </div>
+          </div>
+        `).join('')
+      : `
+        <div
+          style="
+            padding:24px 0;
+            text-align:center;
+            color:var(--muted);
+          "
+        >
+          ยังไม่มีกิจกรรมล่าสุด
+        </div>
+      `;
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:24px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:16px;
+            margin-bottom:8px;
+          "
+        >
+          <div
+            style="
+              font-family:'Kanit',sans-serif;
+              font-size:18px;
+              font-weight:800;
+            "
+          >
+            🧾 กิจกรรมของฉัน
+          </div>
+        </div>
+
+        <div>
+          ${listHtml}
+        </div>
+
+        <div
+          style="
+            text-align:right;
+            margin-top:16px;
+          "
+        >
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            onclick="goPage('history')"
+          >
+            ดูประวัติทั้งหมด →
+          </button>
+        </div>
+      </div>
+    `
+  );
 }
