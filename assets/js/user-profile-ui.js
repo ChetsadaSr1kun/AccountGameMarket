@@ -301,3 +301,148 @@ async function loadUserProfile() {
 
 window.loadUserProfile =
   loadUserProfile;
+
+function userProfileActivityTime(value) {
+  if (!value) return 0;
+
+  const time =
+    new Date(value).getTime();
+
+  return Number.isNaN(time)
+    ? 0
+    : time;
+}
+
+function userProfileActivityDate(value) {
+  if (!value) return '-';
+
+  const date =
+    new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
+  return date.toLocaleString(
+    'th-TH',
+    {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }
+  );
+}
+
+function buildUserProfileActivities(
+  orders,
+  walletTransactions,
+  userId
+) {
+  const activities = [];
+
+  (
+    Array.isArray(orders)
+      ? orders
+      : []
+  ).forEach((order) => {
+    const isBuyer =
+      Number(order.buyerId) ===
+      Number(userId);
+
+    const status =
+      String(
+        order.status || ''
+      ).toUpperCase();
+
+    if (
+      isBuyer &&
+      (
+        status === 'COMPLETED' ||
+        status === 'PAID'
+      )
+    ) {
+      const occurredAt =
+        order.completedAt ||
+        order.updatedAt ||
+        order.createdAt;
+
+      activities.push({
+        type: 'PURCHASE',
+        icon: '🛒',
+        title: 'ซื้อสินค้าสำเร็จ',
+        detail:
+          order.product?.title ||
+          'สินค้า',
+        occurredAt,
+      });
+    }
+  });
+
+  (
+    Array.isArray(walletTransactions)
+      ? walletTransactions
+      : []
+  ).forEach((transaction) => {
+    const type =
+      String(
+        transaction.type || ''
+      ).toUpperCase();
+
+    const occurredAt =
+      transaction.createdAt;
+
+    if (type === 'TOP_UP') {
+      activities.push({
+        type,
+        icon: '💰',
+        title: 'ฝากพ้อยท์',
+        detail:
+          `+${Number(
+            transaction.amount || 0
+          ).toLocaleString('th-TH')} pts`,
+        occurredAt,
+      });
+    }
+
+    if (type === 'WITHDRAWAL') {
+      activities.push({
+        type,
+        icon: '📤',
+        title: 'ถอนพ้อยท์',
+        detail:
+          `-${Math.abs(
+            Number(
+              transaction.amount || 0
+            )
+          ).toLocaleString('th-TH')} pts`,
+        occurredAt,
+      });
+    }
+
+    if (type === 'REFUND') {
+      activities.push({
+        type,
+        icon: '↩️',
+        title: 'คืนพ้อยท์',
+        detail:
+          `+${Math.abs(
+            Number(
+              transaction.amount || 0
+            )
+          ).toLocaleString('th-TH')} pts`,
+        occurredAt,
+      });
+    }
+  });
+
+  return activities
+    .sort(
+      (a, b) =>
+        userProfileActivityTime(
+          b.occurredAt
+        ) -
+        userProfileActivityTime(
+          a.occurredAt
+        )
+    )
+    .slice(0, 5);
+}
