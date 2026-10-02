@@ -2,14 +2,6 @@ function productDetailEscape(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
-function formatProductAttribute(item) {
-  if (item.optionLabel) return item.optionLabel;
-  if (item.valueText !== null && item.valueText !== undefined) return item.valueText;
-  if (item.valueNumber !== null && item.valueNumber !== undefined) return item.valueNumber;
-  if (item.valueBoolean !== null && item.valueBoolean !== undefined) return item.valueBoolean ? 'ใช่' : 'ไม่ใช่';
-  return '-';
-}
-
 async function openProductDetail(id) {
   const page = document.getElementById('pg-product-detail');
   const content = document.getElementById('product-detail-content');
@@ -32,7 +24,6 @@ async function openProductDetail(id) {
   const images = Array.isArray(product.images) ? product.images : [];
   const mainImage = images[0]?.imageUrl || '';
   const thumbs = images.map((image, index) => `<button type="button" class="product-detail-thumb ${index === 0 ? 'is-active' : ''}" data-product-image="${productDetailEscape(image.imageUrl)}" aria-label="รูปที่ ${index + 1}"><img src="${productDetailEscape(image.imageUrl)}" alt="รูปสินค้า ${index + 1}"/></button>`).join('');
-  const attributes = (product.attributes || []).map((item) => `<div class="product-detail-stat"><div class="product-detail-stat-label">${productDetailEscape(item.name)}</div><div class="product-detail-stat-value">${productDetailEscape(formatProductAttribute(item))}</div></div>`).join('');
   content.innerHTML = `
     <div class="product-detail-shell">
       <div class="product-detail-hero">

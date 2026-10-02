@@ -99,7 +99,6 @@ async function cleanupFixtures() {
   }
   for (const productId of [moderatedProductId, reportedProductId].filter(Boolean)) {
     await pool.execute('DELETE FROM product_credentials WHERE product_id = ?', [productId]);
-    await pool.execute('DELETE FROM product_attribute_values WHERE product_id = ?', [productId]);
     await pool.execute('DELETE FROM product_images WHERE product_id = ?', [productId]);
     await pool.execute('DELETE FROM products WHERE id = ?', [productId]);
   }

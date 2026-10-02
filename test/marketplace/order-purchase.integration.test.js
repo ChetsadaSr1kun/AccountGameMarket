@@ -44,7 +44,6 @@ let buyer;
 let unrelatedUser;
 let productId;
 let orderId;
-let attributeId;
 
 function cookieHeader(response) {
   return (response.headers['set-cookie'] || [])
@@ -124,7 +123,6 @@ async function cleanupFixtures() {
   }
   if (orderId) await pool.execute('DELETE FROM orders WHERE id = ?', [orderId]);
   if (productId) {
-    await pool.execute('DELETE FROM product_attribute_values WHERE product_id = ?', [productId]);
     await pool.execute('DELETE FROM product_images WHERE product_id = ?', [productId]);
     await pool.execute('DELETE FROM product_credentials WHERE product_id = ?', [productId]);
     await pool.execute('DELETE FROM products WHERE id = ?', [productId]);
@@ -146,12 +144,6 @@ before(async () => {
 
   const [[game]] = await pool.execute("SELECT id FROM games WHERE slug = 'valorant' AND status = 'ACTIVE' LIMIT 1");
   assert.ok(game);
-  const [[attribute]] = await pool.execute(
-    "SELECT id FROM game_attributes WHERE game_id = ? AND slug = 'account-level' AND status = 'ACTIVE' LIMIT 1",
-    [game.id],
-  );
-  assert.ok(attribute);
-  attributeId = Number(attribute.id);
 
   const [product] = await pool.execute(
     `INSERT INTO products (seller_id, game_id, title, description, price, status)
@@ -162,10 +154,6 @@ before(async () => {
   await pool.execute(
     'INSERT INTO product_images (product_id, image_url, sort_order, is_primary) VALUES (?, ?, 0, TRUE)',
     [productId, primaryImageUrl],
-  );
-  await pool.execute(
-    'INSERT INTO product_attribute_values (product_id, game_attribute_id, value_number) VALUES (?, ?, ?)',
-    [productId, attributeId, 75],
   );
   await pool.execute(
     `INSERT INTO product_credentials
@@ -219,9 +207,13 @@ test('lists an active marketplace product and returns its public detail without 
   assert.equal(detail.body.data.images.length, 1);
   assert.equal(detail.body.data.images[0].imageUrl, primaryImageUrl);
   assert.equal(detail.body.data.images[0].isPrimary, true);
-  const publicAttribute = detail.body.data.attributes.find((item) => Number(item.attributeId) === attributeId);
-  assert.ok(publicAttribute);
-  assert.equal(Number(publicAttribute.valueNumber), 75);
+  assert.equal(
+    Object.hasOwn(
+      detail.body.data,
+      'attributes'
+    ),
+    false
+  );
   assert.equal(Object.hasOwn(detail.body.data, 'credentials'), false);
 });
 

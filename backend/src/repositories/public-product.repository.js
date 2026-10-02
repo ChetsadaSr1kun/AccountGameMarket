@@ -29,18 +29,4 @@ async function findPublicById(productId, executor = pool) {
   return mapProduct(rows[0]);
 }
 
-async function listPublicAttributes(productId, executor = pool) {
-  const [rows] = await executor.execute(
-    `SELECT pav.game_attribute_id AS attributeId, ga.name AS name, ga.slug AS slug, ga.type AS type,
-            pav.game_attribute_option_id AS optionId, gao.label AS optionLabel,
-            pav.value_text AS valueText, pav.value_number AS valueNumber, pav.value_boolean AS valueBoolean
-     FROM product_attribute_values pav
-     INNER JOIN game_attributes ga ON ga.id = pav.game_attribute_id
-     LEFT JOIN game_attribute_options gao ON gao.id = pav.game_attribute_option_id
-     WHERE pav.product_id = ? ORDER BY ga.id ASC`,
-    [productId],
-  );
-  return rows.map((row) => ({ ...row, valueBoolean: row.valueBoolean === null ? null : Boolean(row.valueBoolean) }));
-}
-
-module.exports = { findPublicById, listPublicAttributes };
+module.exports = { findPublicById };

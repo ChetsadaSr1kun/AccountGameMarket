@@ -14,12 +14,6 @@ async function getGame(gameId) {
   return game;
 }
 
-async function getGameAttributes(gameId) {
-  const game = await gameRepository.findActiveById(gameId);
-  if (!game) throw new AppError("Game not found.", 404, "GAME_NOT_FOUND");
-  return gameRepository.listActiveAttributes(gameId);
-}
-
 function slugify(value) {
   return String(value).trim().toLowerCase().replace(/[^a-z0-9ก-๙]+/g, '-').replace(/^-+|-+$/g, '');
 }
@@ -119,4 +113,4 @@ async function deactivateAdminGame(id) {
   return gameRepository.updateAdmin(Number(id),{status:'INACTIVE'});
 }
 
-module.exports = { listGames, getGame, getGameAttributes, listAdminGames, createAdminGame, updateAdminGame, updateAdminGameImage, deactivateAdminGame };
+module.exports = { listGames, getGame, listAdminGames, createAdminGame, updateAdminGame, updateAdminGameImage, deactivateAdminGame };

@@ -14,7 +14,6 @@ router.post('/admin', authenticate, authorize('ADMIN'), requireCsrf, gameControl
 router.patch('/admin/:id', authenticate, authorize('ADMIN'), requireCsrf, gameController.updateAdminGame);
 router.post('/admin/:id/image', authenticate, authorize('ADMIN'), requireCsrf, uploadGameImage, gameController.updateAdminGameImage);
 router.delete('/admin/:id', authenticate, authorize('ADMIN'), requireCsrf, gameController.deactivateAdminGame);
-router.get("/:id/attributes", gameController.getGameAttributes);
 router.get("/:id", gameController.getGame);
 
 module.exports = router;

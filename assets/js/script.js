@@ -62,8 +62,6 @@ function goPage(pageId) {
   if (pageId === 'add-listing') {
     if (!window.editingProductId) window.resetCreateProductEditorMode?.();
     window.loadCreateProductGames?.();
-    const attributes = document.getElementById('create-product-attributes');
-    if (attributes && !window.editingProductId) attributes.innerHTML = 'เลือกเกมเพื่อโหลดรายละเอียด';
   }
   if (pageId === 'my-listings') window.loadMyProducts?.();
   if (pageId === 'profile') window.loadProfileSellerRating?.();
