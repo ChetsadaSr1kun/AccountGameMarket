@@ -411,6 +411,14 @@ async function loadUserProfile() {
     return;
   }
 
+  const roles =
+  Array.isArray(user?.roles)
+    ? user.roles
+    : [];
+
+    const isSeller =
+    roles.includes('SELLER');
+
   try {
     const [
     ordersResponse,
@@ -468,6 +476,33 @@ async function loadUserProfile() {
     Array.isArray(wallet.transactions)
         ? wallet.transactions
         : [];
+
+    let sellerProfile = null;
+
+    if (isSeller) {
+    const sellerResponse =
+        await fetch(
+        `/api/v1/sellers/${user.id}`,
+        {
+            credentials: 'include',
+        }
+        );
+
+    const sellerBody =
+        await sellerResponse
+        .json()
+        .catch(() => ({}));
+
+    if (!sellerResponse.ok) {
+        throw new Error(
+        sellerBody.error?.message ||
+        'โหลดข้อมูลผู้ขายไม่สำเร็จ'
+        );
+    }
+
+    sellerProfile =
+        sellerBody.data || null;
+    }
 
     renderUserProfileOverview(
       user
