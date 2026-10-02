@@ -916,6 +916,10 @@ async function loadUserProfile() {
     sellerProfile
     );
 
+    renderUserProfileSellerProducts(
+    sellerProfile
+    );
+
     const activities =
     buildUserProfileActivities(
         orders,
