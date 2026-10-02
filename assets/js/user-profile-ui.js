@@ -313,6 +313,189 @@ function renderUserProfileOverview(
   `;
 }
 
+function renderUserProfileSellerStats(
+  sellerProfile
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target || !sellerProfile) return;
+
+  const rating =
+    sellerProfile.rating || {};
+
+  const averageRating =
+    Number(
+      rating.averageRating || 0
+    );
+
+  const reviewCount =
+    Number(
+      rating.reviewCount || 0
+    );
+
+  const completedSales =
+    Number(
+      sellerProfile.completedSales || 0
+    );
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:26px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            font-family:'Kanit',sans-serif;
+            font-size:18px;
+            font-weight:800;
+            margin-bottom:20px;
+          "
+        >
+          🏪 ภาพรวมผู้ขาย
+        </div>
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:
+              repeat(3,minmax(0,1fr));
+            gap:14px;
+          "
+        >
+          <div
+            style="
+              padding:20px;
+              background:var(--bg3);
+              border-radius:12px;
+              text-align:center;
+            "
+          >
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-bottom:8px;
+              "
+            >
+              ⭐ คะแนนผู้ขาย
+            </div>
+
+            <div
+              class="kanit"
+              style="
+                font-size:26px;
+                font-weight:800;
+              "
+            >
+              ${averageRating.toFixed(1)}
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-top:4px;
+              "
+            >
+              จาก 5 คะแนน
+            </div>
+          </div>
+
+          <div
+            style="
+              padding:20px;
+              background:var(--bg3);
+              border-radius:12px;
+              text-align:center;
+            "
+          >
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-bottom:8px;
+              "
+            >
+              ✅ ขายสำเร็จ
+            </div>
+
+            <div
+              class="kanit"
+              style="
+                font-size:26px;
+                font-weight:800;
+              "
+            >
+              ${completedSales.toLocaleString(
+                'th-TH'
+              )}
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-top:4px;
+              "
+            >
+              รายการ
+            </div>
+          </div>
+
+          <div
+            style="
+              padding:20px;
+              background:var(--bg3);
+              border-radius:12px;
+              text-align:center;
+            "
+          >
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-bottom:8px;
+              "
+            >
+              💬 รีวิวทั้งหมด
+            </div>
+
+            <div
+              class="kanit"
+              style="
+                font-size:26px;
+                font-weight:800;
+              "
+            >
+              ${reviewCount.toLocaleString(
+                'th-TH'
+              )}
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-top:4px;
+              "
+            >
+              รีวิว
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  );
+}
+
 function renderUserProfileSellerCta(
   user
 ) {
@@ -505,7 +688,11 @@ async function loadUserProfile() {
     }
 
     renderUserProfileOverview(
-      user
+    user
+    );
+
+    renderUserProfileSellerStats(
+    sellerProfile
     );
 
     const activities =
