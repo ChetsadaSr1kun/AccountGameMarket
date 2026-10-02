@@ -17,7 +17,7 @@ async function getReviewSummary(sellerId, executor = pool) {
 }
 
 async function listReviews(sellerId, limit=50, executor = pool) {
-  const [rows] = await executor.execute(`SELECT r.id,r.rating,r.comment,r.created_at,r.seller_reply,r.seller_reply_at,u.username buyer_username
+  const [rows] = await executor.execute(`SELECT r.id,r.seller_id,r.rating,r.comment,r.created_at,r.seller_reply,r.seller_reply_at,u.username buyer_username
     FROM reviews r INNER JOIN users u ON u.id=r.buyer_id WHERE r.seller_id=? AND r.status='ACTIVE' ORDER BY r.created_at DESC LIMIT ?`, [sellerId, limit]);
   return rows;
 }

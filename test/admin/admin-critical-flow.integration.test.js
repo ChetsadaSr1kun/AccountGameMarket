@@ -484,6 +484,49 @@ test('removes a reported review while preserving unrelated review content', asyn
   assert.equal(targetReview.status, 201);
   targetReviewId = Number(targetReview.body.data.review.id);
 
+  const reviewAuthorAttempt = await api
+  .post('/api/v1/review-reports')
+  .set('Cookie', cookies(buyer.auth))
+  .set('X-CSRF-Token', csrf(buyer.auth))
+  .send({
+    reviewId: targetReviewId,
+    reason: 'FRAUD',
+    description: 'Review author must not report their own review.',
+  });
+
+assert.equal(
+  reviewAuthorAttempt.status,
+  403
+);
+
+assert.equal(
+  reviewAuthorAttempt.body.error.code,
+  'REVIEW_REPORT_NOT_ALLOWED'
+);
+
+const unrelatedUserAttempt = await api
+  .post('/api/v1/review-reports')
+  .set('Cookie', cookies(nonAdmin.auth))
+  .set(
+    'X-CSRF-Token',
+    csrf(nonAdmin.auth)
+  )
+  .send({
+    reviewId: targetReviewId,
+    reason: 'FRAUD',
+    description: 'Unrelated user must not report this review.',
+  });
+
+assert.equal(
+  unrelatedUserAttempt.status,
+  403
+);
+
+assert.equal(
+  unrelatedUserAttempt.body.error.code,
+  'REVIEW_REPORT_NOT_ALLOWED'
+);
+
   const unrelatedReview = await api
     .post('/api/v1/reviews')
     .set('Cookie', cookies(nonAdmin.auth))
@@ -496,7 +539,11 @@ test('removes a reported review while preserving unrelated review content', asyn
     .post('/api/v1/review-reports')
     .set('Cookie', cookies(seller.auth))
     .set('X-CSRF-Token', csrf(seller.auth))
-    .send({ reviewId: targetReviewId, reason: 'FRAUD', description: 'Review requires moderation.' });
+    .send({
+      reviewId: targetReviewId,
+      reason: 'FALSE_REVIEW',
+      description: 'Review requires moderation.',
+    });
   assert.equal(createReport.status, 201);
   reviewReportId = Number(createReport.body.data.report.id);
   assert.equal(createReport.body.data.report.status, 'PENDING');

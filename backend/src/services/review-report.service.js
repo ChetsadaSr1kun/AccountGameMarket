@@ -1,7 +1,14 @@
 const AppError = require('../utils/app-error');
 const repository = require('../repositories/review-report.repository');
 
-const ALLOWED_REASONS = new Set(['INAPPROPRIATE','SPAM','FRAUD','ABUSE','OTHER']);
+const ALLOWED_REASONS = new Set([
+  'FALSE_REVIEW',
+  'INAPPROPRIATE',
+  'SPAM',
+  'FRAUD',
+  'ABUSE',
+  'OTHER'
+]);
 const ADMIN_ACTIONS = new Set(['DISMISSED','REMOVED','REVIEWED']);
 
 function mapReport(row) {
@@ -17,7 +24,16 @@ async function createReport(reporterId, data) {
   if(!ALLOWED_REASONS.has(reason)) throw new AppError('Invalid report reason.',400,'INVALID_REPORT_REASON');
   if(description.length>500) throw new AppError('Report description must not exceed 500 characters.',400,'DESCRIPTION_TOO_LONG');
   const review=await repository.findReview(reviewId); if(!review) throw new AppError('Review not found.',404,'REVIEW_NOT_FOUND');
-  if(Number(review.buyer_id)===Number(reporterId)) throw new AppError('You cannot report your own review.',403,'CANNOT_REPORT_OWN_REVIEW');
+  if (
+    Number(review.seller_id) !==
+    Number(reporterId)
+  ) {
+    throw new AppError(
+      'Only the seller who received this review may report it.',
+      403,
+      'REVIEW_REPORT_NOT_ALLOWED'
+    );
+  }
   if(await repository.findExisting(reviewId,reporterId)) throw new AppError('You have already reported this review.',409,'REPORT_ALREADY_EXISTS');
   return mapReport(await repository.create({reviewId,reporterId,reason,description}));
 }
