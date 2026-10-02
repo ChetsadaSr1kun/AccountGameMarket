@@ -476,6 +476,7 @@ async function loadUserProfile() {
     const activities =
     buildUserProfileActivities(
         orders,
+        walletTransactions,
         user.id
     );
 
@@ -539,6 +540,7 @@ function userProfileActivityDate(value) {
 
 function buildUserProfileActivities(
   orders,
+  walletTransactions,
   userId
 ) {
   const activities = [];
@@ -577,6 +579,67 @@ function buildUserProfileActivities(
       });
     }
   });
+
+  (
+  Array.isArray(walletTransactions)
+    ? walletTransactions
+    : []
+    ).forEach((transaction) => {
+    const type =
+        String(
+        transaction.type || ''
+        ).toUpperCase();
+
+    const occurredAt =
+        transaction.createdAt;
+
+    const amount =
+        Math.abs(
+        Number(
+            transaction.amount || 0
+        )
+        ).toLocaleString('th-TH');
+
+    if (type === 'TOP_UP') {
+        activities.push({
+        type,
+        icon: '💰',
+        title: 'ฝากพ้อยท์',
+        detail: `+${amount} pts`,
+        occurredAt,
+        });
+    }
+
+    if (type === 'WITHDRAWAL') {
+        activities.push({
+        type,
+        icon: '📤',
+        title: 'ถอนพ้อยท์',
+        detail: `-${amount} pts`,
+        occurredAt,
+        });
+    }
+
+    if (type === 'REFUND') {
+        activities.push({
+        type,
+        icon: '↩️',
+        title: 'คืนพ้อยท์',
+        detail: `+${amount} pts`,
+        occurredAt,
+        });
+    }
+
+    if (type === 'SALE') {
+        activities.push({
+        type,
+        icon: '💵',
+        title: 'รายได้จากการขาย',
+        detail: `+${amount} pts`,
+        occurredAt,
+        });
+    }
+    });
 
   return activities
     .sort(
@@ -717,7 +780,7 @@ function renderUserProfileActivities(
               font-weight:800;
             "
           >
-            🧾 กิจกรรมของฉัน
+            🧾 กิจกรรมล่าสุด
           </div>
         </div>
 
