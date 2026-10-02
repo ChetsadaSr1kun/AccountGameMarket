@@ -313,6 +313,80 @@ function renderUserProfileOverview(
   `;
 }
 
+function renderUserProfileSellerCta(
+  user
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target) return;
+
+  const roles =
+    Array.isArray(user?.roles)
+      ? user.roles
+      : [];
+
+  const isSeller =
+    roles.includes('SELLER');
+
+  if (isSeller) return;
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:26px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:20px;
+            flex-wrap:wrap;
+          "
+        >
+          <div>
+            <div
+              style="
+                font-family:'Kanit',sans-serif;
+                font-size:18px;
+                font-weight:800;
+                margin-bottom:6px;
+              "
+            >
+              🏪 เริ่มขายบน GameMarket
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:13px;
+              "
+            >
+              สมัครเป็นผู้ขายเพื่อเริ่มลงสินค้า
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            onclick="goPage('seller-verify')"
+          >
+            สมัครเป็นผู้ขาย
+          </button>
+        </div>
+      </div>
+    `
+  );
+}
+
 async function loadUserProfile() {
   const target =
     document.getElementById(
@@ -375,6 +449,10 @@ async function loadUserProfile() {
 
     renderUserProfileActivities(
     activities
+    );
+
+    renderUserProfileSellerCta(
+    user
     );
 
   } catch (error) {
