@@ -71,8 +71,7 @@ function renderUserProfileLoading() {
 }
 
 function renderUserProfileOverview(
-  user,
-  completedPurchases
+  user
 ) {
   const target =
     document.getElementById(
@@ -364,30 +363,8 @@ async function loadUserProfile() {
     ordersBody.orders ||
     [];
 
-    const completedPurchases =
-      (
-        Array.isArray(orders)
-          ? orders
-          : []
-      ).filter((order) => {
-        const isBuyer =
-          Number(order.buyerId) ===
-          Number(user.id);
-
-        const status =
-          String(
-            order.status || ''
-          ).toUpperCase();
-
-        return (
-        isBuyer &&
-        status === 'COMPLETED'
-        );
-      }).length;
-
     renderUserProfileOverview(
-      user,
-      completedPurchases
+      user
     );
 
     const activities =
