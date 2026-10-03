@@ -1,6 +1,47 @@
 function escapeHistoryText(value){return String(value||'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
 function historyTradeOrderJson(order){return JSON.stringify(order).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function historyTradeDate(value){if(!value)return '-';const date=new Date(value);return Number.isNaN(date.getTime())?String(value):date.toLocaleString('th-TH');}
+function historyTradePreview(order) {
+  const imageUrl =
+    order.product?.primaryImageUrl;
+
+  if (imageUrl) {
+    return `
+      <img
+        src="${escapeHistoryText(imageUrl)}"
+        alt="${escapeHistoryText(
+          order.product?.title || 'สินค้า'
+        )}"
+        style="
+          width:96px;
+          height:64px;
+          object-fit:cover;
+          border-radius:10px;
+          border:1px solid var(--border);
+          display:block;
+        "
+      />
+    `;
+  }
+
+  return `
+    <div
+      style="
+        width:96px;
+        height:64px;
+        border-radius:10px;
+        border:1px solid var(--border);
+        background:var(--card2);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:26px;
+      "
+    >
+      🎮
+    </div>
+  `;
+}
 function historyTradeStatus(status){if(status==='PAID')return{label:'สำเร็จ',className:'badge-green'};if(status==='PENDING')return{label:'รอชำระเงิน',className:'badge-yellow'};if(status==='COMPLETED')return{label:'สำเร็จ',className:'badge-green'};return{label:status||'ไม่ทราบสถานะ',className:'badge-blue'};}
 function renderTradeHistory(orders,currentUserId){const list=document.getElementById('histTradeList');if(!list)return;if(!orders.length){list.innerHTML='<div style="padding:24px;text-align:center;color:var(--muted)">ยังไม่มีประวัติการซื้อ/ขาย</div>';return;}
  list.innerHTML=orders.map(order=>{const isBuyer=Number(order.buyerId)===Number(currentUserId),status=historyTradeStatus(order.status),roleLabel=isBuyer?'ซื้อ':'ขาย',roleClass=isBuyer?'badge-green':'badge-blue',person=isBuyer?`ผู้ขาย: ${escapeHistoryText(order.sellerUsername)}`:`ผู้ซื้อ: ${escapeHistoryText(order.buyerUsername)}`,amount=`${isBuyer?'-':'+'}${Number(order.amount||0).toLocaleString('th-TH')} ฿`,amountColor=isBuyer?'var(--danger)':'var(--success)';let action='';
