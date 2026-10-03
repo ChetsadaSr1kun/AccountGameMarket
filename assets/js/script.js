@@ -336,9 +336,14 @@ function applyCurrentUser(user) {
 
   // Restore the correct SPA page after authentication is recovered.
   const isAdminPage = adminPages.includes(currentPage);
+
   if (isAdmin && !isAdminPage) {
     goPage('admin-dashboard');
-  } else if (!isAdmin && isLoggedIn && isAdminPage) {
+  } else if (
+    !isAdmin &&
+    isLoggedIn &&
+    (isAdminPage || currentPage === 'home')
+  ) {
     goPage('home-user');
   }
 }
