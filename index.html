@@ -13,7 +13,7 @@
 <body>
 <!-- ===================== NAVBAR ===================== -->
 <nav class="navbar" id="mainNav">
-<a class="logo" onclick="goPage('home')" aria-label="GameMarket">
+<a class="logo" onclick="isLoggedIn ? loginAndGo('home-user') : goPage('home')" aria-label="GameMarket">
   <img
     src="assets/images/gamemarket-logo.jpg"
     alt="GameMarket"
