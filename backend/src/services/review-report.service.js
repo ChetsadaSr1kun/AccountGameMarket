@@ -39,6 +39,11 @@ async function createReport(reporterId, data) {
 }
 
 async function listPendingReports() { return (await repository.listPending()).map(mapReport); }
+async function listAdminReports() {
+  return (
+    await repository.listAll()
+  ).map(mapReport);
+}
 async function resolveReport(adminId, reportId, action, adminNote='') {
   const id=Number(reportId), status=String(action||'').trim().toUpperCase(), note=String(adminNote||'').trim();
   if(!Number.isInteger(id)||id<=0) throw new AppError('A valid reportId is required.',400,'INVALID_REPORT_ID');
@@ -49,4 +54,10 @@ async function resolveReport(adminId, reportId, action, adminNote='') {
   const result=await repository.updateStatus(id,status,adminId,note); if(!result) throw new AppError('Report has already been resolved.',409,'REPORT_ALREADY_RESOLVED');
   return mapReport(result);
 }
-module.exports={createReport,listPendingReports,resolveReport,ALLOWED_REASONS};
+module.exports = {
+  createReport,
+  listPendingReports,
+  listAdminReports,
+  resolveReport,
+  ALLOWED_REASONS,
+};

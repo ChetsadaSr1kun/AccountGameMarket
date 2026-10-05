@@ -652,6 +652,359 @@ html {
 @media (max-width: 720px){
   .report-summary-grid,.report-toolbar{grid-template-columns:1fr}
 }
+
+/* ===== Admin Review Reports ===== */
+
+.admin-review-report-summary {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+}
+
+.admin-review-report-summary .report-stat {
+  width: 100%;
+  min-width: 0;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  transition:
+    border-color .18s ease,
+    background .18s ease,
+    transform .18s ease;
+}
+
+.admin-review-report-summary .report-stat:hover {
+  border-color: rgba(255,255,255,.22);
+}
+
+.admin-review-report-summary .report-stat.active {
+  border-color: rgba(255,255,255,.38);
+  background: var(--card2);
+}
+
+.admin-review-report-summary .report-stat:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 900px) {
+  .admin-review-report-summary {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-review-report-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-review-report-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.admin-review-report-entry {
+  padding: 12px 14px;
+}
+
+.admin-review-report-entry::before {
+  width: 3px;
+}
+
+/* Pending */
+.admin-review-report-entry.status-warn {
+  border-color: rgba(245, 185, 66, .32);
+}
+
+.admin-review-report-entry.status-warn::before {
+  background: #f5b942;
+}
+
+
+/* Resolved / no issue */
+.admin-review-report-entry.status-success {
+  border-color: rgba(24, 195, 126, .32);
+}
+
+.admin-review-report-entry.status-success::before {
+  background: #18c37e;
+}
+
+
+/* Removed */
+.admin-review-report-entry.status-danger {
+  border-color: rgba(255, 91, 91, .38);
+}
+
+.admin-review-report-entry.status-danger::before {
+  background: #ff5b5b;
+}
+
+
+/* Reviewed */
+.admin-review-report-entry.status-info {
+  border-color: rgba(76, 140, 255, .32);
+}
+
+.admin-review-report-entry.status-info::before {
+  background: #4c8cff;
+}
+
+
+/* Header */
+
+.admin-review-report-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  margin-bottom: 9px;
+}
+
+.admin-review-report-head > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.admin-review-report-head > div > strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.admin-review-report-head time {
+  flex: 0 0 auto;
+
+  font-size: 11px;
+  color: var(--dim);
+}
+
+
+/* Users */
+
+.admin-review-report-meta {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 8px;
+
+  margin-bottom: 9px;
+}
+
+.admin-review-report-meta > div {
+  min-width: 0;
+
+  padding: 7px 10px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: rgba(255,255,255,.025);
+}
+
+.admin-review-report-meta span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.admin-review-report-meta strong {
+  display: block;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 13px;
+  color: var(--text);
+}
+
+
+/* Review + reason */
+
+.admin-review-report-content {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.4fr)
+    minmax(240px, .8fr);
+
+  gap: 8px;
+
+  margin-bottom: 9px;
+}
+
+.admin-review-report-review,
+.admin-review-report-reason {
+  min-width: 0;
+
+  padding: 9px 11px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: var(--card2);
+}
+
+.admin-review-report-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  margin-bottom: 5px;
+}
+
+.admin-review-report-stars strong {
+  margin-left: 7px;
+
+  font-size: 12px;
+  color: var(--text);
+}
+
+.admin-report-star {
+  color: var(--dim);
+  font-size: 15px;
+}
+
+.admin-report-star.is-filled {
+  color: #f5b942;
+}
+
+.admin-review-report-review p,
+.admin-review-report-reason p {
+  margin: 0;
+
+  color: #c8d2e8;
+  font-size: 12px;
+  line-height: 1.5;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.admin-review-report-reason > span {
+  display: block;
+
+  margin-bottom: 3px;
+
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.admin-review-report-reason > strong {
+  display: block;
+
+  margin-bottom: 4px;
+
+  font-size: 13px;
+  color: var(--text);
+}
+
+
+/* Actions */
+
+.admin-review-report-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 6px;
+
+  flex-wrap: wrap;
+}
+
+.admin-review-report-actions .btn {
+  white-space: nowrap;
+}
+
+
+/* Empty State */
+
+.admin-review-report-empty {
+  min-height: 180px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  padding: 28px 20px;
+
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+
+  color: var(--muted);
+}
+
+.admin-review-report-empty-icon {
+  margin-bottom: 10px;
+
+  font-size: 30px;
+}
+
+.admin-review-report-empty strong {
+  margin-bottom: 5px;
+
+  font-size: 14px;
+  color: var(--text);
+}
+
+.admin-review-report-empty span {
+  max-width: 360px;
+
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .admin-review-report-content {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-review-report-meta {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-review-report-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .admin-review-report-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-review-report-actions {
+    justify-content: stretch;
+  }
+
+  .admin-review-report-actions .btn {
+    flex: 1 1 100%;
+  }
+
+  .admin-review-report-entry {
+    padding: 11px;
+  }
+}
+
 .report-quick-btn{display:inline-flex;align-items:center;gap:8px}
 .report-summary-box{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
 .report-summary-item{padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--card2)}
@@ -769,6 +1122,19 @@ button.history-link-card .btn{
 .seller-public-reply strong{color:var(--accent2);font-size:13px}
 .seller-public-reply p{margin:5px 0 0!important;color:var(--text)!important}
 .seller-public-reply time{display:block;margin-top:5px;color:var(--dim);font-size:11px}
+.seller-public-review-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.seller-public-review-actions .btn,
+.seller-public-review-actions .seller-reply-btn {
+  margin-top: 0;
+}
 .seller-reply-btn{margin-top:10px;border:1px solid var(--border2);background:transparent;color:var(--accent2);border-radius:8px;padding:6px 11px;font:600 12px 'Sarabun',sans-serif;cursor:pointer}
 .seller-reply-btn:hover{background:var(--accentDim);border-color:var(--accent)}
 .seller-reply-modal{width:min(520px,calc(100vw - 24px))}

@@ -493,3 +493,51 @@ async function loadAdminDashboardSummary() {
   }
 }
 window.loadAdminTransactionReports=loadAdminTransactionReports;window.adminReviewTransactionReport=adminReviewTransactionReport;window.applyAdminReportFilter=applyAdminReportFilter;window.resetAdminReportFilters=resetAdminReportFilters;window.loadAdminDashboardSummary=loadAdminDashboardSummary;
+
+function adminSetReportView(view) {
+  const currentView =
+    view === 'REVIEW'
+      ? 'REVIEW'
+      : 'USER';
+
+  const userView =
+    document.getElementById(
+      'adminUserReportView'
+    );
+
+  const reviewView =
+    document.getElementById(
+      'adminReviewReportView'
+    );
+
+  if (userView) {
+    userView.hidden =
+      currentView !== 'USER';
+  }
+
+  if (reviewView) {
+    reviewView.hidden =
+      currentView !== 'REVIEW';
+  }
+
+  document
+    .querySelectorAll(
+      '[data-admin-report-view]'
+    )
+    .forEach(button => {
+      button.classList.toggle(
+        'active',
+        button.dataset.adminReportView ===
+          currentView
+      );
+    });
+
+  if (currentView === 'USER') {
+    window.loadAdminTransactionReports?.();
+  } else {
+    window.loadAdminReviewReports?.();
+  }
+}
+
+window.adminSetReportView =
+  adminSetReportView;

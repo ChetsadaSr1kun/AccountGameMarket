@@ -772,7 +772,7 @@ function renderUserProfileSellerReviews(
           return `
             <div
               style="
-                padding:18px 0;
+                padding:11px 0;
                 border-bottom:
                   1px solid var(--border);
               "
@@ -782,15 +782,15 @@ function renderUserProfileSellerReviews(
                   display:flex;
                   align-items:flex-start;
                   justify-content:space-between;
-                  gap:16px;
-                  margin-bottom:8px;
+                  gap:10px;
+                  margin-bottom:4px;
                 "
               >
                 <div>
                   <div
                     style="
                       font-weight:700;
-                      margin-bottom:4px;
+                      margin-bottom:2px;
                     "
                   >
                     ${userProfileEscape(
@@ -826,7 +826,9 @@ function renderUserProfileSellerReviews(
               <div
                 style="
                   color:var(--text);
-                  margin-top:10px;
+                  margin-top:5px;
+                  font-size:13px;
+                  line-height:1.5;
                 "
               >
                 ${userProfileEscape(
@@ -840,8 +842,8 @@ function renderUserProfileSellerReviews(
                   ? `
                     <div
                       style="
-                        margin-top:12px;
-                        padding:12px 14px;
+                        margin-top:8px;
+                        padding:9px 11px;
                         background:var(--bg3);
                         border-radius:10px;
                       "
@@ -874,10 +876,10 @@ function renderUserProfileSellerReviews(
               <div
                 style="
                   display:flex;
-                  gap:8px;
+                  gap:6px;
                   justify-content:flex-end;
                   flex-wrap:wrap;
-                  margin-top:12px;
+                  margin-top:8px;
                 "
               >
                 ${
@@ -931,7 +933,7 @@ function renderUserProfileSellerReviews(
       <div
         class="card"
         style="
-          padding:26px;
+          padding:18px 20px;
           margin-bottom:16px;
         "
       >

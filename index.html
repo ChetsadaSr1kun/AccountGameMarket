@@ -2142,6 +2142,35 @@
         </div>
       </div>
 
+      <!-- Report Type Tabs -->
+      <div class="admin-users-tabs" style="margin-bottom:16px">
+        <div class="admin-users-tab-list">
+
+          <button
+            type="button"
+            class="admin-users-tab active"
+            data-admin-report-view="USER"
+            onclick="adminSetReportView('USER')"
+          >
+            <span>👤</span>
+            รายงานผู้ใช้
+          </button>
+
+          <button
+            type="button"
+            class="admin-users-tab"
+            data-admin-report-view="REVIEW"
+            onclick="adminSetReportView('REVIEW')"
+          >
+            <span>⭐</span>
+            รายงานรีวิว
+          </button>
+
+        </div>
+      </div>
+
+      <div id="adminUserReportView">
+
       <div class="card">
         <div class="report-panel">
 
@@ -2371,10 +2400,19 @@
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
-<!-- Admin Suspended Users -->
+              <!-- User Reports View -->
+              </div>
+
+              <!-- Review Reports View -->
+              <div
+                id="adminReviewReportView"
+                hidden
+              ></div>
+
+            </div>
+          </div>
+        </div>
+        <!-- Admin Suspended Users -->
 <div class="page" id="pg-admin-suspended-users">
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar6"></div>
@@ -2444,6 +2482,7 @@
 <script src="assets/js/admin-topup-ui.js"></script>
 <script src="assets/js/admin-withdraw-ui.js"></script>
 <script src="assets/js/admin-transaction-reports-ui.js"></script>
+<script src="assets/js/admin-review-reports-ui.js"></script>
 <script src="assets/js/admin-games-ui.js"></script>
 <script src="assets/js/admin-user-ui.js"></script>
 <script src="assets/js/admin-product-ui.js"></script>

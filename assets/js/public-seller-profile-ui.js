@@ -81,14 +81,7 @@ function renderPublicSellerReviews(reviews) {
         ${
           publicSellerIsOwner
             ? `
-              <div
-                style="
-                  display:flex;
-                  gap:8px;
-                  margin-top:12px;
-                  flex-wrap:wrap;
-                "
-              >
+              <div class="seller-public-review-actions">
 
                 ${
                   !review.sellerReply

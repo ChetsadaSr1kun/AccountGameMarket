@@ -6,4 +6,21 @@ const createReport = asyncHandler(async (req,res)=>success(res,201,{report:await
 const listPendingReports = asyncHandler(async (req,res)=>success(res,200,{reports:await service.listPendingReports()}));
 const resolveReport = asyncHandler(async (req,res)=>success(res,200,{report:await service.resolveReport(req.user.id,req.params.reportId,req.body?.action,req.body?.adminNote)}));
 
-module.exports={createReport,listPendingReports,resolveReport};
+const listAdminReports =
+  asyncHandler(async (req, res) =>
+    success(
+      res,
+      200,
+      {
+        reports:
+          await service.listAdminReports(),
+      }
+    )
+  );
+
+module.exports = {
+  createReport,
+  listPendingReports,
+  listAdminReports,
+  resolveReport,
+};

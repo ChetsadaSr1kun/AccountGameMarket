@@ -555,6 +555,55 @@ assert.equal(
   assert.equal(Number(pendingReport.reviewId), targetReviewId);
   assert.equal(pendingReport.status, 'PENDING');
 
+  const nonAdminHistoryAttempt =
+    await api
+      .get('/api/v1/review-reports/admin')
+      .set(
+        'Cookie',
+        cookies(nonAdmin.auth)
+      );
+
+  assert.equal(
+    nonAdminHistoryAttempt.status,
+    403
+  );
+
+  assert.equal(
+    nonAdminHistoryAttempt.body.error.code,
+    'FORBIDDEN'
+  );
+
+  const adminHistoryBeforeResolution =
+    await api
+      .get('/api/v1/review-reports/admin')
+      .set(
+        'Cookie',
+        cookies(admin.auth)
+      );
+
+  assert.equal(
+    adminHistoryBeforeResolution.status,
+    200
+  );
+
+  const adminPendingReport =
+    adminHistoryBeforeResolution
+      .body
+      .data
+      .reports
+      .find(
+        report =>
+          Number(report.id) ===
+          reviewReportId
+      );
+
+  assert.ok(adminPendingReport);
+
+  assert.equal(
+    adminPendingReport.status,
+    'PENDING'
+  );
+
   const nonAdminAttempt = await api
     .patch(`/api/v1/review-reports/${reviewReportId}`)
     .set('Cookie', cookies(nonAdmin.auth))
@@ -587,6 +636,50 @@ assert.equal(
   assert.equal(removed.status, 200);
   assert.equal(removed.body.data.report.status, 'REMOVED');
   assert.equal(removed.body.data.report.adminNote, adminNote);
+  const adminHistoryAfterResolution =
+    await api
+      .get('/api/v1/review-reports/admin')
+      .set(
+        'Cookie',
+        cookies(admin.auth)
+      );
+
+  assert.equal(
+    adminHistoryAfterResolution.status,
+    200
+  );
+
+  const adminRemovedReport =
+    adminHistoryAfterResolution
+      .body
+      .data
+      .reports
+      .find(
+        report =>
+          Number(report.id) ===
+          reviewReportId
+      );
+
+  assert.ok(adminRemovedReport);
+
+  assert.equal(
+    adminRemovedReport.status,
+    'REMOVED'
+  );
+
+  assert.equal(
+    adminRemovedReport.adminNote,
+    adminNote
+  );
+
+  assert.equal(
+    Number(adminRemovedReport.reviewId),
+    targetReviewId
+  );
+
+  assert.ok(
+    adminRemovedReport.resolvedAt
+  );
 
   const [[resolvedReport]] = await pool.execute(
     'SELECT status, admin_note, resolved_by, resolved_at FROM review_reports WHERE id = ?',

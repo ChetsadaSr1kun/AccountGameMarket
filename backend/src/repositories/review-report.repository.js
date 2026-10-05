@@ -38,6 +38,36 @@ async function listPending(executor = pool) {
   return rows;
 }
 
+async function listAll(executor = pool) {
+  const [rows] = await executor.execute(
+    `
+    SELECT
+      rr.*,
+      r.rating,
+      r.comment,
+      r.seller_id,
+      r.buyer_id,
+      reporter.username AS reporter_username,
+      seller.username AS seller_username,
+      buyer.username AS buyer_username
+    FROM review_reports rr
+    INNER JOIN reviews r
+      ON r.id = rr.review_id
+    INNER JOIN users reporter
+      ON reporter.id = rr.reporter_id
+    INNER JOIN users seller
+      ON seller.id = r.seller_id
+    INNER JOIN users buyer
+      ON buyer.id = r.buyer_id
+    ORDER BY
+      rr.created_at DESC,
+      rr.id DESC
+    `
+  );
+
+  return rows;
+}
+
 async function updateStatus(reportId, status, adminId, adminNote, executor = pool) {
   const [result] = await executor.execute(
     `UPDATE review_reports SET status=?, admin_note=?, resolved_at=CURRENT_TIMESTAMP, resolved_by=?
@@ -59,4 +89,13 @@ async function hideReview(reviewId, executor = pool) {
   await executor.execute("UPDATE reviews SET status='HIDDEN' WHERE id=?", [reviewId]);
 }
 
-module.exports = { findReview, findExisting, create, listPending, updateStatus, getById, hideReview };
+module.exports = {
+  findReview,
+  findExisting,
+  create,
+  listPending,
+  listAll,
+  updateStatus,
+  getById,
+  hideReview
+};
