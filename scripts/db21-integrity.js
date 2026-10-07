@@ -1,0 +1,69 @@
+// Read-only comparison against a local, ignored baseline. Never prints row data.
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+const assert = require('node:assert/strict');
+const { pool } = require('../backend/src/config/database');
+
+const baselinePath = 'tmp/db21/integrity-baseline.json';
+const quote = (name) => `\`${name.replaceAll('`', '``')}\``;
+const digest = (rows) => crypto.createHash('sha256')
+  .update(JSON.stringify(rows.map((row) => JSON.stringify(row)).sort())).digest('hex');
+
+async function snapshot(baseline) {
+  const [tables] = await pool.query('SHOW TABLES');
+  const result = {};
+  for (const table of baseline ? Object.keys(baseline) : tables.map((row) => Object.values(row)[0])) {
+    if (table === 'schema_migrations') continue;
+    let columns = baseline?.[table].columns;
+    if (!columns) {
+      const [fields] = await pool.query(`SHOW COLUMNS FROM ${quote(table)}`);
+      columns = fields.map((field) => field.Field);
+    }
+    let sql = `SELECT ${columns.map(quote).join(',')} FROM ${quote(table)}`;
+    if (baseline && table === 'seller_verification_documents') {
+      const [[field]] = await pool.query(`SELECT COUNT(*) n FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='seller_verification_requests' AND COLUMN_NAME='id_front_id'`);
+      if (field.n) {
+        sql = ['ID_FRONT', 'ID_BACK', 'SELFIE'].map((type) => {
+          const prefix = type.toLowerCase();
+          return `SELECT ${prefix}_id id,id request_id,'${type}' document_type,
+            ${prefix}_storage_path storage_path,${prefix}_mime_type mime_type,
+            ${prefix}_file_size file_size,${prefix}_sha256 sha256,${prefix}_created_at created_at
+            FROM seller_verification_requests WHERE ${prefix}_id IS NOT NULL`;
+        }).join(' UNION ALL ');
+      }
+    }
+    const [rows] = await pool.query(sql);
+    result[table] = { columns, count: rows.length, digest: digest(rows) };
+  }
+  return result;
+}
+
+async function run() {
+  try {
+    if (process.argv[2] === 'capture') {
+      const result = await snapshot();
+      fs.mkdirSync('tmp/db21', { recursive: true });
+      fs.writeFileSync(baselinePath, JSON.stringify(result, null, 2), { flag: 'wx' });
+      console.log('Baseline saved: counts and SHA-256 only; no source rows or secrets.');
+      console.log(Object.fromEntries(Object.entries(result).map(([name, value]) => [name, value.count])));
+    } else if (process.argv[2] === 'verify') {
+      const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8'));
+      const actual = await snapshot(baseline);
+      for (const [table, expected] of Object.entries(baseline)) {
+        assert.equal(actual[table].count, expected.count, `${table}: count changed; STOP`);
+        assert.equal(actual[table].digest, expected.digest, `${table}: data changed; STOP`);
+        console.log(`${table}: count and every original column match`);
+      }
+    } else {
+      throw new Error('Usage: node scripts/db21-integrity.js capture|verify');
+    }
+  } finally {
+    await pool.end();
+  }
+}
+
+run().catch((error) => {
+  console.error(error.code || error.message);
+  process.exitCode = 1;
+});

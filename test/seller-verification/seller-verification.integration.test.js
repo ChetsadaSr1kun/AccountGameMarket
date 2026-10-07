@@ -10,6 +10,7 @@ const { pool } = require('../../backend/src/config/database');
 const { hashPassword } = require('../../backend/src/utils/password');
 const userRepository = require('../../backend/src/repositories/user.repository');
 const roleRepository = require('../../backend/src/repositories/role.repository');
+const sellerVerificationRepository = require('../../backend/src/repositories/seller-verification.repository');
 const app = require('../../backend/src/app');
 const { cleanupTestUsers, closeTestDatabasePool, prepareTestDatabase } = require('../helpers/test-database');
 
@@ -170,6 +171,27 @@ test('rejects seller document uploads from an unverified customer', async () => 
   assert.equal(requests.length, 0);
 });
 
+test('preserves document IDs, upload order and metadata when replacing an embedded document', async () => {
+  const buyer = await registerVerifiedBuyer('document-identity');
+  const selfie = await uploadDocument(buyer, 'SELFIE');
+  const back = await uploadDocument(buyer, 'ID_BACK');
+  const front = await uploadDocument(buyer, 'ID_FRONT');
+  const originalIds = [selfie, back, front].map((response) => response.body.data.document.id);
+  assert.equal(new Set(originalIds).size, 3);
+  const replacement = await uploadDocument(buyer, 'SELFIE');
+  assert.equal(replacement.body.data.document.id, originalIds[0]);
+  const status = await api.get('/api/v1/seller-verification/me').set('Cookie', cookies(buyer.auth));
+  assert.equal(status.status, 200);
+  const documents = await sellerVerificationRepository.listDocuments(selfie.body.data.request.id);
+  assert.deepEqual(documents.map((document) => document.document_type), ['SELFIE', 'ID_BACK', 'ID_FRONT']);
+  assert.deepEqual(documents.map((document) => document.id), originalIds);
+  assert.ok(documents.every((document) => document.sha256 === crypto.createHash('sha256').update(validJpeg).digest('hex')));
+  assert.ok(documents.every((document) => document.created_at && document.storage_path && document.mime_type === 'image/jpeg'));
+  const anotherBuyer = await registerVerifiedBuyer('document-identity-other');
+  const another = await uploadDocument(anotherBuyer, 'SELFIE');
+  assert.ok(!originalIds.includes(another.body.data.document.id));
+});
+
 test('keeps an incomplete verified application as a draft', async () => {
   const buyer = await registerVerifiedBuyer('incomplete');
   await uploadDocument(buyer, 'ID_FRONT');
@@ -184,7 +206,7 @@ test('keeps an incomplete verified application as a draft', async () => {
   const [requests] = await pool.execute('SELECT id, status FROM seller_verification_requests WHERE user_id = ?', [buyer.id]);
   assert.equal(requests.length, 1);
   assert.equal(requests[0].status, 'DRAFT');
-  const [documents] = await pool.execute('SELECT document_type FROM seller_verification_documents WHERE request_id = ?', [requests[0].id]);
+  const documents = await sellerVerificationRepository.listDocuments(requests[0].id);
   assert.deepEqual(documents.map((document) => document.document_type), ['ID_FRONT']);
 });
 
@@ -225,7 +247,7 @@ test('prevents document changes and resubmission while an application is pending
 
   const [requests] = await pool.execute('SELECT id, status FROM seller_verification_requests WHERE user_id = ?', [buyer.id]);
   assert.equal(requests[0].status, 'PENDING');
-  const [documents] = await pool.execute('SELECT id FROM seller_verification_documents WHERE request_id = ?', [requests[0].id]);
+  const documents = await sellerVerificationRepository.listDocuments(requests[0].id);
   assert.equal(documents.length, 3);
 });
 
