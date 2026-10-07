@@ -49,6 +49,6 @@ test('new transaction UI exposes only BANK and PROMPTPAY', () => {
 
 test('legacy TrueMoney labels remain available for history and admin rendering', () => {
   assert.match(topupSource, /TRUEMONEY: ['"]TrueMoney Wallet['"]/);
-  assert.match(adminTopupSource, /TRUEMONEY:['"]💰 TrueMoney['"]/);
-  assert.match(adminWithdrawSource, /TRUEMONEY:['"]💰 TrueMoney['"]/);
+  assert.match(adminTopupSource, /TRUEMONEY:['"]<img class="ui-emoji" src="assets\/icons\/wallet\.svg" alt=""> TrueMoney['"]/);
+  assert.match(adminWithdrawSource, /TRUEMONEY:['"]<img class="ui-emoji" src="assets\/icons\/wallet\.svg" alt=""> TrueMoney['"]/);
 });

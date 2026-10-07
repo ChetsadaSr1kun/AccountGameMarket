@@ -3,7 +3,7 @@
   const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const csrf = () => window.csrfToken || document.cookie.match(/(?:^|; )gm_csrf=([^;]+)/)?.[1] || '';
   const req = (url, options={}) => fetch(url,{credentials:'include',...options});
-  const label = s => ({PENDING:'🟡 รอตรวจสอบ',APPROVED:'✅ อนุมัติแล้ว',REJECTED:'❌ ปฏิเสธ'}[s]||esc(s));
+  const label = s => ({PENDING:'🟡 รอตรวจสอบ',APPROVED:'✅ อนุมัติแล้ว',REJECTED:'<img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""> ปฏิเสธ'}[s]||esc(s));
   const badge = s => s==='APPROVED'?'badge-green':s==='REJECTED'?'badge-red':'badge-yellow';
   let records=[];
   function row(x){const userId=Number(x.user_id);const name=esc(`${x.first_name||''} ${x.last_name||''}`.trim()||x.username);return `<div class="report-entry"><div class="report-top"><div><div class="report-title-row"><span class="report-title">${name}</span><span class="badge ${badge(x.status)}">${label(x.status)}</span></div><div class="report-meta"><span>@${esc(x.username)}</span><span>${esc(x.email||'-')}</span><span>${x.reviewed_at?new Date(x.reviewed_at).toLocaleString('th-TH'):'ส่งคำขอ '+new Date(x.created_at).toLocaleString('th-TH')}</span></div></div><div class="report-actions"><button class="btn btn-secondary btn-sm" onclick="adminViewSellerVerification(${userId})">👁 ดูรายละเอียด</button>${x.status==='PENDING'?`<button class="btn btn-success btn-sm" onclick="adminApproveSellerVerification(${userId})">✓ อนุมัติ</button><button class="btn btn-danger btn-sm" onclick="adminRejectSellerVerification(${userId})">✗ ปฏิเสธ</button>`:''}</div></div>${x.status==='REJECTED'&&x.rejection_reason?`<div class="report-note" style="margin-top:12px"><strong>เหตุผลปฏิเสธ</strong>${esc(x.rejection_reason)}</div>`:''}</div>`;}
@@ -128,7 +128,7 @@
             >
 
             <span class="seller-admin-doc-zoom">
-              🔍
+              <img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt="">
             </span>
           </button>
 

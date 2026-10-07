@@ -16,7 +16,7 @@ function adminDetailAvatar(
     );
   }
 
-  return '👤';
+  return '<img class="ui-emoji" src="assets/icons/profileUser.svg" alt="">';
 }
 async function openAdminTransactionReportDetail(reportId) {
   adminTransactionDetailState.reportId =
@@ -197,7 +197,7 @@ else if (reportedStatus === 'BANNED') {
 
         <div>
           <div class="review-modal-title">
-            🚨 รายละเอียดรายงาน
+            <img class="ui-emoji" src="assets/icons/report.svg" alt=""> รายละเอียดรายงาน
             #${Number(report.id)}
           </div>
 
@@ -237,7 +237,7 @@ else if (reportedStatus === 'BANNED') {
         <div class="admin-report-party-card">
 
           <div class="admin-report-party-icon">
-            👤
+            <img class="ui-emoji" src="assets/icons/profileUser.svg" alt="">
           </div>
 
           <div>
@@ -269,7 +269,7 @@ else if (reportedStatus === 'BANNED') {
               reported
             "
           >
-            👤
+            <img class="ui-emoji" src="assets/icons/profileUser.svg" alt="">
           </div>
 
           <div>
@@ -306,7 +306,7 @@ else if (reportedStatus === 'BANNED') {
             )
           "
         >
-          💬 ตรวจสอบแชทระหว่างผู้ใช้
+          <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ตรวจสอบแชทระหว่างผู้ใช้
         </button>
 
         <span>
@@ -369,7 +369,7 @@ else if (reportedStatus === 'BANNED') {
       <div class="admin-detail-block">
 
         <div class="admin-detail-label">
-          💬 รายละเอียดจากผู้รายงาน
+          <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> รายละเอียดจากผู้รายงาน
         </div>
 
         <div class="admin-detail-description">
@@ -386,7 +386,7 @@ else if (reportedStatus === 'BANNED') {
       <div class="admin-detail-block">
 
         <div class="admin-detail-label">
-          💰 ข้อมูลธุรกรรม
+          <img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ข้อมูลธุรกรรม
         </div>
 
         <div class="admin-report-transaction-box">
@@ -864,7 +864,7 @@ async function openAdminReportChatReview(
 
         <div>
           <div class="review-modal-title">
-            💬 ตรวจสอบแชทระหว่างผู้ใช้
+            <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ตรวจสอบแชทระหว่างผู้ใช้
           </div>
 
           <div class="review-modal-product">
@@ -967,7 +967,7 @@ async function openAdminReportChatReview(
         </div>
 
         <div>
-          💬 ไม่พบประวัติการสนทนาระหว่างผู้ใช้ทั้งสองราย
+          <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ไม่พบประวัติการสนทนาระหว่างผู้ใช้ทั้งสองราย
         </div>
       `;
 
@@ -1104,7 +1104,7 @@ async function openAdminReportChatReview(
       </div>
 
       <div class="admin-report-chat-readonly">
-        🔒 โหมดตรวจสอบเท่านั้น
+        <img class="ui-emoji" src="assets/icons/lock.svg" alt=""> โหมดตรวจสอบเท่านั้น
         Admin ไม่สามารถส่งหรือแก้ไขข้อความได้
       </div>
     `;

@@ -807,7 +807,7 @@ function renderProductsDetail(user) {
                     alt="${esc(product.title)}"
                   >
                 `
-                : '🎮'
+                : '<img class="ui-emoji" src="assets/icons/game.svg" alt="">'
             }
           </div>
 
@@ -886,7 +886,7 @@ function renderPurchasesDetail(user) {
                     alt="${esc(order.productTitle || 'สินค้า')}"
                   >
                 `
-                : '🎮'
+                : '<img class="ui-emoji" src="assets/icons/game.svg" alt="">'
             }
           </div>
 

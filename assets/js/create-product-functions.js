@@ -365,8 +365,8 @@ async function verifyCreateProductValorantAccount() {
     );
 
   } finally {
-    button.textContent =
-      '🔍 ตรวจสอบบัญชี Valorant';
+    button.innerHTML =
+      '<img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""> ตรวจสอบบัญชี Valorant';
 
     updateValorantVerifyButtonState();
   }

@@ -181,7 +181,7 @@ function renderUserProfileOverview(
           margin-bottom:22px;
         "
       >
-        👤 ข้อมูลส่วนตัว
+        <img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> ข้อมูลส่วนตัว
       </div>
 
       <div
@@ -385,7 +385,7 @@ function renderUserProfileSellerStats(
                 margin-bottom:8px;
               "
             >
-              ⭐ คะแนนผู้ขาย
+              <img class="ui-emoji" src="assets/icons/star.svg" alt=""> คะแนนผู้ขาย
             </div>
 
             <div
@@ -465,7 +465,7 @@ function renderUserProfileSellerStats(
                 margin-bottom:8px;
               "
             >
-              💬 รีวิวทั้งหมด
+              <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> รีวิวทั้งหมด
             </div>
 
             <div
@@ -548,7 +548,7 @@ function renderUserProfileSellerProducts(
                     margin-bottom:12px;
                   "
                 >
-                  🎮
+                  <img class="ui-emoji" src="assets/icons/game.svg" alt="">
                 </div>
               `;
 
@@ -657,7 +657,7 @@ function renderUserProfileSellerProducts(
               margin-bottom:10px;
             "
           >
-            🎮
+            <img class="ui-emoji" src="assets/icons/game.svg" alt="">
           </div>
 
           <div style="margin-bottom:14px">
@@ -700,7 +700,7 @@ function renderUserProfileSellerProducts(
               font-weight:800;
             "
           >
-            🎮 สินค้าที่กำลังขาย
+            <img class="ui-emoji" src="assets/icons/game.svg" alt=""> สินค้าที่กำลังขาย
           </div>
 
           ${
@@ -919,7 +919,7 @@ function renderUserProfileSellerReviews(
                           )
                         "
                       >
-                        💬 ตอบกลับ
+                        <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ตอบกลับ
                       </button>
                     `
                     : ''
@@ -978,7 +978,7 @@ function renderUserProfileSellerReviews(
               font-weight:800;
             "
           >
-            ⭐ รีวิวจากผู้ซื้อ
+            <img class="ui-emoji" src="assets/icons/star.svg" alt=""> รีวิวจากผู้ซื้อ
           </div>
 
           <div
@@ -1307,7 +1307,7 @@ function buildUserProfileActivities(
 
       activities.push({
         type: 'PURCHASE',
-        icon: '🛒',
+        icon: '<img class="ui-emoji" src="assets/icons/shop.svg" alt="">',
         title: 'ซื้อสินค้าสำเร็จ',
         detail:
           order.product?.title ||
@@ -1340,7 +1340,7 @@ function buildUserProfileActivities(
     if (type === 'TOP_UP') {
         activities.push({
         type,
-        icon: '💰',
+        icon: '<img class="ui-emoji" src="assets/icons/wallet.svg" alt="">',
         title: 'ฝากพ้อยท์',
         detail: `+${amount} pts`,
         occurredAt,

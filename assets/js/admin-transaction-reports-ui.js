@@ -22,7 +22,7 @@ function adminReportAvatar(
     `;
   }
 
-  return '👤';
+  return '<img class="ui-emoji" src="assets/icons/profileUser.svg" alt="">';
 }
 function adminReportReason(r){return ({SCAM:'หลอกลวง / พยายามโกง',ITEM_NOT_AS_DESCRIBED:'สินค้าไม่ตรงตามรายละเอียด',NO_DELIVERY:'ไม่ได้รับสินค้า / ไม่ส่งข้อมูล',HARASSMENT:'คำหยาบ / การคุกคาม',CHAT_ABUSE:'พฤติกรรมไม่เหมาะสมในการพูดคุย',OTHER:'อื่น ๆ'})[r]||r;}
 function adminReportStatus(status) {
@@ -353,7 +353,7 @@ async function loadAdminDashboardSummary() {
                   loading="lazy"
                 >
               `
-              : '🎮';
+              : '<img class="ui-emoji" src="assets/icons/game.svg" alt="">';
 
             const dateValue =
               item.completed_at || item.created_at;
@@ -439,7 +439,7 @@ async function loadAdminDashboardSummary() {
                   loading="lazy"
                 >
               `
-              : '🎮';
+              : '<img class="ui-emoji" src="assets/icons/game.svg" alt="">';
 
             return `
               <div class="admin-dashboard-game-row">

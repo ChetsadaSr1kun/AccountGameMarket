@@ -138,7 +138,7 @@
                           "
                         >
                       `
-                      : '🎮'
+                      : '<img class="ui-emoji" src="assets/icons/game.svg" alt="">'
                   }
                 </div>
 
@@ -388,7 +388,7 @@
                             opacity:.7;
                           "
                         >
-                          🎮
+                          <img class="ui-emoji" src="assets/icons/game.svg" alt="">
                         </span>
                       `
                   }

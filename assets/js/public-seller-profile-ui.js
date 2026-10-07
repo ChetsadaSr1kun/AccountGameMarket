@@ -131,7 +131,7 @@ function renderPublicSellerReviews(reviews) {
     `;
 }
 function filterPublicSellerReviews(star){document.querySelectorAll('.seller-review-filter').forEach(b=>b.classList.toggle('is-active',Number(b.dataset.rating)===star));renderPublicSellerReviews(star?publicSellerReviews.filter(x=>Number(x.rating)===star):publicSellerReviews);}
-function openSellerReplyModal(reviewId){const m=document.createElement('div');m.id='sellerReplyModal';m.className='modal-overlay';m.style.display='flex';m.innerHTML=`<div class="modal-card seller-reply-modal"><div class="review-modal-header"><div><div class="review-modal-title">💬 ตอบกลับรีวิว</div><div class="review-modal-product">คำตอบจะแสดงในโปรไฟล์ผู้ขายของคุณ</div></div><button class="btn btn-ghost btn-sm" onclick="closeSellerReplyModal()">✕</button></div><textarea id="sellerReplyInput" maxlength="500" placeholder="เขียนคำตอบของคุณ..."></textarea><div id="sellerReplyMessage" class="review-message"></div><div class="review-modal-actions"><button class="btn btn-secondary" onclick="closeSellerReplyModal()">ยกเลิก</button><button id="sellerReplySubmit" class="btn btn-primary" onclick="submitSellerReply(${reviewId})">ส่งคำตอบ</button></div></div>`;document.body.appendChild(m);}
+function openSellerReplyModal(reviewId){const m=document.createElement('div');m.id='sellerReplyModal';m.className='modal-overlay';m.style.display='flex';m.innerHTML=`<div class="modal-card seller-reply-modal"><div class="review-modal-header"><div><div class="review-modal-title"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ตอบกลับรีวิว</div><div class="review-modal-product">คำตอบจะแสดงในโปรไฟล์ผู้ขายของคุณ</div></div><button class="btn btn-ghost btn-sm" onclick="closeSellerReplyModal()">✕</button></div><textarea id="sellerReplyInput" maxlength="500" placeholder="เขียนคำตอบของคุณ..."></textarea><div id="sellerReplyMessage" class="review-message"></div><div class="review-modal-actions"><button class="btn btn-secondary" onclick="closeSellerReplyModal()">ยกเลิก</button><button id="sellerReplySubmit" class="btn btn-primary" onclick="submitSellerReply(${reviewId})">ส่งคำตอบ</button></div></div>`;document.body.appendChild(m);}
 function closeSellerReplyModal(){document.getElementById('sellerReplyModal')?.remove();}
 function openSellerReviewReportModal(reviewId) {
   const id = Number(reviewId);
@@ -505,13 +505,13 @@ function renderPublicSellerProfile(data,sellerId){
             )
           "
         >
-          💬 ติดต่อผู้ขาย
+          <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ติดต่อผู้ขาย
         </button>
       </div>
     `;
     const avatar=s.avatarUrl?`<img src="${publicSellerEscape(s.avatarUrl)}" alt="" class="seller-public-avatar-img">`:publicSellerEscape((s.username||'U').charAt(0).toUpperCase());c.innerHTML=`<div class="seller-public-hero" data-seller-id="${Number(sellerId)||Number(s.id)||0}"><div class="seller-public-avatar">${avatar}</div>
     <div class="seller-public-main"><h1>${publicSellerEscape(s.username||'ผู้ขาย')}</h1>
-    <div class="seller-public-rating">${rating.reviewCount?`${publicSellerStars(rating.averageRating)} <strong>${Number(rating.averageRating).toFixed(1)}</strong> / 5 · ${Number(rating.reviewCount).toLocaleString('th-TH')} รีวิว`:'⭐ ยังไม่มีคะแนนรีวิว'}</div><div class="seller-public-meta">${s.accountVerified?'✓ ยืนยันตัวตนแล้ว':'สมาชิก GameMarket'} · สมาชิกตั้งแต่ ${s.createdAt?new Date(s.createdAt).toLocaleDateString('th-TH'):'-'}</div></div>${sellerContactButton}</div>`;c.innerHTML+=`<div class="grid3 seller-public-stats"><div class="card"><strong>${rating.reviewCount||0}</strong><span>รีวิว</span></div><div class="card"><strong>${Number(data.completedSales||0).toLocaleString('th-TH')}</strong><span>ขายสำเร็จ</span></div><div class="card"><strong>${products.length}</strong><span>กำลังขาย</span></div></div>`;c.innerHTML+=`<section class="card seller-public-section"><div class="seller-public-section-head"><div><h2>📝 รีวิวจากผู้ซื้อ</h2><p>ความคิดเห็นและคะแนนจากผู้ซื้อทั้งหมด</p></div></div>${renderPublicSellerReviewFilters(rating,reviews.length)}<div id="seller-public-review-list"></div></section>`;c.innerHTML+=`<section class="seller-public-section"><div class="seller-public-section-head"><div><h2>🎮 สินค้าที่กำลังขาย</h2><p>เฉพาะประกาศที่ยังพร้อมซื้อ</p></div>
+    <div class="seller-public-rating">${rating.reviewCount?`${publicSellerStars(rating.averageRating)} <strong>${Number(rating.averageRating).toFixed(1)}</strong> / 5 · ${Number(rating.reviewCount).toLocaleString('th-TH')} รีวิว`:'<img class="ui-emoji" src="assets/icons/star.svg" alt=""> ยังไม่มีคะแนนรีวิว'}</div><div class="seller-public-meta">${s.accountVerified?'✓ ยืนยันตัวตนแล้ว':'สมาชิก GameMarket'} · สมาชิกตั้งแต่ ${s.createdAt?new Date(s.createdAt).toLocaleDateString('th-TH'):'-'}</div></div>${sellerContactButton}</div>`;c.innerHTML+=`<div class="grid3 seller-public-stats"><div class="card"><strong>${rating.reviewCount||0}</strong><span>รีวิว</span></div><div class="card"><strong>${Number(data.completedSales||0).toLocaleString('th-TH')}</strong><span>ขายสำเร็จ</span></div><div class="card"><strong>${products.length}</strong><span>กำลังขาย</span></div></div>`;c.innerHTML+=`<section class="card seller-public-section"><div class="seller-public-section-head"><div><h2>📝 รีวิวจากผู้ซื้อ</h2><p>ความคิดเห็นและคะแนนจากผู้ซื้อทั้งหมด</p></div></div>${renderPublicSellerReviewFilters(rating,reviews.length)}<div id="seller-public-review-list"></div></section>`;c.innerHTML+=`<section class="seller-public-section"><div class="seller-public-section-head"><div><h2><img class="ui-emoji" src="assets/icons/game.svg" alt=""> สินค้าที่กำลังขาย</h2><p>เฉพาะประกาศที่ยังพร้อมซื้อ</p></div>
     </div><div class="seller-public-products">${products.length?products.map((p) => `
   <div
     class="card card-hover seller-public-product-card"
@@ -534,7 +534,7 @@ function renderPublicSellerProfile(data,sellerId){
           `
           : `
             <div class="seller-public-product-preview-empty">
-              🎮
+              <img class="ui-emoji" src="assets/icons/game.svg" alt="">
             </div>
           `
       }

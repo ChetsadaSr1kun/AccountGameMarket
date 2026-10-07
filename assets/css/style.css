@@ -7142,6 +7142,23 @@ body.seller-document-preview-open {
   vertical-align: -4px;
 }
 
+.ui-emoji {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  object-fit: contain;
+  vertical-align: -0.125em;
+  flex: none;
+}
+
+.emoji-search-input {
+  background-image: url('../icons/magnifyingGlass.svg');
+  background-repeat: no-repeat;
+  background-size: 1em 1em;
+  background-position: 14px center;
+  padding-left: 34px;
+}
+
 .ui-icon-wallet {
   -webkit-mask:
     url('../icons/wallet.svg')

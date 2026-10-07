@@ -1,7 +1,7 @@
 (() => {
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const csrf = () => window.csrfToken || document.cookie.match(/(?:^|; )gm_csrf=([^;]+)/)?.[1];
-  const methodLabel = (m) => ({ BANK:'🏦 ธนาคาร', PROMPTPAY:'📱 พร้อมเพย์', TRUEMONEY:'💰 TrueMoney' }[m] || m);
+  const methodLabel = (m) => ({ BANK:'🏦 ธนาคาร', PROMPTPAY:'📱 พร้อมเพย์', TRUEMONEY:'<img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> TrueMoney' }[m] || esc(m));
   const bankLabel = (code) => ({
   KBANK: 'กสิกรไทย',
   KTB: 'กรุงไทย',
@@ -82,7 +82,7 @@
         </div>
 
         <div class="card stat-card">
-          <div style="font-size:24px">❌</div>
+          <div style="font-size:24px"><img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""></div>
 
           <div
             id="adminWithdrawalRejectedCount"
@@ -138,7 +138,7 @@
               data-withdrawal-view="REJECTED"
               onclick="adminSetWithdrawalView('REJECTED')"
             >
-              <span>❌</span>
+              <span><img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""></span>
               ปฏิเสธ
             </button>
 
@@ -218,13 +218,13 @@
   async function openDecisionModal(id, type, request) {
     const modal = ensureConfirmModal();
     const isReject = type === 'reject';
-    modal.querySelector('#adminWithdrawalModalIcon').textContent = isReject ? '❌' : '✅';
+    modal.querySelector('#adminWithdrawalModalIcon').innerHTML = isReject ? '<img class="ui-emoji" src="assets/icons/crossmark.svg" alt="">' : '✅';
     modal.querySelector('#adminWithdrawalModalTitle').textContent = isReject ? 'ไม่อนุมัติการถอนเงิน' : 'ยืนยันการอนุมัติถอนเงิน';
     modal.querySelector('#adminWithdrawalModalBody').innerHTML = `
       ผู้ใช้ <strong>${esc(request.username)}</strong>
       ขอถอน <strong>${Number(request.amount).toLocaleString('th-TH')} pts</strong>
       <br>
-      ช่องทาง: ${esc(methodLabel(request.paymentMethod))}
+      ช่องทาง: ${methodLabel(request.paymentMethod)}
       ${
         request.paymentMethod === 'BANK'
           ? `<br>ธนาคาร: <strong>${esc(bankLabel(request.bankCode))}</strong>`
@@ -451,7 +451,7 @@
         '<span class="badge badge-green">✅ อนุมัติแล้ว</span>',
 
       REJECTED:
-        '<span class="badge badge-red">❌ ปฏิเสธแล้ว</span>',
+        '<span class="badge badge-red"><img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""> ปฏิเสธแล้ว</span>',
     }[r.status] || '';
 
     const actionButtons =
@@ -503,7 +503,7 @@
                 margin-top:8px;
               "
             >
-              ❌ ปฏิเสธเมื่อ ${formatDate(r.reviewedAt)}
+              <img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""> ปฏิเสธเมื่อ ${formatDate(r.reviewedAt)}
             </div>
 
             ${
@@ -618,7 +618,7 @@
                 </div>
 
                 <div style="font-weight:600">
-                  ${esc(methodLabel(r.paymentMethod))}
+                  ${methodLabel(r.paymentMethod)}
                 </div>
               </div>
 

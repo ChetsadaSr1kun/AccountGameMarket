@@ -38,7 +38,7 @@ function historyTradePreview(order) {
         font-size:26px;
       "
     >
-      🎮
+      <img class="ui-emoji" src="assets/icons/game.svg" alt="">
     </div>
   `;
 }
@@ -113,7 +113,7 @@ let action = '';
  if(isBuyer&&order.status==='COMPLETED'){
     const review=order.hasReview?'<span class="badge badge-green history-reviewed-badge">✓ รีวิวแล้ว</span>':
     `<button class="btn btn-primary btn-sm" onclick="openReviewModal(
-    ${historyTradeOrderJson(order)})">⭐ รีวิว</button>`;const report=order.hasTransactionReport?
+    ${historyTradeOrderJson(order)})"><img class="ui-emoji" src="assets/icons/star.svg" alt=""> รีวิว</button>`;const report=order.hasTransactionReport?
     '<span class="badge badge-green history-report-badge">✓ รายงานแล้ว</span>':`<button class="btn btn-ghost btn-sm history-report-
     btn" onclick="openTransactionReportModal(${Number(order.id)})
     ">🚩 รายงาน</button>`;action=`<div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:nowrap">
@@ -204,7 +204,7 @@ let action = '';
       font-size:14px
     "
   >
-    🎮 ${escapeHistoryText(
+    <img class="ui-emoji" src="assets/icons/game.svg" alt=""> ${escapeHistoryText(
       order.product?.title ||
       'สินค้า'
     )}

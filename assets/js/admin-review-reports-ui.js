@@ -299,7 +299,7 @@ function renderAdminReviewReports(reports) {
       <div class="admin-review-report-empty">
 
         <div class="admin-review-report-empty-icon">
-          ⭐
+          <img class="ui-emoji" src="assets/icons/star.svg" alt="">
         </div>
 
         <strong>
@@ -464,7 +464,7 @@ function adminReviewReportAvatar(
     );
   }
 
-  return '👤';
+  return '<img class="ui-emoji" src="assets/icons/profileUser.svg" alt="">';
 }
 
 function openAdminReviewReportDetail(
@@ -635,7 +635,7 @@ function openAdminReviewReportDetail(
           )
         "
       >
-        💬 ตรวจสอบแชทระหว่างผู้ใช้
+        <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ตรวจสอบแชทระหว่างผู้ใช้
       </button>
 
       <span>
@@ -846,7 +846,7 @@ async function openAdminReviewReportChatReview(
 
         <div>
           <div class="review-modal-title">
-            💬 ตรวจสอบแชทระหว่างผู้ใช้
+            <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ตรวจสอบแชทระหว่างผู้ใช้
           </div>
 
           <div class="review-modal-product">
@@ -961,11 +961,11 @@ async function openAdminReviewReportChatReview(
         </div>
 
         <div class="admin-report-chat-review-note">
-          💬 ไม่พบประวัติการสนทนาระหว่างผู้รายงานและผู้รีวิว
+          <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ไม่พบประวัติการสนทนาระหว่างผู้รายงานและผู้รีวิว
         </div>
 
         <div class="admin-report-chat-readonly">
-          🔒 โหมดตรวจสอบเท่านั้น
+          <img class="ui-emoji" src="assets/icons/lock.svg" alt=""> โหมดตรวจสอบเท่านั้น
           Admin ไม่สามารถส่งหรือแก้ไขข้อความได้
         </div>
       `;
@@ -1113,7 +1113,7 @@ async function openAdminReviewReportChatReview(
       </div>
 
       <div class="admin-report-chat-readonly">
-        🔒 โหมดตรวจสอบเท่านั้น
+        <img class="ui-emoji" src="assets/icons/lock.svg" alt=""> โหมดตรวจสอบเท่านั้น
         Admin ไม่สามารถส่งหรือแก้ไขข้อความได้
       </div>
     `;

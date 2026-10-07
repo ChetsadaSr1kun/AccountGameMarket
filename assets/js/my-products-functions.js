@@ -100,7 +100,7 @@ function productCardHtml(product) {
       `
       : `
         <div class="my-product-preview-empty">
-          🎮
+          <img class="ui-emoji" src="assets/icons/game.svg" alt="">
         </div>
       `;
 

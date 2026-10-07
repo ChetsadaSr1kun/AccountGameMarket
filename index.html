@@ -39,16 +39,16 @@
 <button class="devbtn" onclick="loginAndGo('home-user')">🏠 หน้าแรก (User)</button>
 <button class="devbtn" onclick="loginAndGo('listings-user')">🛍️ รายการ (User)</button>
 <button class="devbtn" onclick="loginAndGo('product-user')">📄 สินค้า (User)</button>
-<button class="devbtn" onclick="loginAndGo('profile')">👤 Profile</button>
-<button class="devbtn" onclick="loginAndGo('wallet')">💰 Wallet</button>
-<button class="devbtn" onclick="loginAndGo('history')">📋 History</button>
-<button class="devbtn" onclick="loginAndGo('chat')">💬 Chat</button>
+<button class="devbtn" onclick="loginAndGo('profile')"><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> Profile</button>
+<button class="devbtn" onclick="loginAndGo('wallet')"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> Wallet</button>
+<button class="devbtn" onclick="loginAndGo('history')"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> History</button>
+<button class="devbtn" onclick="loginAndGo('chat')"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> Chat</button>
 <span style="color:var(--border2);margin:0 4px">|</span>
-<button class="devbtn" onclick="loginAndGo('order-confirm')">🛒 Order</button>
+<button class="devbtn" onclick="loginAndGo('order-confirm')"><img class="ui-emoji" src="assets/icons/shop.svg" alt=""> Order</button>
 <button class="devbtn" onclick="loginAndGo('order-otp')">🔐 Order OTP</button>
 <button class="devbtn" onclick="loginAndGo('order-success')">🎉 Order สำเร็จ</button>
-<button class="devbtn" onclick="loginAndGo('order-info')">📋 ข้อมูลสินค้า</button>
-<button class="devbtn" onclick="loginAndGo('review')">⭐ รีวิว</button>
+<button class="devbtn" onclick="loginAndGo('order-info')"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> ข้อมูลสินค้า</button>
+<button class="devbtn" onclick="loginAndGo('review')"><img class="ui-emoji" src="assets/icons/star.svg" alt=""> รีวิว</button>
 <span style="color:var(--border2);margin:0 4px">|</span>
 <button class="devbtn" onclick="loginAndGo('seller-verify')">🪪 Seller Verify</button>
 <button class="devbtn" onclick="loginAndGo('add-listing')">➕ ลงขาย</button>
@@ -58,10 +58,10 @@
 <button class="devbtn" onclick="goAdmin('admin-dashboard')">📊 Admin</button>
 <button class="devbtn" onclick="goAdmin('admin-users')">👥 จัดการผู้ใช้</button>
 <button class="devbtn" onclick="goAdmin('admin-products')">📦 จัดการสินค้า</button>
-<button class="devbtn" onclick="goAdmin('admin-games')">🎮 หมวดหมู่</button>
-<button class="devbtn" onclick="goAdmin('admin-chat-log')">💬 แชทLog</button>
+<button class="devbtn" onclick="goAdmin('admin-games')"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> หมวดหมู่</button>
+<button class="devbtn" onclick="goAdmin('admin-chat-log')"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> แชทLog</button>
 <button class="devbtn" onclick="goAdmin('admin-withdraw')">💸 ถอนเงิน</button>
-<button class="devbtn" onclick="goAdmin('admin-report')">🚨 รายงาน</button>
+<button class="devbtn" onclick="goAdmin('admin-report')"><img class="ui-emoji" src="assets/icons/report.svg" alt=""> รายงาน</button>
 <button class="devbtn" onclick="goAdmin('admin-seller-verifications')">🪪 ตรวจสอบผู้ขาย</button>
 </div>
 <!-- ===================== PAGES ===================== -->
@@ -82,7 +82,7 @@
           </p>
 <div class="flex gap-12" style="margin-bottom:40px">
 <button class="btn btn-primary btn-lg" onclick="goPage('register')">🚀 เริ่มต้นใช้งาน</button>
-<button class="btn btn-secondary btn-lg" onclick="goPage('listings')">📋 ดูรายการขายทั้งหมด</button>
+<button class="btn btn-secondary btn-lg" onclick="goPage('listings')"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> ดูรายการขายทั้งหมด</button>
 </div>
 <div class="grid3" style="gap:12px">
 <div class="card" style="padding:16px 18px">
@@ -105,12 +105,12 @@
 <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">ค้นหาอย่างรวดเร็ว</h3>
 <p style="color:var(--muted);font-size:13px">ค้นหาไอดีเกมที่ต้องการจากคลังสินค้าของเรา</p>
 </div>
-<input class="inp" placeholder="🔍  ค้นหาเกม ชื่อสินค้า หรือคำสำคัญ" style="margin-bottom:12px"/>
+<input class="inp emoji-search-input" placeholder="ค้นหาเกม ชื่อสินค้า หรือคำสำคัญ" style="margin-bottom:12px"/>
 <div class="grid2" style="gap:8px;margin-bottom:12px">
 <select class="inp"><option>เกม: ทุกเกม</option><option>Valorant</option><option>ROV</option><option>PUBG</option><option>Free Fire</option><option>Genshin Impact</option></select>
 <select class="inp"><option>ราคา: ทุกช่วง</option><option>0–500 ฿</option><option>500–1,500 ฿</option><option>1,500+ ฿</option></select>
 </div>
-<button class="btn btn-primary btn-full btn-md" onclick="goPage('listings')">🔍 ค้นหารายการขาย</button>
+<button class="btn btn-primary btn-full btn-md" onclick="goPage('listings')"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""> ค้นหารายการขาย</button>
 <div class="divider"></div>
 <p style="font-size:13px;color:var(--muted);text-align:center">มีบัญชีแล้ว? <a onclick="goPage('login')" style="cursor:pointer">เข้าสู่ระบบ</a></p>
 </div>
@@ -360,7 +360,7 @@
 <label class="inp-label">ยืนยันรหัสผ่านใหม่</label>
 <input class="inp" id="resetConfirmPassword" placeholder="กรอกรหัสผ่านอีกครั้ง" type="password"/>
 </div>
-<button class="btn btn-primary btn-full btn-lg" onclick="resetPassword()">🔒 เปลี่ยนรหัสผ่าน</button>
+<button class="btn btn-primary btn-full btn-lg" onclick="resetPassword()"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> เปลี่ยนรหัสผ่าน</button>
 <div class="divider"></div>
 <p style="text-align:center;font-size:13px;color:var(--muted)"><a onclick="goPage('login')" style="cursor:pointer">← กลับไปหน้าเข้าสู่ระบบ</a></p>
 </div>
@@ -405,11 +405,11 @@
 <div style="display:grid;grid-template-columns:240px 1fr;gap:24px">
 <div>
 <div class="card" style="margin-bottom:14px">
-<div style="font-weight:700;margin-bottom:12px">🎮 หมวดหมู่เกม</div>
+<div style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> หมวดหมู่เกม</div>
 <div id="guestGameFilter"><div class="filter-item active" onclick="filterGame(this)">ทุกเกม</div></div>
 </div>
 <div class="card">
-<div style="font-weight:700;margin-bottom:12px">💰 ช่วงราคา</div>
+<div style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ช่วงราคา</div>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 0–500 ฿</label>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 500–1,500 ฿</label>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 1,500–3,000 ฿</label>
@@ -419,7 +419,7 @@
 <div>
 <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
   <div style="flex:1;min-width:260px;position:relative">
-    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">🔍</span>
+    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span>
 
     <input
       type="text"
@@ -464,10 +464,10 @@
 <p style="color:var(--muted);margin-top:4px">มีรายการใหม่ที่น่าสนใจรอคุณอยู่</p>
 </div>
 <div class="grid4" style="gap:12px;margin-bottom:28px">
-<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--accent)" id="homeUserStatWallet">—</div><div class="stat-label">พ้อยท์คงเหลือ</div></div>
-<div class="card stat-card"><div style="font-size:24px">🛒</div><div class="stat-val" style="color:var(--success)" id="homeUserStatPurchases">—</div><div class="stat-label">รายการที่ซื้อ</div></div>
+<div class="card stat-card"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""></div><div class="stat-val" style="color:var(--accent)" id="homeUserStatWallet">—</div><div class="stat-label">พ้อยท์คงเหลือ</div></div>
+<div class="card stat-card"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/shop.svg" alt=""></div><div class="stat-val" style="color:var(--success)" id="homeUserStatPurchases">—</div><div class="stat-label">รายการที่ซื้อ</div></div>
 <div class="card stat-card"><div style="font-size:24px">📦</div><div class="stat-val" style="color:var(--warn)" id="homeUserStatListings">—</div><div class="stat-label">ประกาศขาย</div></div>
-<div class="card stat-card"><div style="font-size:24px">💬</div><div class="stat-val" style="color:var(--purple)" id="homeUserStatMessages">—</div><div class="stat-label">การสนทนา</div></div>
+<div class="card stat-card"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""></div><div class="stat-val" style="color:var(--purple)" id="homeUserStatMessages">—</div><div class="stat-label">การสนทนา</div></div>
 </div>
 <div class="sec-header"><div class="sec-title">รายการแนะนำสำหรับคุณ</div></div>
 <div class="grid3" id="homeUserRecommendations"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div>
@@ -479,15 +479,15 @@
 <div><div data-user-field="username" style="font-weight:700">GamePro123</div><div data-user-field="email" style="color:var(--muted);font-size:12px;margin-bottom:4px">gamepro@email.com</div><span class="badge badge-blue" data-account-verification>ยังไม่ยืนยันสถานะ</span></div>
 </div>
 <div style="display:flex;flex-direction:column;gap:6px">
-<button class="btn btn-secondary btn-sm" onclick="goPage('user-profile')" style="justify-content:flex-start">👤 โปรไฟล์</button>
-<button class="btn btn-secondary btn-sm" onclick="goPage('wallet')" style="justify-content:flex-start">💰 ฝาก/ถอน พ้อยท์</button>
-<button class="btn btn-secondary btn-sm" onclick="goPage('history')" style="justify-content:flex-start">📋 ประวัติ</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('user-profile')" style="justify-content:flex-start"><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> โปรไฟล์</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('wallet')" style="justify-content:flex-start"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ฝาก/ถอน พ้อยท์</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('history')" style="justify-content:flex-start"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> ประวัติ</button>
 <button id="homeUserSellerAction" class="btn btn-secondary btn-sm" onclick="goPage('seller-verify')" style="justify-content:flex-start">🏷️ ลงขายสินค้า</button>
 <button id="homeUserMyListings" class="btn btn-secondary btn-sm" onclick="goPage('my-listings')" style="justify-content:flex-start">📦 ประกาศของฉัน</button>
 </div>
 </div>
 <div class="card">
-<h4 style="font-weight:700;margin-bottom:12px">💬 ข้อความล่าสุด</h4>
+<h4 style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ข้อความล่าสุด</h4>
 <div id="homeUserRecentMessages"><div class="notice info">กำลังโหลดข้อความ...</div></div>
 <button class="btn btn-ghost btn-sm btn-full" onclick="goPage('chat')" style="margin-top:10px">ดูทั้งหมด →</button>
 </div>
@@ -502,10 +502,10 @@
 <div style="display:grid;grid-template-columns:240px 1fr;gap:24px">
 <div>
 <div class="card" style="margin-bottom:14px">
-<div style="font-weight:700;margin-bottom:12px">🎮 หมวดหมู่เกม</div>
+<div style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> หมวดหมู่เกม</div>
 <div id="userGameFilter"><div class="filter-item active" onclick="filterGame(this)">ทุกเกม</div></div>
 </div>
-<div class="card"><div style="font-weight:700;margin-bottom:12px">💰 ช่วงราคา</div>
+<div class="card"><div style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ช่วงราคา</div>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 0–500 ฿</label>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 500–1,500 ฿</label>
 <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 1,500+ ฿</label>
@@ -514,7 +514,7 @@
 <div>
 <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
   <div style="flex:1;min-width:260px;position:relative">
-    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">🔍</span>
+    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span>
 
     <input
       type="text"
@@ -568,7 +568,7 @@
   >
     <div class="sec-header">
       <div class="sec-title">
-        👤 โปรไฟล์
+        <img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> โปรไฟล์
       </div>
 
       <div class="sec-sub">
@@ -593,7 +593,7 @@
 <!-- ======== PAGE: PROFILE ======== -->
 <div class="page" id="pg-profile">
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:820px">
-<div class="sec-header"><div class="sec-title">👤 ข้อมูลบัญชี</div><div class="sec-sub">ข้อมูลโปรไฟล์และการตั้งค่าความปลอดภัย</div></div>
+<div class="sec-header"><div class="sec-title"><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> ข้อมูลบัญชี</div><div class="sec-sub">ข้อมูลโปรไฟล์และการตั้งค่าความปลอดภัย</div></div>
 <div style="display:grid;grid-template-columns:200px 1fr;gap:24px">
 <!-- Avatar card -->
 <div class="card" style="text-align:center;height:fit-content">
@@ -655,7 +655,7 @@
 </div>
 <!-- Change password -->
 <div class="card" style="margin-bottom:16px">
-<h4 style="font-weight:700;margin-bottom:16px">🔒 เปลี่ยนรหัสผ่าน</h4>
+<h4 style="font-weight:700;margin-bottom:16px"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> เปลี่ยนรหัสผ่าน</h4>
 <div class="grid3" style="gap:12px">
 <div class="inp-group" style="margin-bottom:0"><label class="inp-label">รหัสผ่านเดิม</label><input class="inp" id="profileCurrentPassword" placeholder="••••••••" type="password" autocomplete="current-password"/></div>
 <div class="inp-group" style="margin-bottom:0"><label class="inp-label">รหัสผ่านใหม่</label><input class="inp" id="profileNewPassword" placeholder="••••••••" type="password" autocomplete="new-password"/></div>
@@ -663,7 +663,7 @@
 </div>
 <div id="profilePasswordMsg" style="margin-top:12px;font-size:13px;min-height:18px"></div>
 <div class="flex gap-12" style="margin-top:16px">
-<button class="btn btn-primary btn-md" onclick="changePasswordFromProfile()">🔒 เปลี่ยนรหัสผ่าน</button>
+<button class="btn btn-primary btn-md" onclick="changePasswordFromProfile()"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> เปลี่ยนรหัสผ่าน</button>
 </div>
 </div>
 </div>
@@ -674,10 +674,10 @@
 <!-- ======== PAGE: WALLET ======== -->
 <div class="page" id="pg-wallet">
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:900px">
-<div class="sec-header"><div class="sec-title">💰 ฝาก / ถอน พ้อยท์</div><div class="sec-sub">จัดการยอดพ้อยท์ในบัญชีของคุณ</div></div>
+<div class="sec-header"><div class="sec-title"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ฝาก / ถอน พ้อยท์</div><div class="sec-sub">จัดการยอดพ้อยท์ในบัญชีของคุณ</div></div>
 <div class="grid3" style="margin-bottom:28px">
-<div class="card stat-card"><div style="font-size:24px">💰</div><div id="walletBalance" class="stat-val" style="color:var(--accent)">0</div><div class="stat-label">พ้อยท์ที่ใช้ได้</div></div>
-<div id="walletPendingWithdrawalCard" class="card stat-card" style="display:none"><div style="font-size:24px">🔒</div><div id="walletPendingWithdrawalAmount" class="stat-val" style="color:#8b94a7">0</div><div class="stat-label">กำลังถอน</div><div style="font-size:12px;color:var(--muted);margin-top:4px">รอ Admin ตรวจสอบ</div></div>
+<div class="card stat-card"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""></div><div id="walletBalance" class="stat-val" style="color:var(--accent)">0</div><div class="stat-label">พ้อยท์ที่ใช้ได้</div></div>
+<div id="walletPendingWithdrawalCard" class="card stat-card" style="display:none"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""></div><div id="walletPendingWithdrawalAmount" class="stat-val" style="color:#8b94a7">0</div><div class="stat-label">กำลังถอน</div><div style="font-size:12px;color:var(--muted);margin-top:4px">รอ Admin ตรวจสอบ</div></div>
 <div class="card stat-card"><div style="font-size:24px">📥</div><div id="walletTotalTopup" class="stat-val" style="color:var(--success)">0</div><div class="stat-label">ฝากทั้งหมด</div></div>
 <div class="card stat-card"><div style="font-size:24px">📤</div><div id="walletTotalWithdrawal" class="stat-val" style="color:var(--warn)">0</div><div class="stat-label">ถอนทั้งหมด</div></div>
 </div>
@@ -1076,7 +1076,7 @@
 <!-- ======== PAGE: HISTORY ======== -->
 <div class="page" id="pg-history">
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:1200px">
-<div class="sec-header"><div class="sec-title">📋 ประวัติการทำธุรกรรม</div><div class="sec-sub">ดูประวัติการซื้อขายและธุรกรรมทั้งหมดของคุณ</div></div>
+<div class="sec-header"><div class="sec-title"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> ประวัติการทำธุรกรรม</div><div class="sec-sub">ดูประวัติการซื้อขายและธุรกรรมทั้งหมดของคุณ</div></div>
 <div class="card">
 <div class="tabs">
 <button class="tab-btn active" onclick="switchTab(this,'hist-trade')">📊 ประวัติซื้อ/ขาย</button>
@@ -1095,7 +1095,7 @@
 <!-- ======== PAGE: CHAT ======== -->
 <div class="page" id="pg-chat">
 <div class="container" style="padding-top:36px;padding-bottom:60px">
-<div class="sec-header"><div class="sec-title">💬 แชทข้อความ</div><div class="sec-sub">ติดต่อสื่อสารกับผู้ซื้อและผู้ขาย</div></div>
+<div class="sec-header"><div class="sec-title"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> แชทข้อความ</div><div class="sec-sub">ติดต่อสื่อสารกับผู้ซื้อและผู้ขาย</div></div>
 <div id="chatApp" style="display:grid;grid-template-columns:280px 1fr;border:1px solid var(--border);border-radius:14px;overflow:hidden;height:560px">
 <div class="card" style="padding:28px;text-align:center;color:var(--muted)">กำลังโหลดการสนทนา...</div>
 </div>
@@ -1133,7 +1133,7 @@
 <div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">3️⃣</span><span style="font-size:14px;color:var(--muted)">ส่งคำขอสมัครเป็นผู้ขาย</span></div>
 <div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">4️⃣</span><span style="font-size:14px;color:var(--muted)">Admin อนุมัติ → ได้รับสิทธิ์ SELLER และลงขายสินค้าได้</span></div>
 </div>
-<div class="notice info" style="margin-top:16px">🔒 สิทธิ์ SELLER จะถูกเพิ่มโดยระบบหลังจาก Admin อนุมัติคำขอเท่านั้น</div>
+<div class="notice info" style="margin-top:16px"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> สิทธิ์ SELLER จะถูกเพิ่มโดยระบบหลังจาก Admin อนุมัติคำขอเท่านั้น</div>
 </div>
 <div class="card">
 <h4 style="font-weight:700;margin-bottom:12px">สถานะการสมัครผู้ขาย</h4>
@@ -1311,7 +1311,7 @@
     onclick="verifyCreateProductValorantAccount()"
     disabled
   >
-    🔍 ตรวจสอบบัญชี Valorant
+    <img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""> ตรวจสอบบัญชี Valorant
   </button>
 
   <div
@@ -1433,7 +1433,7 @@
 
         <!-- Net Profit / Net Cash Flow -->
         <div class="admin-dashboard-stat-card">
-          <div class="admin-dashboard-stat-icon stat-profit">💰</div>
+          <div class="admin-dashboard-stat-icon stat-profit"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""></div>
 
           <div class="admin-dashboard-stat-body">
             <div class="admin-dashboard-stat-title">
@@ -1510,7 +1510,7 @@
             type="button"
             onclick="goAdmin('admin-seller-verifications')"
           >
-            <div class="admin-dashboard-action-icon action-blue">👤</div>
+            <div class="admin-dashboard-action-icon action-blue"><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""></div>
 
             <div>
               <strong>ตรวจสอบผู้ขาย</strong>
@@ -1579,7 +1579,7 @@
             type="button"
             onclick="goAdmin('admin-report')"
           >
-            <div class="admin-dashboard-action-icon action-purple">💬</div>
+            <div class="admin-dashboard-action-icon action-purple"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""></div>
 
             <div>
               <strong>รายงานรีวิว</strong>
@@ -1618,7 +1618,7 @@
         <section class="admin-dashboard-panel">
 
           <div class="admin-dashboard-panel-heading">
-            <h3>🎮 เกมยอดนิยม</h3>
+            <h3><img class="ui-emoji" src="assets/icons/game.svg" alt=""> เกมยอดนิยม</h3>
 
             <button
               type="button"
@@ -1961,7 +1961,7 @@
             class="admin-user-detail-empty"
           >
             <div class="admin-user-detail-empty-icon">
-              👤
+              <img class="ui-emoji" src="assets/icons/profileUser.svg" alt="">
             </div>
 
             <h3>
@@ -2059,7 +2059,7 @@
                 data-admin-user-detail-tab="GENERAL"
                 onclick="adminSetUserDetailTab('GENERAL')"
               >
-                👤 ข้อมูลทั่วไป
+                <img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> ข้อมูลทั่วไป
               </button>
 
               <button
@@ -2068,7 +2068,7 @@
                 data-admin-user-detail-tab="PRODUCTS"
                 onclick="adminSetUserDetailTab('PRODUCTS')"
               >
-                🛒 รายการสินค้า
+                <img class="ui-emoji" src="assets/icons/shop.svg" alt=""> รายการสินค้า
               </button>
 
               <button
@@ -2166,11 +2166,11 @@
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar2"></div>
 <div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">🎮 จัดการหมวดหมู่เกม</div><div class="sec-sub">จัดการข้อมูลเกมจาก Database โดยตรง</div></div><button class="btn btn-primary btn-md" onclick="adminOpenGameEditor()">+ เพิ่มเกม</button></div>
+<div class="sec-header"><div><div class="sec-title"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> จัดการหมวดหมู่เกม</div><div class="sec-sub">จัดการข้อมูลเกมจาก Database โดยตรง</div></div><button class="btn btn-primary btn-md" onclick="adminOpenGameEditor()">+ เพิ่มเกม</button></div>
 <div id="adminGameMessage" class="notice" style="display:none;margin-bottom:16px"></div>
 <div id="adminGameEditor" class="card" style="display:none;padding:20px;margin-bottom:18px"></div>
 <div class="card" style="padding:18px">
-<div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminGameSearch" oninput="adminFilterGames()" placeholder="ค้นหาชื่อเกมหรือ slug"/></div><div class="report-field"><span class="icon">📌</span><select id="adminGameStatusFilter" onchange="adminFilterGames()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">เปิดใช้งาน</option><option value="INACTIVE">ปิดใช้งาน</option></select></div><button class="btn btn-secondary btn-sm" onclick="adminLoadGames()">↻ รีเฟรช</button></div>
+<div class="report-toolbar"><div class="report-field"><span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span><input id="adminGameSearch" oninput="adminFilterGames()" placeholder="ค้นหาชื่อเกมหรือ slug"/></div><div class="report-field"><span class="icon">📌</span><select id="adminGameStatusFilter" onchange="adminFilterGames()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">เปิดใช้งาน</option><option value="INACTIVE">ปิดใช้งาน</option></select></div><button class="btn btn-secondary btn-sm" onclick="adminLoadGames()">↻ รีเฟรช</button></div>
 <div id="adminGameList" class="grid2"></div>
 </div>
 <div
@@ -2246,9 +2246,9 @@
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar3"></div>
 <div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">💬 ประวัติแชทระบบ</div><div class="sec-sub">ตรวจสอบข้อความจากระบบแชทจริง</div></div><button class="btn btn-secondary btn-sm" onclick="window.loadAdminChatLog?.()">↻ รีเฟรช</button></div>
+<div class="sec-header"><div><div class="sec-title"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ประวัติแชทระบบ</div><div class="sec-sub">ตรวจสอบข้อความจากระบบแชทจริง</div></div><button class="btn btn-secondary btn-sm" onclick="window.loadAdminChatLog?.()">↻ รีเฟรช</button></div>
 <div class="card" style="padding:18px">
-<div class="report-toolbar" style="margin-bottom:16px"><div class="report-field"><span class="icon">🔍</span><input id="adminChatLogSearch" placeholder="ค้นหาผู้ใช้ สินค้า หรือข้อความ" oninput="window.filterAdminChatLog?.()"></div></div>
+<div class="report-toolbar" style="margin-bottom:16px"><div class="report-field"><span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span><input id="adminChatLogSearch" placeholder="ค้นหาผู้ใช้ สินค้า หรือข้อความ" oninput="window.filterAdminChatLog?.()"></div></div>
 <div id="adminChatLogMessage" style="margin-bottom:10px;color:var(--muted);font-size:13px"></div>
 <div id="adminChatLogList" class="report-list"></div>
 </div>
@@ -2285,8 +2285,8 @@
 <div class="page" id="pg-admin-seller-verifications">
 <div class="admin-layout"><div class="admin-sidebar" id="adminSidebar7"></div><div class="admin-content">
 <div class="sec-header"><div><div class="sec-title">🪪 ตรวจสอบผู้ขาย</div><div class="sec-sub">ตรวจสอบข้อมูล เอกสาร และประวัติการอนุมัติผู้ขาย</div></div><button class="btn btn-secondary btn-sm" onclick="loadAdminSellerVerificationRequests()">↻ รีเฟรช</button></div>
-<div class="grid3" style="margin-bottom:20px"><div class="card stat-card"><div style="font-size:22px">⏳</div><div id="adminSellerPendingCount" class="stat-val">0</div><div class="stat-label">รอตรวจสอบ</div></div><div class="card stat-card"><div style="font-size:22px">✅</div><div id="adminSellerApprovedCount" class="stat-val">0</div><div class="stat-label">อนุมัติแล้ว</div></div><div class="card stat-card"><div style="font-size:22px">❌</div><div id="adminSellerRejectedCount" class="stat-val">0</div><div class="stat-label">ปฏิเสธ</div></div></div>
-<div class="card" style="padding:18px"><div class="report-toolbar" style="grid-template-columns:1.3fr .8fr auto"><div class="report-field"><span class="icon">🔍</span><input id="adminSellerVerificationSearch" oninput="filterAdminSellerVerification()" placeholder="ค้นหา Username / Email / ชื่อ"></div><div class="report-field"><select id="adminSellerVerificationStatus" onchange="filterAdminSellerVerification()"><option value="ALL">ทุกสถานะ</option><option value="PENDING">รอตรวจสอบ</option><option value="APPROVED">อนุมัติแล้ว</option><option value="REJECTED">ปฏิเสธ</option></select></div><button class="btn btn-secondary btn-sm" onclick="loadAdminSellerVerificationRequests()">โหลดข้อมูล</button></div><div id="adminSellerVerificationList" class="report-list"></div></div>
+<div class="grid3" style="margin-bottom:20px"><div class="card stat-card"><div style="font-size:22px">⏳</div><div id="adminSellerPendingCount" class="stat-val">0</div><div class="stat-label">รอตรวจสอบ</div></div><div class="card stat-card"><div style="font-size:22px">✅</div><div id="adminSellerApprovedCount" class="stat-val">0</div><div class="stat-label">อนุมัติแล้ว</div></div><div class="card stat-card"><div style="font-size:22px"><img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""></div><div id="adminSellerRejectedCount" class="stat-val">0</div><div class="stat-label">ปฏิเสธ</div></div></div>
+<div class="card" style="padding:18px"><div class="report-toolbar" style="grid-template-columns:1.3fr .8fr auto"><div class="report-field"><span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span><input id="adminSellerVerificationSearch" oninput="filterAdminSellerVerification()" placeholder="ค้นหา Username / Email / ชื่อ"></div><div class="report-field"><select id="adminSellerVerificationStatus" onchange="filterAdminSellerVerification()"><option value="ALL">ทุกสถานะ</option><option value="PENDING">รอตรวจสอบ</option><option value="APPROVED">อนุมัติแล้ว</option><option value="REJECTED">ปฏิเสธ</option></select></div><button class="btn btn-secondary btn-sm" onclick="loadAdminSellerVerificationRequests()">โหลดข้อมูล</button></div><div id="adminSellerVerificationList" class="report-list"></div></div>
 </div></div>
 </div>
 <div class="modal-backdrop" id="adminSellerVerificationModal" hidden onclick="if(event.target===this)closeAdminSellerVerificationModal()"><div class="modal-dialog admin-seller-verification-modal" role="dialog" aria-modal="true"><div class="sec-header"><div><div class="sec-title">🪪 รายละเอียดการตรวจสอบ</div><div class="sec-sub">ตรวจสอบข้อมูลและเอกสารของผู้สมัคร</div></div><button class="btn btn-ghost btn-sm" onclick="closeAdminSellerVerificationModal()">✕</button></div><div id="adminSellerVerificationModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminSellerVerificationModal()">ปิด</button></div></div></div>
@@ -2305,7 +2305,7 @@
       <div class="sec-header">
         <div>
           <div class="sec-title">
-            🚨 รายงาน
+            <img class="ui-emoji" src="assets/icons/report.svg" alt=""> รายงาน
           </div>
 
           <div class="sec-sub">
@@ -2324,7 +2324,7 @@
             data-admin-report-view="USER"
             onclick="adminSetReportView('USER')"
           >
-            <span>👤</span>
+            <span><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""></span>
             รายงานผู้ใช้
           </button>
 
@@ -2334,7 +2334,7 @@
             data-admin-report-view="REVIEW"
             onclick="adminSetReportView('REVIEW')"
           >
-            <span>⭐</span>
+            <span><img class="ui-emoji" src="assets/icons/star.svg" alt=""></span>
             รายงานรีวิว
           </button>
 
@@ -2389,7 +2389,7 @@
           <div class="report-toolbar">
 
             <div class="report-field">
-              <span class="icon">🔍</span>
+              <span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span>
 
               <input
                 id="adminReportSearch"
@@ -2567,7 +2567,7 @@
 </div>
 <div class="card" style="padding:18px"><div class="report-summary-box"><div class="report-summary-item"><div class="label">บัญชีที่ถูกแบน</div>
 <strong id="adminSuspendedCount">—</strong>
-<div class="sub">บัญชี BANNED ทั้งหมด</div></div><div class="report-summary-item"><div class="label">ความปลอดภัย</div><strong>Session ถูกยกเลิก</strong><div class="sub">ทุกการเปลี่ยนสถานะจะเพิ่ม token version</div></div></div><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminSuspendedSearch" oninput="adminFilterSuspendedUsers()" placeholder="ค้นหา username หรือ email"></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">โหลดข้อมูล</button></div><div id="adminSuspendedList" class="report-list"></div></div>
+<div class="sub">บัญชี BANNED ทั้งหมด</div></div><div class="report-summary-item"><div class="label">ความปลอดภัย</div><strong>Session ถูกยกเลิก</strong><div class="sub">ทุกการเปลี่ยนสถานะจะเพิ่ม token version</div></div></div><div class="report-toolbar"><div class="report-field"><span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span><input id="adminSuspendedSearch" oninput="adminFilterSuspendedUsers()" placeholder="ค้นหา username หรือ email"></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">โหลดข้อมูล</button></div><div id="adminSuspendedList" class="report-list"></div></div>
 </div>
 </div>
 </div>
@@ -2588,7 +2588,7 @@
       <div class="sec-header">
         <div>
           <div class="sec-title">
-            💬 ข้อความจากผู้ใช้
+            <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ข้อความจากผู้ใช้
           </div>
 
           <div class="sec-sub">

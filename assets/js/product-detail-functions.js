@@ -77,7 +77,7 @@ function orderDetailProductPreview(order) {
         flex-shrink:0;
       "
     >
-      🎮
+      <img class="ui-emoji" src="assets/icons/game.svg" alt="">
     </div>
   `;
 }
@@ -149,7 +149,7 @@ async function openProductDetail(id) {
         </section>
 
         <section class="product-detail-summary">
-          <div class="product-detail-game">🎮 ${productDetailEscape(product.game?.name || '-')}</div>
+          <div class="product-detail-game"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> ${productDetailEscape(product.game?.name || '-')}</div>
           <h1 class="product-detail-title">${productDetailEscape(product.title || 'ประกาศสินค้า')}</h1>
           <div class="product-detail-seller"><span>ผู้ขาย</span><button type="button" class="product-detail-seller-link" onclick="openSellerProfile(${Number(product.seller?.id || product.sellerId || 0)})">${productDetailEscape(product.seller?.username || '-')}</button><span class="product-detail-seller-dot">•</span><span>พร้อมส่งมอบอัตโนมัติ</span></div>
           <div class="product-detail-price">${Number(product.price || 0).toLocaleString('th-TH')} <span>บาท</span></div>
@@ -157,20 +157,20 @@ async function openProductDetail(id) {
           <div class="product-detail-action-card">
             <div class="product-detail-action-row"><span>สถานะสินค้า</span><strong class="product-detail-status"><span></span> กำลังเปิดขาย</strong></div>
             ${verificationCard}
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-primary btn-lg btn-full product-detail-buy" onclick="startProductPurchase(${Number(product.id)})">🛒 ซื้อสินค้า</button><button class="btn btn-secondary btn-lg btn-full" type="button" onclick="contactProductSeller(${Number(product.seller?.id || product.sellerId || 0)},${Number(product.id)})">💬 ติดต่อผู้ขาย</button></div>
-            <div class="product-detail-safe-note">🔒 ข้อมูลบัญชีจะเปิดเผยหลังชำระเงินสำเร็จเท่านั้น</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-primary btn-lg btn-full product-detail-buy" onclick="startProductPurchase(${Number(product.id)})"><img class="ui-emoji" src="assets/icons/shop.svg" alt=""> ซื้อสินค้า</button><button class="btn btn-secondary btn-lg btn-full" type="button" onclick="contactProductSeller(${Number(product.seller?.id || product.sellerId || 0)},${Number(product.id)})"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ติดต่อผู้ขาย</button></div>
+            <div class="product-detail-safe-note"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> ข้อมูลบัญชีจะเปิดเผยหลังชำระเงินสำเร็จเท่านั้น</div>
           </div>
         </section>
       </div>
 
       <section class="product-detail-info-card">
-        <div class="product-detail-section-title"><span>📋</span><div><h2>รายละเอียดสินค้า</h2><p>ข้อมูลเพิ่มเติมจากผู้ขาย</p></div></div>
+        <div class="product-detail-section-title"><span><img class="ui-emoji" src="assets/icons/history.svg" alt=""></span><div><h2>รายละเอียดสินค้า</h2><p>ข้อมูลเพิ่มเติมจากผู้ขาย</p></div></div>
         <div class="product-detail-description">${productDetailEscape(product.description || 'ผู้ขายยังไม่ได้เพิ่มรายละเอียดสินค้า')}</div>
       </section>
 
       <section class="product-detail-info-card" id="product-review-card">
         <div class="product-detail-section-title">
-          <span>⭐</span>
+          <span><img class="ui-emoji" src="assets/icons/star.svg" alt=""></span>
           <div>
             <h2>รีวิวผู้ขาย</h2>
             <p>ความคิดเห็นและคะแนนจากผู้ซื้อของผู้ขายรายนี้</p>
@@ -573,7 +573,7 @@ async function openOrderDetail(id) {
                 margin-top:8px;
               "
             >
-              🎮 ${productDetailEscape(order.product?.gameName || '-')}
+              <img class="ui-emoji" src="assets/icons/game.svg" alt=""> ${productDetailEscape(order.product?.gameName || '-')}
             </div>
 
             <div
@@ -612,7 +612,7 @@ async function openOrderDetail(id) {
                 )
               "
             >
-              💬 ติดต่อผู้ขาย
+              <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ติดต่อผู้ขาย
             </button>
           </div>
 
@@ -622,7 +622,7 @@ async function openOrderDetail(id) {
           <div class="card" style="padding:16px"><div style="font-size:12px;color:var(--muted)">ยอดที่ต้องชำระ</div><div class="kanit" style="font-size:28px;font-weight:800;color:var(--accent);margin-top:4px">${amount} บาท</div></div>
           <div class="card" style="padding:16px"><div style="font-size:12px;color:var(--muted)">วันที่สร้างรายการ</div><div style="font-weight:600;margin-top:8px">${createdAt}</div></div>
         </div>
-        <div class="notice info" style="margin-bottom:18px">🔒 ข้อมูลบัญชีเกมจะถูกเปิดเผยหลังจากชำระเงินสำเร็จเท่านั้น</div>
+        <div class="notice info" style="margin-bottom:18px"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> ข้อมูลบัญชีเกมจะถูกเปิดเผยหลังจากชำระเงินสำเร็จเท่านั้น</div>
         ${order?.status === 'PENDING'
           ? `<button class="btn btn-primary btn-full btn-lg" type="button" onclick="payOrderFromWallet(${order.id})">💳 ชำระเงินด้วย Wallet</button>`
           : `<div class="notice success" style="margin-bottom:14px">✓ ชำระเงินสำเร็จแล้ว คุณสามารถเปิดดูข้อมูลบัญชีเกมได้</div>
@@ -676,13 +676,13 @@ async function loadOrderCredentials(id) {
     target.innerHTML = `<div class="card" style="background:var(--card2);padding:20px">
       <div style="font-weight:800;font-size:18px;margin-bottom:14px">🔐 ข้อมูลบัญชีเกม</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        ${fields.map(([label, value], index) => `<div class="card" style="padding:14px"><div style="font-size:12px;color:var(--muted);margin-bottom:6px">${label}</div><div style="display:flex;gap:8px;align-items:center"><div id="credential-value-${index}" style="font-weight:700;word-break:break-all;flex:1" data-value="${productDetailEscape(value)}">${index === 1 || index === 3 ? '••••••••' : productDetailEscape(value)}</div>${index === 1 || index === 3 ? `<button class="btn btn-ghost btn-sm" type="button" onclick="toggleCredential(${index})">👁</button>` : ''}<button class="btn btn-ghost btn-sm" type="button" onclick="copyCredential(${index})">📋</button></div></div>`).join('')}
+        ${fields.map(([label, value], index) => `<div class="card" style="padding:14px"><div style="font-size:12px;color:var(--muted);margin-bottom:6px">${label}</div><div style="display:flex;gap:8px;align-items:center"><div id="credential-value-${index}" style="font-weight:700;word-break:break-all;flex:1" data-value="${productDetailEscape(value)}">${index === 1 || index === 3 ? '••••••••' : productDetailEscape(value)}</div>${index === 1 || index === 3 ? `<button class="btn btn-ghost btn-sm" type="button" onclick="toggleCredential(${index})">👁</button>` : ''}<button class="btn btn-ghost btn-sm" type="button" onclick="copyCredential(${index})"><img class="ui-emoji" src="assets/icons/history.svg" alt=""></button></div></div>`).join('')}
       </div>
     </div>`;
     target.dataset.open = 'true';
 
     if (toggleButton) {
-      toggleButton.textContent = '🔒 ซ่อนข้อมูลบัญชีเกม';
+      toggleButton.innerHTML = '<img class="ui-emoji" src="assets/icons/lock.svg" alt=""> ซ่อนข้อมูลบัญชีเกม';
     }
   } catch (error) {
     console.error('loadOrderCredentials failed:', error);

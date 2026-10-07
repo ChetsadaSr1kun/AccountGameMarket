@@ -275,7 +275,7 @@ function updateNav() {
   class="nav-btn ${currentPage==='chat'?'active':''}"
     onclick="loginAndGo('chat')"
   >
-    💬 แชท
+    <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> แชท
 
     <span
       id="chatNavUnread"
@@ -287,10 +287,10 @@ function updateNav() {
     </span>
   </button>
       <button class="nav-btn ${currentPage==='history'?'active':''}" onclick="loginAndGo('history')">ประวัติ</button>
-      <button class="nav-btn ${currentPage==='wallet'?'active':''}" onclick="loginAndGo('wallet')">💰 กระเป๋าตัง</button>
+      <button class="nav-btn ${currentPage==='wallet'?'active':''}" onclick="loginAndGo('wallet')"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> กระเป๋าตัง</button>
     `;
     rightEl.innerHTML = `
-      <span id="walletNavBalance" style="color:var(--muted);font-size:13px">💰 0 pts</span>
+      <span id="walletNavBalance" style="color:var(--muted);font-size:13px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> 0 pts</span>
       <div class="dropdown">
         <div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:18px;cursor:pointer;overflow:hidden" onclick="toggleDropdown()">${avatarContent(username, currentUser?.avatarUrl)}</div>
         <div class="dropdown-menu" id="userDropdown">
@@ -537,7 +537,7 @@ const adminNavItems = [
   ],
   [
     'admin-games',
-    '🎮',
+    '<img class="ui-emoji" src="assets/icons/game.svg" alt="">',
     'หมวดหมู่เกม',
     null,
   ],
@@ -555,13 +555,13 @@ const adminNavItems = [
   ],
   [
     'admin-report',
-    '🚨',
+    '<img class="ui-emoji" src="assets/icons/report.svg" alt="">',
     'รายงาน',
     'report',
   ],
   [
     'admin-support',
-    '💬',
+    '<img class="ui-emoji" src="assets/icons/chat.svg" alt="">',
     'ข้อความผู้ใช้',
     'support',
   ],
@@ -1653,7 +1653,7 @@ function publicListingEscape(value) {
 function publicListingCard(product) {
   const image = product.primaryImageUrl
     ? `<img src="${publicListingEscape(product.primaryImageUrl)}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px"/>`
-    : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">🎮</div>`;
+    : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center"><img class="ui-emoji" src="assets/icons/game.svg" alt=""></div>`;
   const verificationBadge =
     product.valorantVerification?.verified
       ? `
@@ -1720,7 +1720,7 @@ function renderMarketplaceGameFilters(games) {
       const active = Number(selected) === Number(game.id);
       const iconHtml = icon
         ? '<img alt="" src="' + publicListingEscape(icon) + '" style="width:28px;height:28px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:10px">'
-        : '<span style="display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;margin-right:10px">🎮</span>';
+        : '<span style="display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;margin-right:10px"><img class="ui-emoji" src="assets/icons/game.svg" alt=""></span>';
       items.push('<div class="filter-item ' + (active ? 'active' : '') + '" data-game-id="' + Number(game.id) + '" onclick="selectMarketplaceGame(\'' + pageId + '\',' + Number(game.id) + ',this)">' + iconHtml + publicListingEscape(game.name) + '</div>');
     });
     container.innerHTML = items.join('');

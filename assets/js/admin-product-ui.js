@@ -28,7 +28,7 @@
     const q=(document.getElementById('adminProductSearch')?.value||'').toLowerCase(); const s=document.getElementById('adminProductStatus')?.value||'ALL'; const g=document.getElementById('adminProductGame')?.value||'ALL';
     const rows=products.filter(p=>(!q||`${p.title} ${p.sellerUsername} ${p.gameName}`.toLowerCase().includes(q))&&(s==='ALL'||p.status===s)&&(g==='ALL'||String(p.gameId)===g));
     const count=(id,val)=>{const e=document.getElementById(id);if(e)e.textContent=val;}; count('adminProductTotal',products.length);count('adminProductActive',products.filter(p=>p.status==='ACTIVE').length);count('adminProductPaused',products.filter(p=>p.status==='PAUSED').length);count('adminProductSold',products.filter(p=>p.status==='SOLD').length);
-    box.innerHTML=rows.length?rows.map(p=>`<div class="card" style="padding:16px 18px"><div class="flex-between" style="gap:14px;flex-wrap:wrap"><div style="min-width:240px;flex:1"><div><strong>${esc(p.title)}</strong> <span class="badge ${statusClass(p.status)}">${statusLabel(p.status)}</span></div><div style="font-size:13px;color:var(--muted);margin-top:6px">🎮 ${esc(p.gameName)} • ผู้ขาย: ${esc(p.sellerUsername)}</div><div style="font-size:12px;color:var(--muted);margin-top:5px">${p.price.toLocaleString('th-TH')} ฿ • รูป ${p.imageCount} • Report ${p.reportCount}</div></div><div class="flex gap-8"><button class="btn btn-secondary btn-sm" onclick="adminOpenProduct(${p.id})">ดูรายละเอียด</button>${p.status==='ACTIVE'?`<button class="btn btn-warning btn-sm" onclick="adminModerateProduct(${p.id},'PAUSED')">ซ่อน</button>`:p.status==='PAUSED'?`<button class="btn btn-success btn-sm" onclick="adminModerateProduct(${p.id},'ACTIVE')">แสดง</button>`:''}</div></div></div>`).join(''):'<div class="report-empty">ไม่พบสินค้าตามเงื่อนไข</div>';
+    box.innerHTML=rows.length?rows.map(p=>`<div class="card" style="padding:16px 18px"><div class="flex-between" style="gap:14px;flex-wrap:wrap"><div style="min-width:240px;flex:1"><div><strong>${esc(p.title)}</strong> <span class="badge ${statusClass(p.status)}">${statusLabel(p.status)}</span></div><div style="font-size:13px;color:var(--muted);margin-top:6px"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> ${esc(p.gameName)} • ผู้ขาย: ${esc(p.sellerUsername)}</div><div style="font-size:12px;color:var(--muted);margin-top:5px">${p.price.toLocaleString('th-TH')} ฿ • รูป ${p.imageCount} • Report ${p.reportCount}</div></div><div class="flex gap-8"><button class="btn btn-secondary btn-sm" onclick="adminOpenProduct(${p.id})">ดูรายละเอียด</button>${p.status==='ACTIVE'?`<button class="btn btn-warning btn-sm" onclick="adminModerateProduct(${p.id},'PAUSED')">ซ่อน</button>`:p.status==='PAUSED'?`<button class="btn btn-success btn-sm" onclick="adminModerateProduct(${p.id},'ACTIVE')">แสดง</button>`:''}</div></div></div>`).join(''):'<div class="report-empty">ไม่พบสินค้าตามเงื่อนไข</div>';
   };
   window.adminLoadProducts=async()=>{const box=document.getElementById('adminProductList');if(box)box.innerHTML='<div class="report-empty">กำลังโหลดสินค้า...</div>';try{const r=await fetch('/api/v1/admin/products',{credentials:'include'}),b=await r.json().catch(()=>({}));if(!r.ok)throw Error(b.error?.message||'โหลดสินค้าไม่สำเร็จ');products=b.data?.products||[];buildGames();render();}catch(e){if(box)box.innerHTML=`<div class="notice danger">${esc(e.message)}</div>`;}};
   const buildGames=()=>{const sel=document.getElementById('adminProductGame');if(!sel)return;const values=[...new Map(products.map(p=>[p.gameId,p.gameName])).entries()].sort((a,b)=>a[1].localeCompare(b[1]));sel.innerHTML='<option value="ALL">ทุกเกม</option>'+values.map(([id,n])=>`<option value="${id}">${esc(n)}</option>`).join('');};
@@ -126,7 +126,7 @@
                 `
                 : `
                   <div class="admin-user-product-no-image">
-                    <span>🎮</span>
+                    <span><img class="ui-emoji" src="assets/icons/game.svg" alt=""></span>
                     <strong>ไม่มีรูปสินค้า</strong>
                   </div>
                 `
@@ -179,7 +179,7 @@
           <div class="admin-user-product-topline">
 
             <span class="admin-user-product-game">
-              🎮 ${esc(
+              <img class="ui-emoji" src="assets/icons/game.svg" alt=""> ${esc(
                 product.gameName || '-'
               )}
             </span>

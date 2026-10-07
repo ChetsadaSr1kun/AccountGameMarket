@@ -474,8 +474,11 @@ async function verifyWithdrawalPhoneOtp() {
     }
 
     if (methodEl) {
-      methodEl.textContent =
-        pendingWithdrawal.paymentMethodLabel;
+      if (pendingWithdrawal.paymentMethod === 'TRUEMONEY') {
+        methodEl.innerHTML = pendingWithdrawal.paymentMethodLabel;
+      } else {
+        methodEl.textContent = pendingWithdrawal.paymentMethodLabel;
+      }
     }
 
     const bankLabels = {
@@ -868,7 +871,7 @@ async function startWithdrawalOtpFlow() {
   const paymentMethodLabels = {
     BANK: '🏦 บัญชีธนาคาร',
     PROMPTPAY: '📱 พร้อมเพย์',
-    TRUEMONEY: '💰 TrueMoney',
+    TRUEMONEY: '<img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> TrueMoney',
   };
 
   try {
@@ -926,9 +929,11 @@ async function startWithdrawalOtpFlow() {
     }
 
     if (methodEl) {
-      methodEl.textContent =
-        paymentMethodLabels[paymentMethod] ||
-        paymentMethod;
+      if (paymentMethod === 'TRUEMONEY') {
+        methodEl.innerHTML = paymentMethodLabels[paymentMethod];
+      } else {
+        methodEl.textContent = paymentMethodLabels[paymentMethod] || paymentMethod;
+      }
     }
     withdrawalOtpState.emailVerified = false;
     withdrawalOtpState.phoneVerified = false;
