@@ -1,3 +1,4 @@
+const { withdrawalRequests } = require('./withdrawal-storage');
 const { reviewReports: reviewReportRows, transactionReports: transactionReportRows } = require('./report-storage');
 const { pool } = require('../config/database');
 
@@ -153,7 +154,7 @@ async function adminDashboard() {
 
   const [[withdrawals]] = await pool.execute(
     `SELECT COALESCE(SUM(amount), 0) total
-     FROM withdrawal_requests
+     FROM ${withdrawalRequests} withdrawal_rows
      WHERE status = 'APPROVED'`
   );
 
@@ -171,7 +172,7 @@ async function adminDashboard() {
 
   const [[withdrawalPending]] = await pool.execute(
     `SELECT COUNT(*) total
-     FROM withdrawal_requests
+     FROM ${withdrawalRequests} withdrawal_rows
      WHERE status = 'PENDING'`
   );
 

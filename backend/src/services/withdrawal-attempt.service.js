@@ -361,7 +361,7 @@ async function verifyEmailOtp(userId, attemptId, otp) {
       );
 
     if (!record) {
-      throw new AppError(
+      return new AppError(
         'OTP is invalid or expired.',
         422,
         'OTP_INVALID_OR_EXPIRED'
@@ -374,7 +374,7 @@ async function verifyEmailOtp(userId, attemptId, otp) {
         connection
       );
 
-      throw new AppError(
+      return new AppError(
         'OTP is invalid or expired.',
         422,
         'OTP_INVALID_OR_EXPIRED'
@@ -387,7 +387,7 @@ async function verifyEmailOtp(userId, attemptId, otp) {
         connection
       );
 
-      throw new AppError(
+      return new AppError(
         'OTP attempt limit has been reached.',
         429,
         'OTP_ATTEMPTS_EXCEEDED'
@@ -406,14 +406,14 @@ async function verifyEmailOtp(userId, attemptId, otp) {
           connection
         );
 
-        throw new AppError(
+        return new AppError(
           'OTP attempt limit has been reached.',
           429,
           'OTP_ATTEMPTS_EXCEEDED'
         );
       }
 
-      throw new AppError(
+      return new AppError(
         'OTP is invalid or expired.',
         422,
         'OTP_INVALID_OR_EXPIRED'
@@ -434,6 +434,8 @@ async function verifyEmailOtp(userId, attemptId, otp) {
     return mapAttempt(updated);
   });
 
+  // Commit OTP counters/invalidation before surfacing the unchanged API error.
+  if (result instanceof AppError) throw result;
   return result;
 }
 
@@ -602,7 +604,7 @@ async function verifyPhoneOtp(userId, attemptId, otp) {
       assertEmailVerified(currentAttempt);
 
       if (currentAttempt.phone_verified_at) {
-        throw new AppError(
+        return new AppError(
           'Phone OTP is already verified.',
           409,
           'PHONE_OTP_ALREADY_VERIFIED'
@@ -617,7 +619,7 @@ async function verifyPhoneOtp(userId, attemptId, otp) {
         );
 
       if (!otpRecord) {
-        throw new AppError(
+        return new AppError(
           'Phone OTP is invalid or expired.',
           422,
           'OTP_INVALID_OR_EXPIRED'
@@ -630,7 +632,7 @@ async function verifyPhoneOtp(userId, attemptId, otp) {
           connection
         );
 
-        throw new AppError(
+        return new AppError(
           'Phone OTP is invalid or expired.',
           422,
           'OTP_INVALID_OR_EXPIRED'
@@ -651,6 +653,8 @@ async function verifyPhoneOtp(userId, attemptId, otp) {
       return mapAttempt(updated);
     });
 
+    // Commit OTP counters/invalidation before surfacing the unchanged API error.
+    if (result instanceof AppError) throw result;
     return result;
   }
 
@@ -690,7 +694,8 @@ async function markCompleted(userId, attemptId) {
           accountName: attempt.account_name,
           accountNumber: attempt.account_number,
         },
-        connection
+        connection,
+        attempt.id
       );
 
     const completed =

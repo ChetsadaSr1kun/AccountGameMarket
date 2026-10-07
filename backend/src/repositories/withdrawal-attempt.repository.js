@@ -4,8 +4,9 @@ const { pool } = require('../config/database');
 
 async function createAttempt(data, executor = pool) {
   const [result] = await executor.execute(
-    `INSERT INTO withdrawal_attempts
+    `INSERT INTO withdrawals
       (
+        record_type,
         user_id,
         amount,
         payment_method,
@@ -14,7 +15,7 @@ async function createAttempt(data, executor = pool) {
         account_number,
         expires_at
       )
-    VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    VALUES ('ATTEMPT', ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.userId,
       data.amount,
@@ -34,8 +35,8 @@ async function findById(id, executor = pool) {
     `SELECT id, user_id, amount, payment_method, bank_code, account_name, account_number,
             status, email_verified_at, phone_verified_at,
             expires_at, created_at, updated_at
-       FROM withdrawal_attempts
-      WHERE id = ?
+       FROM withdrawals
+      WHERE record_type = 'ATTEMPT' AND id = ?
       LIMIT 1`,
     [id],
   );
@@ -48,8 +49,8 @@ async function findByIdForUpdate(id, executor = pool) {
     `SELECT id, user_id, amount, payment_method, bank_code, account_name, account_number,
             status, email_verified_at, phone_verified_at,
             expires_at, created_at, updated_at
-       FROM withdrawal_attempts
-      WHERE id = ?
+       FROM withdrawals
+      WHERE record_type = 'ATTEMPT' AND id = ?
       LIMIT 1
       FOR UPDATE`,
     [id],
@@ -169,10 +170,10 @@ async function invalidateOtp(id, executor = pool) {
 
 async function markEmailVerified(attemptId, executor = pool) {
   await executor.execute(
-    `UPDATE withdrawal_attempts
+    `UPDATE withdrawals
         SET email_verified_at = UTC_TIMESTAMP(3),
             updated_at = UTC_TIMESTAMP(3)
-      WHERE id = ?`,
+      WHERE record_type = 'ATTEMPT' AND id = ?`,
     [attemptId],
   );
 
@@ -181,10 +182,10 @@ async function markEmailVerified(attemptId, executor = pool) {
 
 async function markPhoneVerified(attemptId, executor = pool) {
   await executor.execute(
-    `UPDATE withdrawal_attempts
+    `UPDATE withdrawals
         SET phone_verified_at = UTC_TIMESTAMP(3),
             updated_at = UTC_TIMESTAMP(3)
-      WHERE id = ?`,
+      WHERE record_type = 'ATTEMPT' AND id = ?`,
     [attemptId],
   );
 
@@ -193,10 +194,10 @@ async function markPhoneVerified(attemptId, executor = pool) {
 
 async function completeAttempt(attemptId, executor = pool) {
   await executor.execute(
-    `UPDATE withdrawal_attempts
+    `UPDATE withdrawals
         SET status = 'COMPLETED',
             updated_at = UTC_TIMESTAMP(3)
-      WHERE id = ?
+      WHERE record_type = 'ATTEMPT' AND id = ?
         AND status = 'PENDING'
         AND email_verified_at IS NOT NULL
         AND phone_verified_at IS NOT NULL`,
@@ -208,10 +209,10 @@ async function completeAttempt(attemptId, executor = pool) {
 
 async function cancelAttempt(attemptId, executor = pool) {
   await executor.execute(
-    `UPDATE withdrawal_attempts
+    `UPDATE withdrawals
         SET status = 'CANCELLED',
             updated_at = UTC_TIMESTAMP(3)
-      WHERE id = ?
+      WHERE record_type = 'ATTEMPT' AND id = ?
         AND status = 'PENDING'`,
     [attemptId],
   );
@@ -221,10 +222,10 @@ async function cancelAttempt(attemptId, executor = pool) {
 
 async function expireAttempt(attemptId, executor = pool) {
   await executor.execute(
-    `UPDATE withdrawal_attempts
+    `UPDATE withdrawals
         SET status = 'EXPIRED',
             updated_at = UTC_TIMESTAMP(3)
-      WHERE id = ?
+      WHERE record_type = 'ATTEMPT' AND id = ?
         AND status = 'PENDING'
         AND expires_at <= UTC_TIMESTAMP(3)`,
     [attemptId],

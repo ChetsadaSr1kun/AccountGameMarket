@@ -18,7 +18,7 @@ async function getTotals(userId, executor = pool) {
     [userId],
   );
   const [[withdrawal]] = await executor.execute(
-    "SELECT COALESCE(SUM(amount),0) total FROM withdrawal_requests WHERE user_id=? AND status='APPROVED'",
+    "SELECT COALESCE(SUM(amount),0) total FROM withdrawals WHERE record_type='REQUEST' AND user_id=? AND status='APPROVED'",
     [userId],
   );
   return { totalTopup: Number(topup?.total || 0), totalWithdrawal: Number(withdrawal?.total || 0) };

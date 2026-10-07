@@ -1,9 +1,13 @@
 const { pool } = require('../config/database');
+const { withdrawalRequests } = require('./withdrawal-storage');
 
 async function create(data, executor = pool) {
   const [result] = await executor.execute(
-    `INSERT INTO withdrawal_requests
+    `INSERT INTO withdrawals
       (
+        record_type,
+        source_attempt_id,
+        source_attempt_type,
         user_id,
         amount,
         payment_method,
@@ -11,8 +15,10 @@ async function create(data, executor = pool) {
         account_name,
         account_number
       )
-    VALUES (?, ?, ?, ?, ?, ?)`,
+    VALUES ('REQUEST', ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
+      data.sourceAttemptId || null,
+      data.sourceAttemptId ? 'ATTEMPT' : null,
       data.userId,
       data.amount,
       data.paymentMethod,
@@ -28,7 +34,7 @@ async function findById(id, executor = pool) {
   const [rows] = await executor.execute(
     `SELECT id, user_id, amount, payment_method, bank_code, account_name, account_number,
             status, rejection_reason, reviewed_by, reviewed_at, created_at, updated_at
-     FROM withdrawal_requests WHERE id = ? LIMIT 1`,
+     FROM ${withdrawalRequests} withdrawal_rows WHERE id = ? LIMIT 1`,
     [id],
   );
   return rows[0] || null;
@@ -38,7 +44,7 @@ async function listByUserId(userId, limit = 20, executor = pool) {
   const [rows] = await executor.execute(
     `SELECT id, amount, payment_method, bank_code, account_name, account_number, status,
             rejection_reason, reviewed_at, created_at
-     FROM withdrawal_requests WHERE user_id = ?
+     FROM ${withdrawalRequests} withdrawal_rows WHERE user_id = ?
      ORDER BY id DESC LIMIT ?`,
     [userId, limit],
   );
@@ -49,7 +55,7 @@ async function getPendingSummary(userId, executor = pool) {
   const [rows] = await executor.execute(
     `SELECT COALESCE(SUM(amount),0) AS pending_amount,
             COUNT(*) AS pending_count
-     FROM withdrawal_requests
+     FROM ${withdrawalRequests} withdrawal_rows
      WHERE user_id = ? AND status = 'PENDING'`,
     [userId],
   );

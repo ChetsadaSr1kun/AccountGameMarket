@@ -31,7 +31,7 @@ function mapRequest(row) {
   };
 }
 
-async function createRequestWithConnection(userId, data, connection) {
+async function createRequestWithConnection(userId, data, connection, sourceAttemptId = null) {
   const amount = Number(data.amount);
   const paymentMethod =
     String(data.paymentMethod || '').toUpperCase();
@@ -111,6 +111,7 @@ async function createRequestWithConnection(userId, data, connection) {
 
   const request = await withdrawalRepository.create(
     {
+      sourceAttemptId,
       userId,
       amount,
       paymentMethod,

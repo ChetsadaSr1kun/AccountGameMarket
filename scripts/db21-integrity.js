@@ -22,6 +22,13 @@ async function snapshot(baseline) {
       columns = fields.map((field) => field.Field);
     }
     let sql = `SELECT ${columns.map(quote).join(',')} FROM ${quote(table)}`;
+    if (baseline && ['withdrawal_attempts', 'withdrawal_requests'].includes(table)
+      && tables.some((row) => Object.values(row)[0] === 'withdrawals')) {
+      const type = table === 'withdrawal_attempts' ? 'ATTEMPT' : 'REQUEST';
+      sql = `SELECT ${columns.map((column) => column === 'id' && type === 'REQUEST'
+        ? 'COALESCE(legacy_request_id,id) id' : quote(column)).join(',')}
+        FROM withdrawals WHERE record_type='${type}'`;
+    }
     if (baseline && ['review_reports', 'transaction_reports'].includes(table)
       && tables.some((row) => Object.values(row)[0] === 'reports')) {
       const type = table === 'review_reports' ? 'REVIEW' : 'TRANSACTION';

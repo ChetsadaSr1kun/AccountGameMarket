@@ -1,3 +1,4 @@
+const { withdrawalRequests } = require('../repositories/withdrawal-storage');
 const AppError = require('../utils/app-error');
 const { pool } = require('../config/database');
 const { rolesFromAccountMode } = require('../utils/account-roles');
@@ -199,7 +200,7 @@ async function getUser(userId) {
         COALESCE(
           (
             SELECT SUM(amount)
-            FROM withdrawal_requests
+            FROM ${withdrawalRequests} withdrawal_rows
             WHERE
               user_id = ?
               AND status = 'APPROVED'

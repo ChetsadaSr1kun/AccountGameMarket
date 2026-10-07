@@ -1,3 +1,4 @@
+const { withdrawalRequests } = require('../../backend/src/repositories/withdrawal-storage');
 const { reviewReports, transactionReports } = require('../../backend/src/repositories/report-storage');
 'use strict';
 
@@ -75,7 +76,7 @@ async function createUser(label, roles, accountMode) {
 
 async function cleanupFixtures() {
   for (const withdrawalId of [approvalWithdrawalId, rejectionWithdrawalId].filter(Boolean)) {
-    await pool.execute('DELETE FROM withdrawal_requests WHERE id = ?', [withdrawalId]);
+    await pool.execute(`DELETE FROM withdrawals WHERE record_type='REQUEST' AND COALESCE(legacy_request_id,id) = ?`, [withdrawalId]);
   }
   if (reviewReportId) {
     await pool.execute(`DELETE FROM reports WHERE report_type='REVIEW' AND id = ?`, [reviewReportId]);
@@ -104,8 +105,8 @@ async function cleanupFixtures() {
   const userIds = users.map(({ id }) => Number(id));
   if (userIds.length > 0) {
     const placeholders = userIds.map(() => '?').join(', ');
-    await pool.execute(`DELETE FROM withdrawal_attempts WHERE user_id IN (${placeholders})`, userIds);
-    await pool.execute(`DELETE FROM withdrawal_requests WHERE user_id IN (${placeholders})`, userIds);
+    await pool.execute(`DELETE FROM withdrawals WHERE record_type='ATTEMPT' AND user_id IN (${placeholders})`, userIds);
+    await pool.execute(`DELETE FROM withdrawals WHERE record_type='REQUEST' AND user_id IN (${placeholders})`, userIds);
     await pool.execute(`DELETE FROM notifications WHERE user_id IN (${placeholders})`, userIds);
     await pool.execute(`DELETE FROM wallet_transactions WHERE wallet_user_id IN (${placeholders})`, userIds);
   }
@@ -885,7 +886,7 @@ test('approves an authentic reserved withdrawal without deducting the wallet twi
   assert.deepEqual(approval.body.data.request, { id: approvalWithdrawalId, status: 'APPROVED' });
 
   const [[approvedRequest]] = await pool.execute(
-    'SELECT status, rejection_reason, reviewed_by, reviewed_at FROM withdrawal_requests WHERE id = ?',
+    `SELECT status, rejection_reason, reviewed_by, reviewed_at FROM ${withdrawalRequests} withdrawal_rows WHERE id = ?`,
     [approvalWithdrawalId],
   );
   assert.equal(approvedRequest.status, 'APPROVED');
@@ -973,7 +974,7 @@ test('rejects an authentic reserved withdrawal and refunds the wallet exactly on
   assert.deepEqual(rejection.body.data.request, { id: rejectionWithdrawalId, status: 'REJECTED' });
 
   const [[rejectedRequest]] = await pool.execute(
-    'SELECT status, rejection_reason, reviewed_by, reviewed_at FROM withdrawal_requests WHERE id = ?',
+    `SELECT status, rejection_reason, reviewed_by, reviewed_at FROM ${withdrawalRequests} withdrawal_rows WHERE id = ?`,
     [rejectionWithdrawalId],
   );
   assert.equal(rejectedRequest.status, 'REJECTED');
@@ -1023,7 +1024,7 @@ test('rejects an authentic reserved withdrawal and refunds the wallet exactly on
     "SELECT COUNT(*) AS count FROM notifications WHERE user_id = ? AND reference_type = 'WITHDRAWAL' AND reference_id = ?",
     [withdrawalRejectionUser.id, rejectionWithdrawalId],
   );
-  const [[stateAfterDuplicate]] = await pool.execute('SELECT status FROM withdrawal_requests WHERE id = ?', [rejectionWithdrawalId]);
+  const [[stateAfterDuplicate]] = await pool.execute(`SELECT status FROM ${withdrawalRequests} withdrawal_rows WHERE id = ?`, [rejectionWithdrawalId]);
   assert.equal(Number(refundAfterDuplicate.count), 1);
   assert.equal(Number(refundAfterDuplicate.amount), withdrawalAmount);
   assert.equal(Number(notificationAfterDuplicate.count), 1);
