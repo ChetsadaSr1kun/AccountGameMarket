@@ -12,6 +12,8 @@ const digest = (rows) => crypto.createHash('sha256')
 async function snapshot(baseline) {
   const [tables] = await pool.query('SHOW TABLES');
   const result = {};
+  const [[chatSchema]] = await pool.query(`SELECT COUNT(*) n FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='conversations' AND COLUMN_NAME='conversation_type'`);
   for (const table of baseline ? Object.keys(baseline) : tables.map((row) => Object.values(row)[0])) {
     if (table === 'schema_migrations') continue;
     let columns = baseline?.[table].columns;
@@ -20,6 +22,16 @@ async function snapshot(baseline) {
       columns = fields.map((field) => field.Field);
     }
     let sql = `SELECT ${columns.map(quote).join(',')} FROM ${quote(table)}`;
+    if (baseline && chatSchema.n) {
+      if (table === 'conversations') sql += " WHERE conversation_type='USER'";
+      if (table === 'messages') sql += " WHERE conversation_id IN (SELECT id FROM conversations WHERE conversation_type='USER')";
+      if (table === 'support_conversations') sql = `SELECT COALESCE(legacy_support_id,id) id,support_user_id user_id,
+        assigned_admin_id,support_status status,user_last_read_message_id,admin_last_read_message_id,created_at,
+        updated_at,closed_at FROM conversations WHERE conversation_type='SUPPORT'`;
+      if (table === 'support_messages') sql = `SELECT COALESCE(m.legacy_support_id,m.id) id,
+        COALESCE(c.legacy_support_id,c.id) conversation_id,m.sender_id,m.body,m.created_at
+        FROM messages m JOIN conversations c ON c.id=m.conversation_id WHERE c.conversation_type='SUPPORT'`;
+    }
     if (baseline && table === 'wallets') {
       const [[field]] = await pool.query(`SELECT COUNT(*) n FROM information_schema.COLUMNS
         WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='wallet_balance'`);

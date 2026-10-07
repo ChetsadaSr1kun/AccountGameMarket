@@ -1,3 +1,4 @@
+const { userConversations, userMessages } = require('./chat-storage');
 const { pool } = require('../config/database');
 
 async function getStats() {
@@ -57,7 +58,7 @@ async function getUserHome(userId) {
 
           (
             SELECT m.body
-            FROM messages m
+            FROM ${userMessages} m
             WHERE m.conversation_id = c.id
             ORDER BY
               m.created_at DESC,
@@ -67,7 +68,7 @@ async function getUserHome(userId) {
 
           (
             SELECT m.created_at
-            FROM messages m
+            FROM ${userMessages} m
             WHERE m.conversation_id = c.id
             ORDER BY
               m.created_at DESC,
@@ -77,7 +78,7 @@ async function getUserHome(userId) {
 
           (
             SELECT COUNT(*)
-            FROM messages unread
+            FROM ${userMessages} unread
 
             WHERE
               unread.conversation_id = c.id
@@ -91,7 +92,7 @@ async function getUserHome(userId) {
                 )
           ) unread_count
 
-        FROM conversations c
+        FROM ${userConversations} c
 
         LEFT JOIN products p
           ON p.id = c.product_id

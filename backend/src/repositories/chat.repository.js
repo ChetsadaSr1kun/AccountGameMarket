@@ -1,3 +1,4 @@
+const { userConversations, userMessages } = require('./chat-storage');
 ﻿const { pool } = require('../config/database');
 
 async function findOrCreateConversation(
@@ -20,8 +21,7 @@ async function findOrCreateConversation(
             created_at,
             updated_at
 
-          FROM conversations
-
+          FROM ${userConversations} conversations
           WHERE
             (
               buyer_id = ?
@@ -83,8 +83,7 @@ async function findOrCreateConversation(
             created_at,
             updated_at
 
-          FROM conversations
-
+          FROM ${userConversations} conversations
           WHERE id = ?
           LIMIT 1
         `,
@@ -134,7 +133,7 @@ async function listForUser(userId) {
 
           (
             SELECT m.body
-            FROM messages m
+            FROM ${userMessages} m
             WHERE m.conversation_id = c.id
             ORDER BY
               m.created_at DESC,
@@ -144,7 +143,7 @@ async function listForUser(userId) {
 
           (
             SELECT m.created_at
-            FROM messages m
+            FROM ${userMessages} m
             WHERE m.conversation_id = c.id
             ORDER BY
               m.created_at DESC,
@@ -154,7 +153,7 @@ async function listForUser(userId) {
 
           (
             SELECT COUNT(*)
-            FROM messages unread
+            FROM ${userMessages} unread
 
             WHERE
               unread.conversation_id = c.id
@@ -168,7 +167,7 @@ async function listForUser(userId) {
                 )
           ) unread_count
 
-        FROM conversations c
+        FROM ${userConversations} c
 
         LEFT JOIN products p
           ON p.id = c.product_id
@@ -220,9 +219,9 @@ async function countUnreadForUser(
         SELECT
           COUNT(*) unread_count
 
-        FROM conversations c
+        FROM ${userConversations} c
 
-        JOIN messages m
+        JOIN ${userMessages} m
           ON m.conversation_id = c.id
 
         LEFT JOIN conversation_read_states crs
@@ -259,7 +258,7 @@ async function countUnreadForUser(
 async function getForUser(conversationId,userId) {
   const [rows] = await pool.execute(`SELECT c.id,c.buyer_id,c.seller_id,c.product_id,p.title product_title,
     bu.username buyer_username,su.username seller_username
-    FROM conversations c LEFT JOIN products p ON p.id=c.product_id
+    FROM ${userConversations} c LEFT JOIN products p ON p.id=c.product_id
     JOIN users bu ON bu.id=c.buyer_id JOIN users su ON su.id=c.seller_id
     WHERE c.id=? AND (c.buyer_id=? OR c.seller_id=?) LIMIT 1`,[conversationId,userId,userId]);
   return rows[0] || null;
@@ -311,8 +310,7 @@ async function findConversationBetweenUsers(
           created_at,
           updated_at
 
-        FROM conversations
-
+        FROM ${userConversations} conversations
         WHERE
           participant_low_id = ?
           AND participant_high_id = ?
@@ -330,7 +328,7 @@ async function findConversationBetweenUsers(
 
 async function listMessages(conversationId, limit=100) {
   const [rows] = await pool.execute(`SELECT m.id,m.sender_id,u.username sender_username,u.avatar_url sender_avatar,m.body,m.created_at
-    FROM messages m JOIN users u ON u.id=m.sender_id WHERE m.conversation_id=? ORDER BY m.created_at ASC,m.id ASC LIMIT ?`,[conversationId,limit]);
+    FROM ${userMessages} m JOIN users u ON u.id=m.sender_id WHERE m.conversation_id=? ORDER BY m.created_at ASC,m.id ASC LIMIT ?`,[conversationId,limit]);
   return rows;
 }
 
@@ -377,7 +375,7 @@ async function listRecentMessagesForAdmin(
           m.body,
           m.created_at
 
-        FROM messages m
+        FROM ${userMessages} m
 
         INNER JOIN users u
           ON u.id = m.sender_id
@@ -420,7 +418,7 @@ async function markConversationRead(
     await pool.execute(
       `
         SELECT MAX(id) last_message_id
-        FROM messages
+        FROM ${userMessages} messages
         WHERE conversation_id = ?
       `,
       [conversationId]
@@ -500,7 +498,7 @@ async function createMessage(
           m.body,
           m.created_at
 
-        FROM messages m
+        FROM ${userMessages} m
 
         JOIN users u
           ON u.id = m.sender_id
@@ -517,7 +515,7 @@ async function createMessage(
 async function listAdmin(limit=100) {
   const [rows] = await pool.execute(`SELECT m.id,m.conversation_id,m.sender_id,u.username sender_username,m.body,m.created_at,
     c.product_id,p.title product_title,bu.username buyer_username,su.username seller_username
-    FROM messages m JOIN users u ON u.id=m.sender_id JOIN conversations c ON c.id=m.conversation_id
+    FROM ${userMessages} m JOIN users u ON u.id=m.sender_id JOIN ${userConversations} c ON c.id=m.conversation_id
     JOIN users bu ON bu.id=c.buyer_id JOIN users su ON su.id=c.seller_id LEFT JOIN products p ON p.id=c.product_id
     ORDER BY m.created_at DESC,m.id DESC LIMIT ?`,[limit]);
   return rows;

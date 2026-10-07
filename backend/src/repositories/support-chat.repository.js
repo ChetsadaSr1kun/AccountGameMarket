@@ -1,3 +1,4 @@
+const { supportConversations, supportMessages } = require('./chat-storage');
 const { pool } =
   require('../config/database');
 
@@ -25,7 +26,7 @@ async function findById(
 
         admin.username AS assigned_admin_username
 
-      FROM support_conversations sc
+      FROM ${supportConversations} sc
 
       INNER JOIN users u
         ON u.id = sc.user_id
@@ -67,7 +68,7 @@ async function findByUserId(
 
         admin.username AS assigned_admin_username
 
-      FROM support_conversations sc
+      FROM ${supportConversations} sc
 
       INNER JOIN users u
         ON u.id = sc.user_id
@@ -104,10 +105,7 @@ async function findOrCreateForUser(
     const [result] =
       await executor.execute(
         `
-        INSERT INTO support_conversations (
-          user_id
-        )
-        VALUES (?)
+        INSERT INTO conversations (conversation_type,support_user_id,support_status) VALUES ('SUPPORT',?,'OPEN')
         `,
         [userId]
       );
@@ -161,7 +159,7 @@ async function listMessages(
         u.username AS sender_username,
         u.avatar_url AS sender_avatar
 
-      FROM support_messages sm
+      FROM ${supportMessages} sm
 
       INNER JOIN users u
         ON u.id = sm.sender_id
@@ -193,12 +191,8 @@ async function createMessage(
   const [result] =
     await executor.execute(
       `
-      INSERT INTO support_messages (
-        conversation_id,
-        sender_id,
-        body
-      )
-      VALUES (?, ?, ?)
+      INSERT INTO messages (conversation_id,sender_id,body)
+      VALUES ((SELECT id FROM conversations WHERE conversation_type='SUPPORT' AND COALESCE(legacy_support_id,id)=?),?,?)
       `,
       [
         conversationId,
@@ -209,9 +203,9 @@ async function createMessage(
 
   await executor.execute(
     `
-    UPDATE support_conversations
+    UPDATE conversations
     SET updated_at = UTC_TIMESTAMP(3)
-    WHERE id = ?
+    WHERE conversation_type='SUPPORT' AND COALESCE(legacy_support_id,id) = ?
     `,
     [conversationId]
   );
@@ -229,7 +223,7 @@ async function createMessage(
         u.username AS sender_username,
         u.avatar_url AS sender_avatar
 
-      FROM support_messages sm
+      FROM ${supportMessages} sm
 
       INNER JOIN users u
         ON u.id = sm.sender_id
@@ -266,7 +260,7 @@ async function listForAdmin(
 
         (
           SELECT sm.body
-          FROM support_messages sm
+          FROM ${supportMessages} sm
           WHERE sm.conversation_id = sc.id
           ORDER BY sm.id DESC
           LIMIT 1
@@ -274,7 +268,7 @@ async function listForAdmin(
 
         (
           SELECT sm.created_at
-          FROM support_messages sm
+          FROM ${supportMessages} sm
           WHERE sm.conversation_id = sc.id
           ORDER BY sm.id DESC
           LIMIT 1
@@ -282,7 +276,7 @@ async function listForAdmin(
 
         (
           SELECT COUNT(*)
-          FROM support_messages sm
+          FROM ${supportMessages} sm
           WHERE sm.conversation_id = sc.id
             AND sm.sender_id = sc.user_id
             AND sm.id >
@@ -292,7 +286,7 @@ async function listForAdmin(
               )
         ) AS unread_count
 
-      FROM support_conversations sc
+      FROM ${supportConversations} sc
 
       INNER JOIN users u
         ON u.id = sc.user_id
@@ -323,9 +317,9 @@ async function getUserUnreadCount(
       SELECT
         COUNT(sm.id) AS unread_count
 
-      FROM support_conversations sc
+      FROM ${supportConversations} sc
 
-      LEFT JOIN support_messages sm
+      LEFT JOIN ${supportMessages} sm
         ON sm.conversation_id = sc.id
         AND sm.sender_id <> sc.user_id
         AND sm.id >
@@ -352,14 +346,14 @@ async function markUserRead(
   const [result] =
     await executor.execute(
       `
-      UPDATE support_conversations
+      UPDATE conversations
       SET user_last_read_message_id = (
         SELECT MAX(sm.id)
-        FROM support_messages sm
+        FROM ${supportMessages} sm
         WHERE sm.conversation_id = ?
       )
-      WHERE id = ?
-        AND user_id = ?
+      WHERE conversation_type='SUPPORT' AND COALESCE(legacy_support_id,id) = ?
+        AND support_user_id = ?
       `,
       [
         conversationId,
@@ -378,13 +372,13 @@ async function markAdminRead(
   const [result] =
     await executor.execute(
       `
-      UPDATE support_conversations
+      UPDATE conversations
       SET admin_last_read_message_id = (
         SELECT MAX(sm.id)
-        FROM support_messages sm
+        FROM ${supportMessages} sm
         WHERE sm.conversation_id = ?
       )
-      WHERE id = ?
+      WHERE conversation_type='SUPPORT' AND COALESCE(legacy_support_id,id) = ?
       `,
       [
         conversationId,
