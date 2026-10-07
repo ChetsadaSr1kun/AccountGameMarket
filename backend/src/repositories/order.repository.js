@@ -1,3 +1,4 @@
+const { transactionReports } = require('./report-storage');
 const { pool } = require('../config/database');
 function mapOrder(row) {
   if (!row) return null;
@@ -165,7 +166,7 @@ async function listByUser(
       AND r.buyer_id = o.buyer_id
       AND r.status = 'ACTIVE'
 
-    LEFT JOIN transaction_reports tr
+    LEFT JOIN ${transactionReports} tr
       ON tr.order_id = o.id
       AND tr.reporter_id = ?
 

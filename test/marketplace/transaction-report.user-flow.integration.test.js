@@ -1,3 +1,4 @@
+const { transactionReports } = require('../../backend/src/repositories/report-storage');
 const { before, after, test } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('crypto');
@@ -66,7 +67,7 @@ before(async () => {
 
 after(async () => {
   if (orderPaid || orderPending || orderCancelled) {
-    await pool.execute('DELETE FROM transaction_reports WHERE order_id IN (?,?,?)', [orderPaid, orderPending, orderCancelled]);
+    await pool.execute(`DELETE FROM reports WHERE report_type='TRANSACTION' AND order_id IN (?,?,?)`, [orderPaid, orderPending, orderCancelled]);
     await pool.execute('DELETE FROM orders WHERE id IN (?,?,?)', [orderPaid, orderPending, orderCancelled]);
   }
   if (productId) await pool.execute('DELETE FROM products WHERE id=?', [productId]);
@@ -155,7 +156,7 @@ test('requires CSRF protection when creating a report', async () => {
 
 test('persists report state so history can identify that this user already reported the order', async () => {
   const [rows] = await pool.execute(
-    'SELECT id,reporter_id,reported_id,status FROM transaction_reports WHERE order_id=? ORDER BY id',
+    `SELECT id,reporter_id,reported_id,status FROM ${transactionReports} transactionReports_rows WHERE order_id=? ORDER BY id`,
     [orderPaid],
   );
   assert.equal(rows.length, 2);

@@ -1,3 +1,4 @@
+const { reviewReports, transactionReports } = require('../../backend/src/repositories/report-storage');
 'use strict';
 
 const { after, before, test } = require('node:test');
@@ -77,20 +78,20 @@ async function cleanupFixtures() {
     await pool.execute('DELETE FROM withdrawal_requests WHERE id = ?', [withdrawalId]);
   }
   if (reviewReportId) {
-    await pool.execute('DELETE FROM review_reports WHERE id = ?', [reviewReportId]);
+    await pool.execute(`DELETE FROM reports WHERE report_type='REVIEW' AND id = ?`, [reviewReportId]);
   }
   for (const reviewId of [targetReviewId, unrelatedReviewId].filter(Boolean)) {
-    await pool.execute('DELETE FROM review_reports WHERE review_id = ?', [reviewId]);
+    await pool.execute(`DELETE FROM reports WHERE report_type='REVIEW' AND review_id = ?`, [reviewId]);
     await pool.execute('DELETE FROM reviews WHERE id = ?', [reviewId]);
   }
   if (transactionReportId) {
-    await pool.execute('DELETE FROM transaction_reports WHERE id = ?', [transactionReportId]);
+    await pool.execute(`DELETE FROM reports WHERE report_type='TRANSACTION' AND id = ?`, [transactionReportId]);
   }
   if (unrelatedReviewOrderId) {
     await pool.execute('DELETE FROM orders WHERE id = ?', [unrelatedReviewOrderId]);
   }
   if (reportedOrderId) {
-    await pool.execute('DELETE FROM transaction_reports WHERE order_id = ?', [reportedOrderId]);
+    await pool.execute(`DELETE FROM reports WHERE report_type='TRANSACTION' AND order_id = ?`, [reportedOrderId]);
     await pool.execute('DELETE FROM orders WHERE id = ?', [reportedOrderId]);
   }
   for (const productId of [moderatedProductId, reportedProductId].filter(Boolean)) {
@@ -526,7 +527,7 @@ test('resolves an authentic pending transaction report with an outcome', async (
         admin_note,
         resolved_by,
         resolved_at
-      FROM transaction_reports
+      FROM ${transactionReports} transactionReports_rows
       WHERE id = ?
       `,
       [transactionReportId],
@@ -732,7 +733,7 @@ assert.equal(
   assert.equal(missingCsrf.body.error.code, 'CSRF_INVALID');
 
   const [[beforeResolution]] = await pool.execute(
-    'SELECT status FROM review_reports WHERE id = ?',
+    `SELECT status FROM ${reviewReports} reviewReports_rows WHERE id = ?`,
     [reviewReportId],
   );
   const [[beforeTargetReview]] = await pool.execute('SELECT status FROM reviews WHERE id = ?', [targetReviewId]);
@@ -794,7 +795,7 @@ assert.equal(
   );
 
   const [[resolvedReport]] = await pool.execute(
-    'SELECT status, admin_note, resolved_by, resolved_at FROM review_reports WHERE id = ?',
+    `SELECT status, admin_note, resolved_by, resolved_at FROM ${reviewReports} reviewReports_rows WHERE id = ?`,
     [reviewReportId],
   );
   assert.equal(resolvedReport.status, 'REMOVED');
@@ -820,7 +821,7 @@ assert.equal(
   assert.equal(duplicateResolution.status, 409);
   assert.equal(duplicateResolution.body.error.code, 'REPORT_ALREADY_RESOLVED');
 
-  const [[afterDuplicateReport]] = await pool.execute('SELECT status FROM review_reports WHERE id = ?', [reviewReportId]);
+  const [[afterDuplicateReport]] = await pool.execute(`SELECT status FROM ${reviewReports} reviewReports_rows WHERE id = ?`, [reviewReportId]);
   const [[afterDuplicateReview]] = await pool.execute('SELECT status FROM reviews WHERE id = ?', [targetReviewId]);
   assert.equal(afterDuplicateReport.status, 'REMOVED');
   assert.equal(afterDuplicateReview.status, 'HIDDEN');

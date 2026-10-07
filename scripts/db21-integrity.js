@@ -22,6 +22,12 @@ async function snapshot(baseline) {
       columns = fields.map((field) => field.Field);
     }
     let sql = `SELECT ${columns.map(quote).join(',')} FROM ${quote(table)}`;
+    if (baseline && ['review_reports', 'transaction_reports'].includes(table)
+      && tables.some((row) => Object.values(row)[0] === 'reports')) {
+      const type = table === 'review_reports' ? 'REVIEW' : 'TRANSACTION';
+      sql = `SELECT ${columns.map((column) => column === 'id' ? 'COALESCE(source_report_id,id) id' : quote(column)).join(',')}
+        FROM reports WHERE report_type='${type}'`;
+    }
     if (baseline && chatSchema.n) {
       if (table === 'conversations') sql += " WHERE conversation_type='USER'";
       if (table === 'messages') sql += " WHERE conversation_id IN (SELECT id FROM conversations WHERE conversation_type='USER')";

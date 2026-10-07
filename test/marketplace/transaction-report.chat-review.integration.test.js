@@ -1,3 +1,4 @@
+const { transactionReports } = require('../../backend/src/repositories/report-storage');
 const {
   before,
   after,
@@ -315,15 +316,13 @@ before(async () => {
   const [reportResult] =
     await pool.execute(
       `
-        INSERT INTO
-          transaction_reports (
+        INSERT INTO reports (report_type,
             order_id,
             reporter_id,
             reported_id,
             reason,
             description
-          )
-        VALUES (?, ?, ?, ?, ?)
+          ) VALUES ('TRANSACTION',?, ?, ?, ?, ?)
       `,
       [
         orderId,
@@ -398,15 +397,13 @@ noChatOrderId =
 const [noChatReportResult] =
   await pool.execute(
     `
-      INSERT INTO
-        transaction_reports (
+      INSERT INTO reports (report_type,
           order_id,
           reporter_id,
           reported_id,
           reason,
           description
-        )
-      VALUES (?, ?, ?, ?, ?)
+        ) VALUES ('TRANSACTION',?, ?, ?, ?, ?)
     `,
     [
       noChatOrderId,
@@ -486,8 +483,7 @@ after(async () => {
   if (reportId) {
     await pool.execute(
       `
-        DELETE FROM transaction_reports
-        WHERE id = ?
+        DELETE FROM reports WHERE report_type='TRANSACTION' AND id = ?
       `,
       [reportId]
     );
@@ -506,8 +502,7 @@ after(async () => {
   if (noChatReportId) {
   await pool.execute(
     `
-      DELETE FROM transaction_reports
-      WHERE id = ?
+      DELETE FROM reports WHERE report_type='TRANSACTION' AND id = ?
     `,
     [noChatReportId]
   );

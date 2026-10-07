@@ -1,3 +1,4 @@
+const { reviewReports } = require('../../backend/src/repositories/report-storage');
 const {
   before,
   after,
@@ -345,13 +346,12 @@ reviewId =
 const [reportResult] =
   await pool.execute(
     `
-      INSERT INTO review_reports (
+      INSERT INTO reports (report_type,
         review_id,
         reporter_id,
         reason,
         description
-      )
-      VALUES (?, ?, ?, ?)
+      ) VALUES ('REVIEW',?, ?, ?, ?)
     `,
     [
       reviewId,
@@ -453,13 +453,12 @@ noChatReviewId =
 const [noChatReportResult] =
   await pool.execute(
     `
-      INSERT INTO review_reports (
+      INSERT INTO reports (report_type,
         review_id,
         reporter_id,
         reason,
         description
-      )
-      VALUES (?, ?, ?, ?)
+      ) VALUES ('REVIEW',?, ?, ?, ?)
     `,
     [
       noChatReviewId,
@@ -538,8 +537,7 @@ after(async () => {
   if (reportId) {
     await pool.execute(
       `
-        DELETE FROM review_reports
-        WHERE id = ?
+        DELETE FROM reports WHERE report_type='REVIEW' AND id = ?
       `,
       [reportId]
     );
@@ -548,8 +546,7 @@ after(async () => {
   if (noChatReportId) {
     await pool.execute(
       `
-        DELETE FROM review_reports
-        WHERE id = ?
+        DELETE FROM reports WHERE report_type='REVIEW' AND id = ?
       `,
       [noChatReportId]
     );

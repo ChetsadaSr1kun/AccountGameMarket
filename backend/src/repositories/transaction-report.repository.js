@@ -1,7 +1,8 @@
+const { transactionReports } = require('./report-storage');
 const { pool } = require('../config/database');
 async function findOrderParticipant(orderId,userId,executor=pool){const [rows]=await executor.execute(`SELECT id,buyer_id,seller_id,status FROM orders WHERE id=? AND (buyer_id=? OR seller_id=?) LIMIT 1`,[orderId,userId,userId]);return rows[0]||null;}
-async function findExisting(orderId,reporterId,executor=pool){const [rows]=await executor.execute('SELECT * FROM transaction_reports WHERE order_id=? AND reporter_id=? LIMIT 1',[orderId,reporterId]);return rows[0]||null;}
-async function create(data,executor=pool){const [result]=await executor.execute(`INSERT INTO transaction_reports (order_id,reporter_id,reported_id,reason,description) VALUES (?,?,?,?,?)`,[data.orderId,data.reporterId,data.reportedId,data.reason,data.description||null]);const [rows]=await executor.execute('SELECT * FROM transaction_reports WHERE id=? LIMIT 1',[result.insertId]);return rows[0]||null;}
+async function findExisting(orderId,reporterId,executor=pool){const [rows]=await executor.execute(`SELECT * FROM ${transactionReports} transactionReports_rows WHERE order_id=? AND reporter_id=? LIMIT 1`,[orderId,reporterId]);return rows[0]||null;}
+async function create(data,executor=pool){const [result]=await executor.execute(`INSERT INTO reports (report_type,order_id,reporter_id,reported_id,reason,description) VALUES ('TRANSACTION',?,?,?,?,?)`,[data.orderId,data.reporterId,data.reportedId,data.reason,data.description||null]);const [rows]=await executor.execute(`SELECT * FROM ${transactionReports} transactionReports_rows WHERE id=? LIMIT 1`,[result.insertId]);return rows[0]||null;}
 async function listAdminReports(
   executor = pool
 ) {
@@ -28,7 +29,7 @@ async function listAdminReports(
 
         p.title product_title
 
-      FROM transaction_reports tr
+      FROM ${transactionReports} tr
 
       INNER JOIN orders o
         ON o.id = tr.order_id
@@ -48,9 +49,9 @@ async function listAdminReports(
   return rows;
 }
 async function listPending(executor=pool){return listAdminReports(executor);}
-async function findDetailById(reportId,executor=pool){const [rows]=await executor.execute(`SELECT tr.*,o.amount,o.status order_status,o.buyer_id,o.seller_id,o.created_at order_created_at,o.updated_at order_updated_at,o.completed_at order_completed_at,reporter.username reporter_username,reporter.email reporter_email,reported.username reported_username,reported.email reported_email,reported.status reported_status,bu.username buyer_username,su.username seller_username,p.id product_id,p.title product_title,p.price product_price,p.status product_status,g.name game_name FROM transaction_reports tr INNER JOIN orders o ON o.id=tr.order_id INNER JOIN users reporter ON reporter.id=tr.reporter_id INNER JOIN users reported ON reported.id=tr.reported_id INNER JOIN users bu ON bu.id=o.buyer_id INNER JOIN users su ON su.id=o.seller_id INNER JOIN products p ON p.id=o.product_id INNER JOIN games g ON g.id=p.game_id WHERE tr.id=? LIMIT 1`,[reportId]);return rows[0]||null;}
+async function findDetailById(reportId,executor=pool){const [rows]=await executor.execute(`SELECT tr.*,o.amount,o.status order_status,o.buyer_id,o.seller_id,o.created_at order_created_at,o.updated_at order_updated_at,o.completed_at order_completed_at,reporter.username reporter_username,reporter.email reporter_email,reported.username reported_username,reported.email reported_email,reported.status reported_status,bu.username buyer_username,su.username seller_username,p.id product_id,p.title product_title,p.price product_price,p.status product_status,g.name game_name FROM ${transactionReports} tr INNER JOIN orders o ON o.id=tr.order_id INNER JOIN users reporter ON reporter.id=tr.reporter_id INNER JOIN users reported ON reported.id=tr.reported_id INNER JOIN users bu ON bu.id=o.buyer_id INNER JOIN users su ON su.id=o.seller_id INNER JOIN products p ON p.id=o.product_id INNER JOIN games g ON g.id=p.game_id WHERE tr.id=? LIMIT 1`,[reportId]);return rows[0]||null;}
 
-async function findById(reportId,executor=pool){const [rows]=await executor.execute('SELECT * FROM transaction_reports WHERE id=? LIMIT 1',[reportId]);return rows[0]||null;}
+async function findById(reportId,executor=pool){const [rows]=await executor.execute(`SELECT * FROM ${transactionReports} transactionReports_rows WHERE id=? LIMIT 1`,[reportId]);return rows[0]||null;}
 async function updateStatus(
   reportId,
   status,
@@ -61,14 +62,14 @@ async function updateStatus(
 ) {
   await executor.execute(
     `
-    UPDATE transaction_reports
+    UPDATE reports
     SET
       status = ?,
       outcome = ?,
       admin_note = ?,
       resolved_at = NOW(),
       resolved_by = ?
-    WHERE id = ?
+    WHERE report_type='TRANSACTION' AND COALESCE(source_report_id,id)=?
       AND status = 'PENDING'
     `,
     [

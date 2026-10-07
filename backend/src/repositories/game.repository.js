@@ -1,3 +1,4 @@
+const { reviewReports: reviewReportRows, transactionReports: transactionReportRows } = require('./report-storage');
 const { pool } = require('../config/database');
 
 function mapGame(row) {
@@ -176,13 +177,13 @@ async function adminDashboard() {
 
   const [[transactionReports]] = await pool.execute(
     `SELECT COUNT(*) total
-    FROM transaction_reports
+    FROM ${transactionReportRows} transactionReports_rows
     WHERE status = 'PENDING'`
   );
 
   const [[reviewReports]] = await pool.execute(
     `SELECT COUNT(*) total
-     FROM review_reports
+     FROM ${reviewReportRows} reviewReports_rows
      WHERE status = 'PENDING'`
   );
 
