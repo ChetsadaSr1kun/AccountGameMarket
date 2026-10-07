@@ -406,66 +406,183 @@ test('pauses and restores a product through the public marketplace boundary', as
   assert.equal(invalidState.body.error.code, 'INVALID_MODERATION_STATUS');
 });
 
-test('moves an authentic transaction report from pending through review to resolution', async () => {
+test('resolves an authentic pending transaction report with an outcome', async () => {
   const create = await api
     .post('/api/v1/transaction-reports')
     .set('Cookie', cookies(buyer.auth))
     .set('X-CSRF-Token', csrf(buyer.auth))
-    .send({ orderId: reportedOrderId, reason: 'NO_DELIVERY', description: 'Transaction report lifecycle fixture.' });
+    .send({
+      orderId: reportedOrderId,
+      reason: 'NO_DELIVERY',
+      description: 'Transaction report lifecycle fixture.',
+    });
+
   assert.equal(create.status, 201);
-  transactionReportId = Number(create.body.data.report.id);
-  assert.equal(create.body.data.report.status, 'PENDING');
 
-  const pending = await api.get('/api/v1/transaction-reports/pending').set('Cookie', cookies(admin.auth));
+  transactionReportId =
+    Number(create.body.data.report.id);
+
+  assert.equal(
+    create.body.data.report.status,
+    'PENDING'
+  );
+
+  assert.equal(
+    create.body.data.report.outcome,
+    null
+  );
+
+  const pending = await api
+    .get('/api/v1/transaction-reports/pending')
+    .set('Cookie', cookies(admin.auth));
+
   assert.equal(pending.status, 200);
-  assert.ok(pending.body.data.reports.some((report) => Number(report.id) === transactionReportId && report.status === 'PENDING'));
 
-  const list = await api.get('/api/v1/transaction-reports/admin').set('Cookie', cookies(admin.auth));
+  assert.ok(
+    pending.body.data.reports.some(
+      (report) =>
+        Number(report.id) ===
+          transactionReportId &&
+        report.status === 'PENDING'
+    )
+  );
+
+  const list = await api
+    .get('/api/v1/transaction-reports/admin')
+    .set('Cookie', cookies(admin.auth));
+
   assert.equal(list.status, 200);
-  assert.ok(list.body.data.reports.some((report) => Number(report.id) === transactionReportId));
 
-  const detail = await api.get(`/api/v1/transaction-reports/${transactionReportId}`).set('Cookie', cookies(admin.auth));
+  assert.ok(
+    list.body.data.reports.some(
+      (report) =>
+        Number(report.id) ===
+        transactionReportId
+    )
+  );
+
+  const detail = await api
+    .get(
+      `/api/v1/transaction-reports/${transactionReportId}`
+    )
+    .set('Cookie', cookies(admin.auth));
+
   assert.equal(detail.status, 200);
-  assert.equal(Number(detail.body.data.report.orderId), reportedOrderId);
-  assert.equal(detail.body.data.report.status, 'PENDING');
 
-  const reviewNote = 'Review has started.';
-  const reviewed = await api
-    .patch(`/api/v1/transaction-reports/${transactionReportId}`)
-    .set('Cookie', cookies(admin.auth))
-    .set('X-CSRF-Token', csrf(admin.auth))
-    .send({ status: 'REVIEWED', adminNote: reviewNote });
-  assert.equal(reviewed.status, 200);
-  assert.equal(reviewed.body.data.report.status, 'REVIEWED');
-  assert.equal(reviewed.body.data.report.adminNote, reviewNote);
-
-  const [[reviewedRow]] = await pool.execute(
-    'SELECT status, admin_note, resolved_by, resolved_at FROM transaction_reports WHERE id = ?',
-    [transactionReportId],
+  assert.equal(
+    Number(detail.body.data.report.orderId),
+    reportedOrderId
   );
-  assert.equal(reviewedRow.status, 'REVIEWED');
-  assert.equal(reviewedRow.admin_note, reviewNote);
-  assert.equal(reviewedRow.resolved_by, null);
-  assert.equal(reviewedRow.resolved_at, null);
 
-  const resolutionNote = 'Case resolved after administrator review.';
+  assert.equal(
+    detail.body.data.report.status,
+    'PENDING'
+  );
+
+  assert.equal(
+    detail.body.data.report.outcome,
+    null
+  );
+
+  const resolutionNote =
+    'Case resolved after administrator review.';
+
   const resolved = await api
-    .patch(`/api/v1/transaction-reports/${transactionReportId}`)
+    .patch(
+      `/api/v1/transaction-reports/${transactionReportId}`
+    )
     .set('Cookie', cookies(admin.auth))
-    .set('X-CSRF-Token', csrf(admin.auth))
-    .send({ status: 'RESOLVED', adminNote: resolutionNote });
-  assert.equal(resolved.status, 200);
-  assert.equal(resolved.body.data.report.status, 'RESOLVED');
-  assert.equal(resolved.body.data.report.adminNote, resolutionNote);
+    .set(
+      'X-CSRF-Token',
+      csrf(admin.auth)
+    )
+    .send({
+      status: 'RESOLVED',
+      outcome: 'ACTION_TAKEN',
+      adminNote: resolutionNote,
+    });
 
-  const [[resolvedRow]] = await pool.execute(
-    'SELECT status, admin_note, resolved_by, resolved_at FROM transaction_reports WHERE id = ?',
-    [transactionReportId],
+  assert.equal(
+    resolved.status,
+    200
   );
-  assert.equal(resolvedRow.status, 'RESOLVED');
-  assert.equal(resolvedRow.admin_note, resolutionNote);
-  assert.equal(Number(resolvedRow.resolved_by), admin.id);
-  assert.ok(resolvedRow.resolved_at);
+
+  assert.equal(
+    resolved.body.data.report.status,
+    'RESOLVED'
+  );
+
+  assert.equal(
+    resolved.body.data.report.outcome,
+    'ACTION_TAKEN'
+  );
+
+  assert.equal(
+    resolved.body.data.report.adminNote,
+    resolutionNote
+  );
+
+  const [[resolvedRow]] =
+    await pool.execute(
+      `
+      SELECT
+        status,
+        outcome,
+        admin_note,
+        resolved_by,
+        resolved_at
+      FROM transaction_reports
+      WHERE id = ?
+      `,
+      [transactionReportId],
+    );
+
+  assert.equal(
+    resolvedRow.status,
+    'RESOLVED'
+  );
+
+  assert.equal(
+    resolvedRow.outcome,
+    'ACTION_TAKEN'
+  );
+
+  assert.equal(
+    resolvedRow.admin_note,
+    resolutionNote
+  );
+
+  assert.equal(
+    Number(resolvedRow.resolved_by),
+    admin.id
+  );
+
+  assert.ok(
+    resolvedRow.resolved_at
+  );
+
+  const pendingAfterResolution =
+    await api
+      .get(
+        '/api/v1/transaction-reports/pending'
+      )
+      .set(
+        'Cookie',
+        cookies(admin.auth)
+      );
+
+  assert.equal(
+    pendingAfterResolution.status,
+    200
+  );
+
+  assert.ok(
+    !pendingAfterResolution.body.data.reports.some(
+      (report) =>
+        Number(report.id) ===
+        transactionReportId
+    )
+  );
 });
 
 test('removes a reported review while preserving unrelated review content', async () => {

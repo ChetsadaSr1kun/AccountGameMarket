@@ -176,8 +176,8 @@ async function adminDashboard() {
 
   const [[transactionReports]] = await pool.execute(
     `SELECT COUNT(*) total
-     FROM transaction_reports
-     WHERE status IN ('PENDING', 'REVIEWED')`
+    FROM transaction_reports
+    WHERE status = 'PENDING'`
   );
 
   const [[reviewReports]] = await pool.execute(
@@ -247,4 +247,12 @@ async function adminDashboard() {
   };
 }
 
-module.exports = { listActive, findActiveById, listAdmin, findAdminById, createAdmin, updateAdmin, adminDashboard };
+module.exports = {
+  listActive,
+  findActiveById,
+  listAdmin,
+  findAdminById,
+  createAdmin,
+  updateAdmin,
+  adminDashboard
+};

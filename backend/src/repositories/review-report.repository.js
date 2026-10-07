@@ -78,8 +78,6 @@ async function updateStatus(reportId, status, adminId, adminNote, executor = poo
   return rows[0] || null;
 }
 
-module.exports = { findReview, findExisting, create, listPending, updateStatus };
-
 async function getById(reportId, executor = pool) {
   const [rows] = await executor.execute('SELECT id, review_id, reporter_id, status FROM review_reports WHERE id=? LIMIT 1', [reportId]);
   return rows[0] || null;
@@ -87,6 +85,52 @@ async function getById(reportId, executor = pool) {
 
 async function hideReview(reviewId, executor = pool) {
   await executor.execute("UPDATE reviews SET status='HIDDEN' WHERE id=?", [reviewId]);
+}
+
+async function findChatContext(
+  reportId,
+  executor = pool
+) {
+  const [rows] =
+    await executor.execute(
+      `
+      SELECT
+        rr.id,
+        rr.review_id,
+        rr.reporter_id,
+
+        r.buyer_id AS reviewer_id,
+
+        reporter.username
+          AS reporter_username,
+
+        reporter.avatar_url
+          AS reporter_avatar_url,
+
+        reviewer.username
+          AS reviewer_username,
+
+        reviewer.avatar_url
+          AS reviewer_avatar_url
+
+      FROM review_reports rr
+
+      INNER JOIN reviews r
+        ON r.id = rr.review_id
+
+      INNER JOIN users reporter
+        ON reporter.id = rr.reporter_id
+
+      INNER JOIN users reviewer
+        ON reviewer.id = r.buyer_id
+
+      WHERE rr.id = ?
+      LIMIT 1
+      `,
+      [reportId]
+    );
+
+  return rows[0] || null;
 }
 
 module.exports = {
@@ -97,5 +141,6 @@ module.exports = {
   listAll,
   updateStatus,
   getById,
-  hideReview
+  hideReview,
+  findChatContext
 };

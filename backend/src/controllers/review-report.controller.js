@@ -18,9 +18,22 @@ const listAdminReports =
     )
   );
 
+const getReportChat =
+  asyncHandler(
+    async (req, res) =>
+      success(
+        res,
+        200,
+        await service.getReportChat(
+          req.params.reportId
+        )
+      )
+  );
+
 module.exports = {
   createReport,
   listPendingReports,
   listAdminReports,
+  getReportChat,
   resolveReport,
 };

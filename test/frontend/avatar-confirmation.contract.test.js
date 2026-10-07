@@ -54,10 +54,18 @@ test('a successful avatar response is applied through the current-user source of
   assert.match(script, /avatarContent\(username, currentUser\?\.avatarUrl\)/);
 });
 
-test('profile provides readonly Phone OTP controls with CSRF-protected phone endpoints', () => {
+test('profile provides Phone OTP controls with CSRF-protected phone endpoints', () => {
   const sendBody = functionBody('sendPhoneVerificationOtp', 'verifyPhoneVerificationOtp');
   const verifyBody = functionBody('verifyPhoneVerificationOtp', 'changePasswordFromProfile');
-  assert.match(html, /id="profilePhone"[^>]*readonly disabled/);
+  assert.match(
+    html,
+    /id="profilePhoneVerificationValue"/
+  );
+
+  assert.match(
+    html,
+    /data-verification-change="phone"[^>]*onclick="openVerificationTargetModal\('phone'\)"/
+  );
   assert.match(html, /id="profilePhoneVerificationSendButton"[^>]*onclick="sendPhoneVerificationOtp\(\)"/);
   assert.match(html, /id="profileEmailVerificationSendButton"[^>]*onclick="sendEmailVerificationOtp\(\)"/);
   assert.doesNotMatch(html, /id="profileEmailVerificationSendButton"[^>]*style=/);

@@ -1,6 +1,36 @@
 ﻿function homeEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function homeGameIcon(game){const key=String(game.slug||game.name||'').toLowerCase();const map={valorant:'assets/images/Valorant.png',rov:'assets/images/Rov.png',pubg:'assets/images/Pubg.png','free-fire':'assets/images/FreeFire.jpg','freefire':'assets/images/FreeFire.jpg','genshin-impact':'assets/images/Genshin impact.jpg','genshin impact':'assets/images/Genshin impact.jpg','honkai-star-rail':'assets/images/Honkai Starrail.png','honkai: star rail':'assets/images/Honkai Starrail.png'};return game.imageUrl||map[key]||'';}
-function homeProductCard(p,compact=false){const img=p.primaryImageUrl?`<img src="${homeEscape(p.primaryImageUrl)}" alt="${homeEscape(p.title)}" style="width:100%;height:${compact?150:180}px;object-fit:cover;border-radius:10px;margin-bottom:12px">`:`<div class="game-img" style="height:${compact?150:180}px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">🎮</div>`;return `<div class="card card-hover" onclick="openProductDetail(${Number(p.id)})" style="cursor:pointer">${img}<span class="badge badge-gray" style="margin-bottom:8px">${homeEscape(p.game?.name||'-')}</span><div style="font-weight:600;font-size:14px;margin-bottom:4px">${homeEscape(p.title||'สินค้า')}</div><div style="color:var(--muted);font-size:12px;margin-bottom:10px">ผู้ขาย: ${homeEscape(p.seller?.username||'-')}</div><div class="flex-between"><span class="kanit" style="font-size:${compact?18:20}px;font-weight:800;color:var(--accent)">${Number(p.price||0).toLocaleString('th-TH')} ฿</span><span style="font-size:12px;color:var(--muted)">ดูรายละเอียด →</span></div></div>`;}
+function homeProductCard(p,compact=false){
+  const img=p.primaryImageUrl?`<img src="${homeEscape(p.primaryImageUrl)}" alt="${homeEscape(p.title)}" style="width:100%;height:${compact?150:180}px;object-fit:cover;border-radius:10px;margin-bottom:12px">`:`<div class="game-img" style="height:${compact?150:180}px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">🎮</div>`;
+  const verificationBadge =
+  p.valorantVerification?.verified
+    ? `
+      <span class="product-verified-badge">
+        ✓ ตรวจสอบแล้ว
+      </span>
+    `
+    : '';
+  return `<div class="card card-hover" onclick="openProductDetail(${Number(p.id)})" style="cursor:pointer">${img}
+
+<div
+  style="
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  "
+>
+  <span class="badge badge-gray">
+    ${homeEscape(p.game?.name||'-')}
+  </span>
+
+  ${verificationBadge}
+</div>
+<div style="font-weight:600;font-size:14px;margin-bottom:4px">${homeEscape(p.title||'สินค้า')}</div><div style="color:var(--muted);font-size:12px;margin-bottom:10px">ผู้ขาย: ${homeEscape(p.seller?.username||'-')}</div>
+    <div class="flex-between"><span class="kanit" style="font-size:${compact?18:20}px;font-weight:800;color:var(--accent)">${Number(p.price||0).toLocaleString('th-TH')} ฿</span><span style="font-size:12px;color:var(--muted)">ดูรายละเอียด →</span></div></div>`;}
+
+
 async function homeFetch(url){const r=await fetch(url,{credentials:'include'});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'โหลดข้อมูลหน้าแรกไม่สำเร็จ');return b.data||b;}
 function renderRealGameFilters(games){
  const targets=[document.getElementById('guestGameFilter'),document.getElementById('userGameFilter')].filter(Boolean);
@@ -30,7 +60,143 @@ async function loadRealHomeUserData(){
     const d=b.data||{};
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=Number(v||0).toLocaleString('th-TH');};
     set('homeUserStatWallet',d.wallet);set('homeUserStatPurchases',d.purchases);set('homeUserStatListings',d.listings);set('homeUserStatMessages',d.messages);
-    if(box)box.innerHTML=d.recentMessages?.length?d.recentMessages.map(m=>{const name=homeEscape(m.otherUsername||'ผู้ใช้');const initial=homeEscape((m.otherUsername||'?').charAt(0).toUpperCase());const text=homeEscape(m.lastMessage||'ยังไม่มีข้อความ');const time=m.lastMessageAt?new Date(m.lastMessageAt).toLocaleString('th-TH',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'-';return `<div class="flex gap-10" style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;align-items:center" onclick="goPage('chat')"><div class="avatar" style="width:34px;height:34px;background:var(--accent);font-size:14px">${initial}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${name}</div><div style="font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${text}</div></div><div style="font-size:11px;color:var(--dim)">${time}</div></div>`;}).join(''):'<div class="report-empty">ยังไม่มีการสนทนา</div>';
+    if (box) {
+      box.innerHTML =
+        d.recentMessages?.length
+          ? d.recentMessages
+              .map((message) => {
+                const name =
+                  homeEscape(
+                    message.otherUsername ||
+                    'ผู้ใช้'
+                  );
+
+                const initial =
+                  homeEscape(
+                    (
+                      message.otherUsername ||
+                      '?'
+                    )
+                      .charAt(0)
+                      .toUpperCase()
+                  );
+
+                const text =
+                  homeEscape(
+                    message.lastMessage ||
+                    'ยังไม่มีข้อความ'
+                  );
+
+                const time =
+                  message.lastMessageAt
+                    ? new Date(
+                        message.lastMessageAt
+                      ).toLocaleString(
+                        'th-TH',
+                        {
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }
+                      )
+                    : '-';
+
+                const unreadCount =
+                  Number(
+                    message.unreadCount || 0
+                  );
+
+                return `
+                  <div
+                    class="flex gap-10"
+                    style="
+                      padding:10px 0;
+                      border-bottom:1px solid var(--border);
+                      cursor:pointer;
+                      align-items:center
+                    "
+                    onclick="goPage('chat')"
+                  >
+                    <div
+                      class="avatar"
+                      style="
+                        width:34px;
+                        height:34px;
+                        background:var(--accent);
+                        font-size:14px
+                      "
+                    >
+                      ${initial}
+                    </div>
+
+                    <div
+                      style="
+                        flex:1;
+                        min-width:0
+                      "
+                    >
+                      <div
+                        style="
+                          display:flex;
+                          align-items:center;
+                          gap:7px;
+                          font-size:13px;
+                          font-weight:600
+                        "
+                      >
+                        <span>
+                          ${name}
+                        </span>
+
+                        ${
+                          unreadCount > 0
+                            ? `
+                              <span
+                                class="chat-support-unread"
+                              >
+                                ${
+                                  unreadCount > 99
+                                    ? '99+'
+                                    : unreadCount
+                                }
+                              </span>
+                            `
+                            : ''
+                        }
+                      </div>
+
+                      <div
+                        style="
+                          font-size:12px;
+                          color:var(--muted);
+                          overflow:hidden;
+                          text-overflow:ellipsis;
+                          white-space:nowrap
+                        "
+                      >
+                        ${text}
+                      </div>
+                    </div>
+
+                    <div
+                      style="
+                        font-size:11px;
+                        color:var(--dim)
+                      "
+                    >
+                      ${time}
+                    </div>
+                  </div>
+                `;
+              })
+              .join('')
+          : `
+            <div class="report-empty">
+              ยังไม่มีการสนทนา
+            </div>
+          `;
+    }
   }catch(e){console.error('loadRealHomeUserData failed:',e);if(r.status===401){return;}if(box)box.innerHTML='<div class="notice danger">'+homeEscape(e.message)+'</div>';}
 }
 function maybeLoadHomeUserData(){if(document.getElementById('pg-home-user'))loadRealHomeUserData();}

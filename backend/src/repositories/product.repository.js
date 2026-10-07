@@ -11,16 +11,59 @@ function mapProduct(row) {
     description: row.description,
     price: Number(row.price),
     status: row.status,
+
+    primaryImageUrl:
+      row.primary_image_url ||
+      null,
+
+      valorantVerification:
+        row.valorant_verified
+          ? {
+              verified: true,
+            }
+          : null,
+
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
 const productSelect = `
-  SELECT p.id, p.seller_id, p.game_id, p.title, p.description, p.price, p.status,
-         p.created_at, p.updated_at, g.name AS game_name, g.slug AS game_slug
+  SELECT
+    p.id,
+    p.seller_id,
+    p.game_id,
+    p.title,
+    p.description,
+    p.price,
+    p.status,
+    p.created_at,
+    p.updated_at,
+
+    g.name AS game_name,
+    g.slug AS game_slug,
+
+    (
+      SELECT pi.image_url
+      FROM product_images pi
+      WHERE pi.product_id = p.id
+      ORDER BY
+        pi.is_primary DESC,
+        pi.sort_order ASC,
+        pi.id ASC
+      LIMIT 1
+    ) AS primary_image_url,
+
+    EXISTS (
+      SELECT 1
+      FROM product_valorant_verifications vv
+      WHERE vv.product_id = p.id
+    ) AS valorant_verified
+
   FROM products p
-  INNER JOIN games g ON g.id = p.game_id
+
+  INNER JOIN games g
+    ON g.id = p.game_id
 `;
 
 async function listBySeller(sellerId) {

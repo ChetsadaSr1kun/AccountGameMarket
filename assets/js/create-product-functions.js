@@ -7,6 +7,371 @@ function setCreateProductFeedback(message, type = 'info') {
   el.style.display = message ? 'block' : 'none';
 }
 
+function updateCreateProductVatPreview() {
+  const input =
+    document.getElementById(
+      'create-product-price'
+    );
+
+  const preview =
+    document.getElementById(
+      'create-product-vat-preview'
+    );
+
+  if (!input || !preview) {
+    return;
+  }
+
+  const rawPrice =
+    input.value.trim();
+
+  if (!rawPrice) {
+    preview.textContent =
+      'กรอกราคาสินค้าเพื่อดูยอดที่คุณจะได้รับ';
+
+    return;
+  }
+
+  const price =
+    Number(rawPrice);
+
+  if (
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    preview.textContent =
+      'กรุณากรอกราคาที่ถูกต้อง';
+
+    return;
+  }
+
+  /*
+   * ต้องใช้กฎเดียวกับ Backend
+   * backend/src/utils/marketplace-vat.js
+   */
+  const grossCents =
+    Math.round(
+      price * 100
+    );
+
+  const vatAmount =
+    Math.floor(
+      (
+        grossCents * 7 +
+        5000
+      ) /
+        10000
+    );
+
+  const sellerNetAmount =
+    (
+      grossCents -
+      vatAmount * 100
+    ) / 100;
+
+  const formatPoints =
+    (value) =>
+      Number(value)
+        .toLocaleString(
+          'th-TH',
+          {
+            maximumFractionDigits: 2,
+          }
+        );
+
+  preview.innerHTML =
+    `
+      <span style="
+        color:var(--muted);
+      ">
+        Fee 7%:
+        <strong style="
+          color:var(--accent2);
+          font-size:13px;
+          font-weight:700;
+        ">
+          ${formatPoints(vatAmount)} pts
+        </strong>
+      </span>
+
+      <span style="
+        margin:0 8px;
+        color:var(--muted);
+      ">
+        •
+      </span>
+
+      <span style="
+        color:var(--text);
+        font-weight:600;
+      ">
+        คุณจะได้รับ:
+        <strong style="
+          color:var(--success);
+          font-size:15px;
+          font-weight:800;
+        ">
+          ${formatPoints(
+            sellerNetAmount
+          )} pts
+        </strong>
+      </span>
+    `;
+}
+
+function updateCreateProductValorantVerificationVisibility() {
+  const gameSelect =
+    document.getElementById(
+      'create-product-game'
+    );
+
+  const verificationBox =
+    document.getElementById(
+      'create-product-valorant-verification'
+    );
+
+  if (!gameSelect || !verificationBox) {
+    return;
+  }
+
+  const selectedOption =
+    gameSelect.selectedOptions?.[0];
+
+  const gameSlug =
+    selectedOption?.dataset
+      ?.gameSlug || '';
+
+  const isValorant =
+    gameSlug === 'valorant';
+
+  verificationBox.hidden =
+    !isValorant;
+
+  if (!isValorant) {
+  window.pendingValorantVerification =
+    null;
+
+  const feedback =
+    document.getElementById(
+      'create-product-valorant-verification-feedback'
+    );
+
+  if (feedback) {
+      feedback.textContent = '';
+
+      feedback.classList.remove(
+        'is-success',
+        'is-error'
+      );
+    }
+  }
+}
+
+function updateValorantVerifyButtonState() {
+  const gameName =
+    document.getElementById(
+      'create-product-riot-game-name'
+    );
+
+  const tagLine =
+    document.getElementById(
+      'create-product-riot-tag-line'
+    );
+
+  const button =
+    document.getElementById(
+      'create-product-valorant-verify-button'
+    );
+
+  if (!gameName || !tagLine || !button) {
+    return;
+  }
+
+  button.disabled =
+    !gameName.value.trim() ||
+    !tagLine.value.trim();
+}
+
+function resetCreateProductValorantVerificationState() {
+  const gameName =
+    document.getElementById(
+      'create-product-riot-game-name'
+    );
+
+  const tagLine =
+    document.getElementById(
+      'create-product-riot-tag-line'
+    );
+
+  const feedback =
+    document.getElementById(
+      'create-product-valorant-verification-feedback'
+    );
+
+  window.pendingValorantVerification =
+    null;
+
+  if (gameName) {
+    gameName.value = '';
+  }
+
+  if (tagLine) {
+    tagLine.value = '';
+  }
+
+  if (feedback) {
+    feedback.textContent = '';
+
+    feedback.classList.remove(
+      'is-success',
+      'is-error'
+    );
+  }
+
+  updateValorantVerifyButtonState();
+}
+
+async function verifyCreateProductValorantAccount() {
+  const gameName =
+    document.getElementById(
+      'create-product-riot-game-name'
+    )?.value.trim();
+
+  const tagLine =
+    document.getElementById(
+      'create-product-riot-tag-line'
+    )?.value.trim();
+
+  const button =
+    document.getElementById(
+      'create-product-valorant-verify-button'
+    );
+
+  const feedback =
+    document.getElementById(
+      'create-product-valorant-verification-feedback'
+    );
+
+  if (
+    !gameName ||
+    !tagLine ||
+    !button ||
+    !feedback
+  ) {
+    return;
+  }
+
+  const activeCsrfToken =
+    csrfToken ||
+    getCookieValue('gm_csrf');
+
+  if (!activeCsrfToken) {
+    feedback.textContent =
+      'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่';
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent =
+    'กำลังตรวจสอบ...';
+
+  feedback.classList.remove(
+    'is-success',
+    'is-error'
+  );
+
+  feedback.textContent =
+    'กำลังตรวจสอบ Riot ID กับ Riot...';
+
+  try {
+    const response =
+      await fetch(
+        '/api/v1/user/products/valorant/verify',
+        {
+          method: 'POST',
+
+          credentials: 'include',
+
+          headers: {
+            'Content-Type':
+              'application/json',
+
+            'X-CSRF-Token':
+              activeCsrfToken,
+          },
+
+          body: JSON.stringify({
+            gameName,
+            tagLine,
+          }),
+        }
+      );
+
+    const body =
+      await response
+        .json()
+        .catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        body.error?.message ||
+        'ไม่สามารถตรวจสอบบัญชีได้'
+      );
+    }
+
+    if (!body.data?.exists) {
+      window.pendingValorantVerification =
+        null;
+
+      feedback.textContent =
+        `ไม่พบบัญชี ${gameName}#${tagLine}`;
+
+      feedback.classList.add(
+        'is-error'
+      );
+
+      return;
+    }
+
+    window.pendingValorantVerification = {
+      gameName:
+        body.data.gameName,
+
+      tagLine:
+        body.data.tagLine,
+
+      puuid:
+        body.data.puuid,
+    };
+
+    feedback.textContent =
+      `✓ พบบัญชี Valorant: ` +
+      `${body.data.gameName}#${body.data.tagLine}`;
+
+    feedback.classList.add(
+      'is-success'
+    );
+
+  } catch (error) {
+    window.pendingValorantVerification =
+      null;
+
+    feedback.textContent =
+      error.message ||
+      'ไม่สามารถตรวจสอบบัญชีได้';
+
+    feedback.classList.add(
+      'is-error'
+    );
+
+  } finally {
+    button.textContent =
+      '🔍 ตรวจสอบบัญชี Valorant';
+
+    updateValorantVerifyButtonState();
+  }
+}
+
 async function loadCreateProductGames() {
   const select = document.getElementById('create-product-game');
   if (!select) return;
@@ -16,9 +381,26 @@ async function loadCreateProductGames() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error?.message || 'โหลดเกมไม่สำเร็จ');
     const games = Array.isArray(data.data) ? data.data : [];
-    select.innerHTML = '<option value="">เลือกเกม</option>' + games.map((game) =>
-      `<option value="${Number(game.id)}">${escapeHtml(game.name)}</option>`
-    ).join('');
+    select.innerHTML =
+      '<option value="">เลือกเกม</option>' +
+      games.map(
+        (game) => `
+          <option
+            value="${Number(game.id)}"
+            data-game-slug="${escapeHtml(
+              game.slug || ''
+            )}"
+          >
+            ${escapeHtml(game.name)}
+          </option>
+        `
+      ).join('');
+
+      select.onchange =
+        updateCreateProductValorantVerificationVisibility;
+
+      updateCreateProductValorantVerificationVisibility();
+
   } catch (error) {
     select.innerHTML = '<option value="">ไม่สามารถโหลดเกมได้</option>';
     setCreateProductFeedback(error.message || 'ไม่สามารถโหลดเกมได้', 'error');
@@ -32,9 +414,63 @@ async function populateCreateProductForEdit(product) {
   const price = document.getElementById('create-product-price');
   const credentials = product.credentials || {};
   if (game) { game.value = String(product.gameId || product.game?.id || ''); game.disabled = true; }
+  updateCreateProductValorantVerificationVisibility();
+  const valorantVerification =
+    product.valorantVerification || null;
+
+  const riotGameName =
+    document.getElementById(
+      'create-product-riot-game-name'
+    );
+
+  const riotTagLine =
+    document.getElementById(
+      'create-product-riot-tag-line'
+    );
+
+  const riotFeedback =
+    document.getElementById(
+      'create-product-valorant-verification-feedback'
+    );
+
+  window.pendingValorantVerification =
+    null;
+
+  if (riotGameName) {
+    riotGameName.value =
+      valorantVerification?.gameName || '';
+  }
+
+  if (riotTagLine) {
+    riotTagLine.value =
+      valorantVerification?.tagLine || '';
+  }
+
+  if (riotFeedback) {
+    riotFeedback.classList.remove(
+      'is-success',
+      'is-error'
+    );
+
+    if (valorantVerification) {
+      riotFeedback.textContent =
+        `✓ ตรวจสอบข้อมูลบัญชีเกมแล้ว: ` +
+        `${valorantVerification.gameName}` +
+        `#${valorantVerification.tagLine}`;
+
+      riotFeedback.classList.add(
+        'is-success'
+      );
+    } else {
+      riotFeedback.textContent = '';
+    }
+  }
+
+  updateValorantVerifyButtonState();
   if (title) title.value = product.title || product.name || '';
   if (description) description.value = product.description || '';
   if (price) price.value = product.price ?? '';
+  updateCreateProductVatPreview();
   const credentialFields = { 'create-product-username': credentials.gameUsername, 'create-product-password': credentials.gamePassword, 'create-product-email': credentials.email, 'create-product-email-password': credentials.emailPassword };
   Object.entries(credentialFields).forEach(([id, value]) => { const input = document.getElementById(id); if (input) input.value = value || ''; });
   const heading = document.querySelector('#pg-add-listing .sec-title');
@@ -61,6 +497,8 @@ function resetCreateProductEditorMode() {
     const input = document.getElementById(id);
     if (input) input.value = '';
   });
+  updateCreateProductVatPreview();
+  resetCreateProductValorantVerificationState();
   window.resetProductImages?.();
   const heading = document.querySelector('#pg-add-listing .sec-title');
   const sub = document.querySelector('#pg-add-listing .sec-sub');
@@ -86,15 +524,47 @@ async function createProductFromForm(status = 'DRAFT') {
   }
   const credentials = { gameUsername: document.getElementById('create-product-username')?.value.trim() || '', gamePassword: document.getElementById('create-product-password')?.value || '', email: document.getElementById('create-product-email')?.value.trim() || '', emailPassword: document.getElementById('create-product-email-password')?.value || '' };
   const hasCredentials = Object.values(credentials).some(Boolean);
+  const gameSelect =
+    document.getElementById(
+      'create-product-game'
+    );
+
+  const selectedGameSlug =
+    gameSelect
+      ?.selectedOptions?.[0]
+      ?.dataset?.gameSlug || '';
+
+  const pendingVerification =
+    window.pendingValorantVerification;
+
+  const valorantVerification =
+    selectedGameSlug === 'valorant' &&
+    pendingVerification?.gameName &&
+    pendingVerification?.tagLine
+      ? {
+          gameName:
+            pendingVerification.gameName,
+
+          tagLine:
+            pendingVerification.tagLine,
+        }
+      : null;
   const payload = {
     gameId,
     title,
     description,
     price,
     status,
+
     ...(hasCredentials
       ? { credentials }
-      : {})
+      : {}),
+
+    ...(valorantVerification
+      ? {
+          valorantVerification,
+        }
+      : {}),
   };
   const editingId = Number(window.editingProductId || 0);
   try {
@@ -108,13 +578,20 @@ async function createProductFromForm(status = 'DRAFT') {
               title,
               description,
               price,
+
               status:
                 window.editingProductData?.status ||
                 status,
 
               ...(hasCredentials
                 ? { credentials }
-                : {})
+                : {}),
+
+              ...(valorantVerification
+                ? {
+                    valorantVerification,
+                  }
+                : {}),
             }
           : payload
       ),
@@ -138,3 +615,12 @@ async function createProductFromForm(status = 'DRAFT') {
     setCreateProductFeedback(error.message || 'บันทึกสินค้าไม่สำเร็จ', 'error');
   }
 }
+
+window.updateCreateProductVatPreview =
+  updateCreateProductVatPreview;
+
+window.verifyCreateProductValorantAccount =
+  verifyCreateProductValorantAccount;
+
+window.updateValorantVerifyButtonState =
+  updateValorantVerifyButtonState;

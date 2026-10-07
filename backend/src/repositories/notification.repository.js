@@ -30,10 +30,52 @@ async function markRead(userId, id, executor = pool) {
   return result.affectedRows > 0 ? findById(id, executor) : findById(id, executor);
 }
 
+async function markChatRead(
+  userId,
+  conversationId,
+  executor = pool
+) {
+  const [result] =
+    await executor.execute(
+      `
+        UPDATE notifications
+        SET
+          is_read = 1,
+          read_at =
+            COALESCE(
+              read_at,
+              UTC_TIMESTAMP(3)
+            )
+        WHERE
+          user_id = ?
+          AND type = 'NEW_MESSAGE'
+          AND reference_type = 'CHAT'
+          AND reference_id = ?
+          AND is_read = 0
+      `,
+      [
+        userId,
+        conversationId,
+      ]
+    );
+
+  return Number(
+    result.affectedRows || 0
+  );
+}
+
 async function markAllRead(userId, executor = pool) {
   const [result] = await executor.execute(`UPDATE notifications SET is_read=1,read_at=COALESCE(read_at,UTC_TIMESTAMP(3))
     WHERE user_id=? AND is_read=0`, [userId]);
   return Number(result.affectedRows || 0);
 }
 
-module.exports = { create, findById, listByUserId, unreadCount, markRead, markAllRead };
+module.exports = {
+  create,
+  findById,
+  listByUserId,
+  unreadCount,
+  markRead,
+  markChatRead,
+  markAllRead,
+};

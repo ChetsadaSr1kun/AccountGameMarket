@@ -3,19 +3,42 @@ const { pool } = require('../config/database');
 function mapRow(row) {
   return {
     id: row.id,
-    game: { id: row.game_id, name: row.game_name, slug: row.game_slug },
-    seller: { id: row.seller_id, username: row.seller_username },
+
+    game: {
+      id: row.game_id,
+      name: row.game_name,
+      slug: row.game_slug
+    },
+
+    seller: {
+      id: row.seller_id,
+      username: row.seller_username
+    },
+
     title: row.title,
     description: row.description,
     price: Number(row.price),
     status: row.status,
-    primaryImageUrl: row.primary_image_url || null,
+
+    primaryImageUrl:
+      row.primary_image_url || null,
+
+    valorantVerification:
+      row.valorant_verified
+        ? {
+            verified: true,
+          }
+        : null,
+
     createdAt: row.created_at,
   };
 }
 
 async function listPublic(filters = {}, executor = pool) {
-  const where = ["p.status IN ('ACTIVE','PUBLISHED')", "g.status = 'ACTIVE'"];
+  const where = [
+    "p.status IN ('ACTIVE','PUBLISHED')",
+    "g.status = 'ACTIVE'",
+  ];
   const params = [];
   if (filters.gameId) { where.push('p.game_id = ?'); params.push(filters.gameId); }
   if (filters.search) {
@@ -37,8 +60,16 @@ async function listPublic(filters = {}, executor = pool) {
   );
   const [rows] = await executor.query(
     `SELECT p.id,p.seller_id,p.game_id,p.title,p.description,p.price,p.status,p.created_at,
-            g.name AS game_name,g.slug AS game_slug,u.username AS seller_username,
-            pi.image_url AS primary_image_url
+            g.name AS game_name,
+            g.slug AS game_slug,
+            u.username AS seller_username,
+            pi.image_url AS primary_image_url,
+
+            EXISTS (
+              SELECT 1
+              FROM product_valorant_verifications vv
+              WHERE vv.product_id = p.id
+            ) AS valorant_verified
        FROM products p
        INNER JOIN games g ON g.id=p.game_id
        INNER JOIN users u ON u.id=p.seller_id

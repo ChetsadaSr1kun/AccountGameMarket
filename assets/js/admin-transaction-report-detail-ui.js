@@ -2,6 +2,22 @@ let adminTransactionDetailState={reportId:null};
 function adminDetailEscape(v){return typeof adminReportEscape==='function'?adminReportEscape(v):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function adminDetailReason(v){return typeof adminReportReason==='function'?adminReportReason(v):v;}
 function adminDetailStatus(v){return typeof adminReportStatus==='function'?adminReportStatus(v):[v,'info'];}
+function adminDetailAvatar(
+  avatarUrl,
+  username
+) {
+  if (
+    typeof adminReportAvatar ===
+    'function'
+  ) {
+    return adminReportAvatar(
+      avatarUrl,
+      username
+    );
+  }
+
+  return '👤';
+}
 async function openAdminTransactionReportDetail(reportId) {
   adminTransactionDetailState.reportId =
     Number(reportId);
@@ -65,8 +81,7 @@ async function openAdminTransactionReportDetail(reportId) {
   };
 
   const isOpen =
-    ['PENDING', 'REVIEWED']
-      .includes(report.status);
+    report.status === 'PENDING';
 
   const reportedStatus =
   String(
@@ -143,17 +158,13 @@ else if (reportedStatus === 'BANNED') {
     report.status === 'PENDING'
       ? `
         <button
-          class="btn btn-primary"
-          type="button"
-          onclick="adminDetailResolve('REVIEWED')"
-        >
-          📝 รับเคส
-        </button>
-
-        <button
           class="btn btn-secondary"
           type="button"
-          onclick="adminDetailResolve('DISMISSED')"
+          onclick="
+            adminDetailResolve(
+              'NO_VIOLATION'
+            )
+          "
         >
           ✓ ไม่พบปัญหา
         </button>
@@ -161,30 +172,16 @@ else if (reportedStatus === 'BANNED') {
         <button
           class="btn btn-success"
           type="button"
-          onclick="adminDetailResolve('RESOLVED')"
+          onclick="
+            adminDetailResolve(
+              'ACTION_TAKEN'
+            )
+          "
         >
-          ✓ ดำเนินการแล้ว
+          ✅ ดำเนินการแล้ว
         </button>
       `
-      : report.status === 'REVIEWED'
-        ? `
-          <button
-            class="btn btn-secondary"
-            type="button"
-            onclick="adminDetailResolve('DISMISSED')"
-          >
-            ✓ ไม่พบปัญหา
-          </button>
-
-          <button
-            class="btn btn-success"
-            type="button"
-            onclick="adminDetailResolve('RESOLVED')"
-          >
-            ✓ ดำเนินการแล้ว
-          </button>
-        `
-        : '';
+      : '';
 
 
   modal.innerHTML = `
@@ -297,6 +294,26 @@ else if (reportedStatus === 'BANNED') {
 
       </div>
 
+            <!-- Chat review -->
+      <div class="admin-report-chat-review-action">
+
+        <button
+          class="btn btn-secondary btn-sm"
+          type="button"
+          onclick="
+            window.openAdminReportChatReview?.(
+              ${Number(report.id)}
+            )
+          "
+        >
+          💬 ตรวจสอบแชทระหว่างผู้ใช้
+        </button>
+
+        <span>
+          ดูบทสนทนาระหว่างผู้รายงานและผู้ถูกรายงาน
+        </span>
+
+      </div>
 
       <!-- Reported user moderation -->
       <div class="admin-report-user-moderation">
@@ -673,7 +690,450 @@ async function adminModerateReportedUser(
     }
   }
 }
-async function adminDetailResolve(status){const id=adminTransactionDetailState.reportId;const note=document.getElementById('adminTransactionDetailNote')?.value.trim()||'';const token=typeof csrfToken!=='undefined'?(csrfToken||getCookieValue('gm_csrf')):getCookieValue('gm_csrf');const msg=document.getElementById('adminTransactionDetailMessage');if(!token){if(msg)msg.textContent='ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้า';return;}try{const r=await fetch(`/api/v1/transaction-reports/${Number(id)}`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify({status,adminNote:note})});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'บันทึกไม่สำเร็จ');closeAdminTransactionReportDetail();await window.loadAdminTransactionReports?.();if(typeof showToast==='function')showToast('บันทึกผลการตรวจสอบแล้ว','success');}catch(e){if(msg)msg.textContent=e.message||'บันทึกไม่สำเร็จ';}}
-window.openAdminTransactionReportDetail=openAdminTransactionReportDetail;window.closeAdminTransactionReportDetail=closeAdminTransactionReportDetail;window.adminDetailResolve=adminDetailResolve;
+async function adminDetailResolve(
+  outcome
+) {
+  const id =
+    adminTransactionDetailState.reportId;
+
+  const note =
+    document
+      .getElementById(
+        'adminTransactionDetailNote'
+      )
+      ?.value.trim() || '';
+
+  const token =
+    typeof csrfToken !== 'undefined'
+      ? (
+          csrfToken ||
+          getCookieValue('gm_csrf')
+        )
+      : getCookieValue('gm_csrf');
+
+  const msg =
+    document.getElementById(
+      'adminTransactionDetailMessage'
+    );
+
+  if (!token) {
+    if (msg) {
+      msg.textContent =
+        'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้า';
+    }
+
+    return;
+  }
+
+  const labels = {
+    ACTION_TAKEN:
+      'ดำเนินการแล้ว',
+
+    NO_VIOLATION:
+      'ไม่พบปัญหา',
+  };
+
+  const normalizedOutcome =
+    String(outcome || '')
+      .trim()
+      .toUpperCase();
+
+  if (!labels[normalizedOutcome]) {
+    if (msg) {
+      msg.textContent =
+        'ผลการตรวจสอบไม่ถูกต้อง';
+    }
+
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      `ยืนยันผลการตรวจสอบ: ${labels[normalizedOutcome]}`
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response =
+      await fetch(
+        `/api/v1/transaction-reports/${Number(id)}`,
+        {
+          method: 'PATCH',
+          credentials: 'include',
+
+          headers: {
+            'Content-Type':
+              'application/json',
+
+            'X-CSRF-Token':
+              token,
+          },
+
+          body: JSON.stringify({
+            status: 'RESOLVED',
+            outcome:
+              normalizedOutcome,
+            adminNote: note,
+          }),
+        }
+      );
+
+    const body =
+      await response
+        .json()
+        .catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        body.error?.message ||
+        'บันทึกไม่สำเร็จ'
+      );
+    }
+
+    closeAdminTransactionReportDetail();
+
+    await window
+      .loadAdminTransactionReports?.();
+
+    await window
+      .loadAdminDashboardSummary?.();
+
+    if (
+      typeof showToast === 'function'
+    ) {
+      showToast(
+        'บันทึกผลการตรวจสอบแล้ว',
+        'success'
+      );
+    }
+
+  } catch (error) {
+    if (msg) {
+      msg.textContent =
+        error.message ||
+        'บันทึกไม่สำเร็จ';
+    }
+  }
+}
+function closeAdminReportChatReview() {
+  document
+    .getElementById(
+      'adminReportChatReviewModal'
+    )
+    ?.remove();
+}
+async function openAdminReportChatReview(
+  reportId
+) {
+  closeAdminReportChatReview();
+
+  const id =
+    Number(reportId);
+
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
+    return;
+  }
+
+  const modal =
+    document.createElement('div');
+
+  modal.id =
+    'adminReportChatReviewModal';
+
+  modal.className =
+    'modal-overlay';
+
+  modal.style.display =
+    'flex';
+
+  modal.innerHTML = `
+    <div
+      class="
+        modal-card
+        admin-transaction-detail-modal
+        admin-report-chat-review-modal
+      "
+    >
+      <div class="admin-report-modal-header">
+
+        <div>
+          <div class="review-modal-title">
+            💬 ตรวจสอบแชทระหว่างผู้ใช้
+          </div>
+
+          <div class="review-modal-product">
+            Report #${id}
+          </div>
+        </div>
+
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          onclick="
+            closeAdminReportChatReview()
+          "
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div
+        id="adminReportChatReviewContent"
+      >
+        กำลังโหลดบทสนทนา...
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(
+    modal
+  );
+  const content =
+    document.getElementById(
+      'adminReportChatReviewContent'
+    );
+
+  try {
+    const response =
+      await fetch(
+        `/api/v1/transaction-reports/${id}/chat`,
+        {
+          credentials: 'include',
+        }
+      );
+
+    const body =
+      await response
+        .json()
+        .catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        body.error?.message ||
+        'โหลดบทสนทนาไม่สำเร็จ'
+      );
+    }
+
+    const data =
+      body.data;
+
+    if (!data || !content) {
+      throw new Error(
+        'ข้อมูลบทสนทนาไม่ถูกต้อง'
+      );
+    }
+
+    const reporterName =
+      adminDetailEscape(
+        data.reporter?.username ||
+        '-'
+      );
+
+    const reportedName =
+      adminDetailEscape(
+        data.reported?.username ||
+        '-'
+      );
+
+    const messages =
+      Array.isArray(
+        data.messages
+      )
+        ? data.messages
+        : [];
+
+    if (!data.conversation) {
+      content.innerHTML = `
+        <div>
+          <strong>
+            ${reporterName}
+          </strong>
+
+          <span>
+            ↔
+          </span>
+
+          <strong>
+            ${reportedName}
+          </strong>
+        </div>
+
+        <div>
+          💬 ไม่พบประวัติการสนทนาระหว่างผู้ใช้ทั้งสองราย
+        </div>
+      `;
+
+      return;
+    }
+
+    const reporterId =
+      Number(data.reporter?.id);
+
+    const reportedId =
+      Number(data.reported?.id);
+
+    const messageHtml =
+      messages
+        .map((message) => {
+          const senderId =
+            Number(message.senderId);
+
+          const role =
+            senderId === reporterId
+              ? 'reporter'
+              : (
+                  senderId === reportedId
+                    ? 'reported'
+                    : 'unknown'
+              );
+
+          const roleLabel =
+            role === 'reporter'
+              ? 'ผู้รายงาน'
+              : (
+                  role === 'reported'
+                    ? 'ผู้ถูกรายงาน'
+                    : 'ผู้ใช้'
+                );
+
+          const senderName =
+            adminDetailEscape(
+              message.senderUsername ||
+              '-'
+            );
+
+          const senderAvatar =
+            adminDetailAvatar(
+              message.senderAvatarUrl,
+              message.senderUsername
+            );
+
+          const bodyText =
+            adminDetailEscape(
+              message.body ||
+              ''
+            );
+
+          const createdAt =
+            message.createdAt
+              ? new Date(
+                  message.createdAt
+                ).toLocaleString(
+                  'th-TH'
+                )
+              : '-';
+
+          return `
+            <div
+  class="
+    admin-report-chat-message
+      ${role}
+    "
+  >
+
+    <div class="admin-report-chat-message-head">
+
+      <div class="admin-report-chat-avatar">
+        ${senderAvatar}
+      </div>
+
+      <div class="admin-report-chat-message-user">
+        <strong>
+          ${senderName}
+        </strong>
+
+        <span>
+          ${roleLabel}
+        </span>
+      </div>
+
+    </div>
+
+    <div class="admin-report-chat-message-bubble">
+      <div class="admin-report-chat-message-body">${bodyText}</div>
+    </div>
+
+    <time class="admin-report-chat-message-time">
+      ${adminDetailEscape(
+        createdAt
+      )}
+    </time>
+
+  </div>
+          `;
+        })
+        .join('');
+
+    content.innerHTML = `
+      <div class="admin-report-chat-review-users">
+        <strong>
+          ${reporterName}
+        </strong>
+
+        <span>
+          ↔
+        </span>
+
+        <strong>
+          ${reportedName}
+        </strong>
+      </div>
+
+      <div class="admin-report-chat-review-summary">
+        Report #${Number(data.reportId)}
+        • Order #${Number(data.orderId)}
+        • ${messages.length.toLocaleString('th-TH')}
+          ข้อความ
+      </div>
+
+      <div class="admin-report-chat-review-note">
+        บทสนทนานี้เป็นประวัติการพูดคุยทั้งหมดระหว่างผู้ใช้ทั้งสองราย
+        และอาจมีข้อความจากรายการอื่นนอกเหนือจาก Order นี้
+      </div>
+
+      <div class="admin-report-chat-message-list">
+        ${messageHtml}
+      </div>
+
+      <div class="admin-report-chat-readonly">
+        🔒 โหมดตรวจสอบเท่านั้น
+        Admin ไม่สามารถส่งหรือแก้ไขข้อความได้
+      </div>
+    `;
+
+  } catch (error) {
+    console.error(
+      'load report chat failed',
+      error
+    );
+
+    if (content) {
+      content.innerHTML = `
+        <div>
+          ${adminDetailEscape(
+            error.message ||
+            'ไม่สามารถโหลดบทสนทนาได้'
+          )}
+        </div>
+      `;
+    }
+  }
+}
+window.openAdminTransactionReportDetail=openAdminTransactionReportDetail;
+window.closeAdminTransactionReportDetail=closeAdminTransactionReportDetail;
+window.adminDetailResolve=adminDetailResolve;
 window.adminModerateReportedUser =
   adminModerateReportedUser;
+window.openAdminReportChatReview =
+  openAdminReportChatReview;
+
+window.closeAdminReportChatReview =
+  closeAdminReportChatReview;

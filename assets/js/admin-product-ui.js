@@ -91,7 +91,7 @@
       Array.isArray(product.images)
         ? product.images
         : [];
-
+    
     const order =
       product.order || null;
 

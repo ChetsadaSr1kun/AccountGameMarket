@@ -1,6 +1,8 @@
 function publicSellerEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function publicSellerStars(r){const n=Math.round(Number(r)||0);return '★★★★★'.split('').map((s,i)=>`<span class="seller-public-star ${i<n?'is-filled':''}">${s}</span>`).join('');}
-let publicSellerReviews=[]; let publicSellerIsOwner=false;
+let publicSellerReviews = [];
+let publicSellerIsOwner = false;
+let publicSellerUsername = 'ผู้ขาย';
 function renderPublicSellerReviewFilters(summary,count){return `<div class="seller-review-filters" role="group" aria-label="กรองรีวิว"><button class="seller-review-filter is-active" data-rating="0" onclick="filterPublicSellerReviews(0)">ทั้งหมด ${count}</button>${[5,4,3,2,1].map(s=>`<button class="seller-review-filter" data-rating="${s}" onclick="filterPublicSellerReviews(${s})">${s}★ ${Number(summary?.distribution?.[s]||0)}</button>`).join('')}</div>`;}
 function renderPublicSellerReviews(reviews) {
   const target =
@@ -53,7 +55,9 @@ function renderPublicSellerReviews(reviews) {
             ? `
               <div class="seller-public-reply">
                 <strong>
-                  ↪ ผู้ขาย
+                  ↪ ${publicSellerEscape(
+                    publicSellerUsername
+                  )}
                 </strong>
 
                 <p>
@@ -476,6 +480,8 @@ function renderPublicSellerProfile(data,sellerId){
   reviews=Array.isArray(data.reviews)?data.reviews:[],
   products=Array.isArray(data.activeProducts)?data.activeProducts:[];
   publicSellerReviews = reviews;
+  publicSellerUsername =
+  s.username || 'ผู้ขาย';
 
   const activeUser =
     typeof currentUser !== 'undefined'
@@ -484,7 +490,99 @@ function renderPublicSellerProfile(data,sellerId){
 
   publicSellerIsOwner =
     Number(activeUser?.id || 0) ===
-    Number(s.id || 0);const avatar=s.avatarUrl?`<img src="${publicSellerEscape(s.avatarUrl)}" alt="" class="seller-public-avatar-img">`:publicSellerEscape((s.username||'U').charAt(0).toUpperCase());c.innerHTML=`<div class="seller-public-hero" data-seller-id="${Number(sellerId)||Number(s.id)||0}"><div class="seller-public-avatar">${avatar}</div><div class="seller-public-main"><h1>${publicSellerEscape(s.username||'ผู้ขาย')}</h1><div class="seller-public-rating">${rating.reviewCount?`${publicSellerStars(rating.averageRating)} <strong>${Number(rating.averageRating).toFixed(1)}</strong> / 5 · ${Number(rating.reviewCount).toLocaleString('th-TH')} รีวิว`:'⭐ ยังไม่มีคะแนนรีวิว'}</div><div class="seller-public-meta">${s.accountVerified?'✓ ยืนยันตัวตนแล้ว':'สมาชิก GameMarket'} · สมาชิกตั้งแต่ ${s.createdAt?new Date(s.createdAt).toLocaleDateString('th-TH'):'-'}</div></div></div>`;c.innerHTML+=`<div class="grid3 seller-public-stats"><div class="card"><strong>${rating.reviewCount||0}</strong><span>รีวิว</span></div><div class="card"><strong>${Number(data.completedSales||0).toLocaleString('th-TH')}</strong><span>ขายสำเร็จ</span></div><div class="card"><strong>${products.length}</strong><span>กำลังขาย</span></div></div>`;c.innerHTML+=`<section class="card seller-public-section"><div class="seller-public-section-head"><div><h2>📝 รีวิวจากผู้ซื้อ</h2><p>ความคิดเห็นและคะแนนจากผู้ซื้อทั้งหมด</p></div></div>${renderPublicSellerReviewFilters(rating,reviews.length)}<div id="seller-public-review-list"></div></section>`;c.innerHTML+=`<section class="seller-public-section"><div class="seller-public-section-head"><div><h2>🎮 สินค้าที่กำลังขาย</h2><p>เฉพาะประกาศที่ยังพร้อมซื้อ</p></div></div><div class="seller-public-products">${products.length?products.map(p=>`<div class="card card-hover" onclick="openProductDetail(${Number(p.id)})" style="cursor:pointer"><div class="badge badge-gray">${publicSellerEscape(p.game?.name||'-')}</div><h3>${publicSellerEscape(p.title||'สินค้า')}</h3><div class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">${Number(p.price||0).toLocaleString('th-TH')} ฿</div></div>`).join(''):'<div class="card seller-public-empty">ผู้ขายยังไม่มีสินค้าที่เปิดขาย</div>'}</div></section>`;renderPublicSellerReviews(reviews);}
+    Number(s.id || 0);
+    const sellerContactButton =
+  publicSellerIsOwner
+    ? ''
+    : `
+      <div class="seller-public-actions">
+        <button
+          type="button"
+          class="btn btn-secondary seller-public-contact-btn"
+          onclick="
+            contactProductSeller(
+              ${Number(s.id || sellerId)}
+            )
+          "
+        >
+          💬 ติดต่อผู้ขาย
+        </button>
+      </div>
+    `;
+    const avatar=s.avatarUrl?`<img src="${publicSellerEscape(s.avatarUrl)}" alt="" class="seller-public-avatar-img">`:publicSellerEscape((s.username||'U').charAt(0).toUpperCase());c.innerHTML=`<div class="seller-public-hero" data-seller-id="${Number(sellerId)||Number(s.id)||0}"><div class="seller-public-avatar">${avatar}</div>
+    <div class="seller-public-main"><h1>${publicSellerEscape(s.username||'ผู้ขาย')}</h1>
+    <div class="seller-public-rating">${rating.reviewCount?`${publicSellerStars(rating.averageRating)} <strong>${Number(rating.averageRating).toFixed(1)}</strong> / 5 · ${Number(rating.reviewCount).toLocaleString('th-TH')} รีวิว`:'⭐ ยังไม่มีคะแนนรีวิว'}</div><div class="seller-public-meta">${s.accountVerified?'✓ ยืนยันตัวตนแล้ว':'สมาชิก GameMarket'} · สมาชิกตั้งแต่ ${s.createdAt?new Date(s.createdAt).toLocaleDateString('th-TH'):'-'}</div></div>${sellerContactButton}</div>`;c.innerHTML+=`<div class="grid3 seller-public-stats"><div class="card"><strong>${rating.reviewCount||0}</strong><span>รีวิว</span></div><div class="card"><strong>${Number(data.completedSales||0).toLocaleString('th-TH')}</strong><span>ขายสำเร็จ</span></div><div class="card"><strong>${products.length}</strong><span>กำลังขาย</span></div></div>`;c.innerHTML+=`<section class="card seller-public-section"><div class="seller-public-section-head"><div><h2>📝 รีวิวจากผู้ซื้อ</h2><p>ความคิดเห็นและคะแนนจากผู้ซื้อทั้งหมด</p></div></div>${renderPublicSellerReviewFilters(rating,reviews.length)}<div id="seller-public-review-list"></div></section>`;c.innerHTML+=`<section class="seller-public-section"><div class="seller-public-section-head"><div><h2>🎮 สินค้าที่กำลังขาย</h2><p>เฉพาะประกาศที่ยังพร้อมซื้อ</p></div>
+    </div><div class="seller-public-products">${products.length?products.map((p) => `
+  <div
+    class="card card-hover seller-public-product-card"
+    onclick="openProductDetail(${Number(p.id)})"
+    style="cursor:pointer"
+  >
+
+    <div class="seller-public-product-preview">
+      ${
+        p.primaryImageUrl
+          ? `
+            <img
+              src="${publicSellerEscape(
+                p.primaryImageUrl
+              )}"
+              alt="${publicSellerEscape(
+                p.title || 'สินค้า'
+              )}"
+            >
+          `
+          : `
+            <div class="seller-public-product-preview-empty">
+              🎮
+            </div>
+          `
+      }
+    </div>
+
+    <div class="seller-public-product-body">
+
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          gap:6px;
+          flex-wrap:wrap;
+        "
+      >
+        <div class="badge badge-gray">
+          ${publicSellerEscape(
+            p.game?.name || '-'
+          )}
+        </div>
+
+        ${
+          p.valorantVerification?.verified
+            ? `
+              <span class="product-verified-badge">
+                ✓ ตรวจสอบแล้ว
+              </span>
+            `
+            : ''
+        }
+      </div>
+
+      <h3>
+        ${publicSellerEscape(
+          p.title || 'สินค้า'
+        )}
+      </h3>
+
+      <div class="seller-public-product-price">
+        ${Number(
+          p.price || 0
+        ).toLocaleString('th-TH')} ฿
+      </div>
+
+    </div>
+
+  </div>
+`).join(''):'<div class="card seller-public-empty">ผู้ขายยังไม่มีสินค้าที่เปิดขาย</div>'}</div></section>`;renderPublicSellerReviews(reviews);}
 
 window.openSellerProfile =
   openSellerProfile;

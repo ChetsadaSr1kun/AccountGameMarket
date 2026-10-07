@@ -14,7 +14,19 @@ const otpCooldowns = {
 
 const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
-const adminPages = ['admin-dashboard','admin-users','admin-products','admin-games','admin-seller-verifications','admin-chat-log','admin-withdraw','admin-topup','admin-report','admin-suspended-users'];
+const adminPages = [
+  'admin-dashboard',
+  'admin-users',
+  'admin-products',
+  'admin-games',
+  'admin-seller-verifications',
+  'admin-chat-log',
+  'admin-withdraw',
+  'admin-topup',
+  'admin-report',
+  'admin-suspended-users',
+  'admin-support',
+];
 const userPages = ['home-user','listings-user','product-user','profile','user-profile','wallet','history','chat','notifications',
   'order-confirm','order-otp','order-success','withdraw-otp','order-info','order-detail','review','user-report',
   'seller-verify','add-listing','edit-listing','my-listings','seller-profile'];
@@ -60,7 +72,10 @@ function goPage(pageId) {
   renderAdminSidebars();
   if (pageId === 'seller-verify') window.loadSellerVerificationStatus?.();
   if (pageId === 'add-listing') {
-    if (!window.editingProductId) window.resetCreateProductEditorMode?.();
+    if (!window.editingProductId) {
+      window.resetCreateProductEditorMode?.();
+    }
+
     window.loadCreateProductGames?.();
   }
   if (pageId === 'my-listings') window.loadMyProducts?.();
@@ -76,14 +91,29 @@ function goPage(pageId) {
   if (pageId === 'admin-topup') window.loadAdminTopupRequests?.();
   if (pageId === 'admin-withdraw') window.loadAdminWithdrawalRequests?.();
   if (pageId === 'admin-report') window.loadAdminTransactionReports?.();
-  if (pageId === 'admin-dashboard') window.loadAdminDashboardSummary?.();
+  if (adminPages.includes(pageId)) {
+  window.loadAdminDashboardSummary?.();
+
+  if (pageId !== 'admin-support') {
+    window
+      .loadAdminSupportSidebarCount?.();
+  }
+}
   if (pageId === 'admin-games') window.adminInitGames?.();
   if (pageId === 'admin-users') window.adminLoadUsers?.();
   if (pageId === 'admin-products') window.adminLoadProducts?.();
   if (pageId === 'admin-suspended-users') window.adminLoadSuspendedUsers?.();
   if (pageId === 'notifications') window.loadNotifications?.();
   if (pageId === 'admin-chat-log') window.loadAdminChatLog?.();
-  if (pageId === 'chat') window.loadChatPage?.();
+  if (pageId === 'admin-support') {
+    window.loadAdminSupport?.();
+  }
+  if (pageId === 'chat') {
+    window.loadChatPage?.();
+    window.startUserSupportPolling?.();
+  } else {
+    window.stopUserSupportPolling?.();
+  }
   if (pageId === 'order-confirm') window.loadOrderConfirmPage?.();
   if (pageId === 'order-otp') window.showOrderOtpPage?.();
   if (pageId === 'order-success') window.loadOrderSuccessPage?.();
@@ -241,7 +271,21 @@ function updateNav() {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='home-user'?'active':''}" onclick="loginAndGo('home-user')">หน้าแรก</button>
       <button class="nav-btn ${currentPage==='listings-user'?'active':''}" onclick="loginAndGo('listings-user')">รายการสินค้า</button>
-      <button class="nav-btn ${currentPage==='chat'?'active':''}" onclick="loginAndGo('chat')">💬 แชท</button>
+      <button
+  class="nav-btn ${currentPage==='chat'?'active':''}"
+    onclick="loginAndGo('chat')"
+  >
+    💬 แชท
+
+    <span
+      id="chatNavUnread"
+      class="chat-support-unread"
+      hidden
+      style="margin-left:5px"
+    >
+      0
+    </span>
+  </button>
       <button class="nav-btn ${currentPage==='history'?'active':''}" onclick="loginAndGo('history')">ประวัติ</button>
       <button class="nav-btn ${currentPage==='wallet'?'active':''}" onclick="loginAndGo('wallet')">💰 กระเป๋าตัง</button>
     `;
@@ -256,6 +300,7 @@ function updateNav() {
       </div>
     `;
     window.refreshWalletNavBalance?.();
+    window.refreshChatNavBadge?.();
   } else {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='home'?'active':''}" onclick="goPage('home')">หน้าแรก</button>
@@ -266,6 +311,16 @@ function updateNav() {
       <button class="btn btn-primary btn-sm" onclick="goPage('register')">สมัครสมาชิก</button>
     `;
   }
+
+  if (
+    isLoggedIn &&
+    !isAdmin
+  ) {
+    window.startChatNavBadgePolling?.();
+  } else {
+    window.stopChatNavBadgePolling?.();
+  }
+
 }
 
 function getCookieValue(name) {
@@ -334,6 +389,12 @@ function applyCurrentUser(user) {
 
   updateNav();
 
+  if (isAdmin) {
+    window.startAdminSupportPolling?.();
+  } else {
+    window.stopAdminSupportPolling?.();
+  }
+
   // Restore the correct SPA page after authentication is recovered.
   const isAdminPage = adminPages.includes(currentPage);
 
@@ -349,6 +410,9 @@ function applyCurrentUser(user) {
 }
 
 function clearClientAuthState() {
+  window.stopAdminSupportPolling?.();
+  window.stopUserSupportPolling?.();
+
   currentUser = null;
   csrfToken = null;
   isLoggedIn = false;
@@ -379,6 +443,12 @@ async function refreshSession() {
 }
 
 async function restoreSession() {
+  // ถ้ายังไม่เคย login ไม่ต้องยิง /me และ /refresh
+  if (!getCookieValue('gm_csrf')) {
+    clearClientAuthState();
+    return;
+  }
+
   try {
     let session = await getCurrentSession();
 
@@ -389,6 +459,7 @@ async function restoreSession() {
 
     if (session.response.status === 401 && await refreshSession()) {
       session = await getCurrentSession();
+
       if (session.response.ok) {
         applyCurrentUser(session.data.data?.user || null);
         return;
@@ -452,24 +523,138 @@ document.addEventListener('click', function(e) { if (!e.target.closest('.dropdow
 
 // ===================== ADMIN SIDEBAR =====================
 const adminNavItems = [
-  ['admin-dashboard','📊','Dashboard'],
-  ['admin-users','👥','จัดการผู้ใช้'],
-  ['admin-games','🎮','หมวดหมู่เกม'],
-  ['admin-seller-verifications','🪪','ตรวจสอบผู้ขาย'],
-  ['admin-withdraw','💸','อนุมัติถอนเงิน'],
-  ['admin-report','🚨','รายงาน'],
+  [
+    'admin-dashboard',
+    '📊',
+    'Dashboard',
+    null,
+  ],
+  [
+    'admin-users',
+    '👥',
+    'จัดการผู้ใช้',
+    null,
+  ],
+  [
+    'admin-games',
+    '🎮',
+    'หมวดหมู่เกม',
+    null,
+  ],
+  [
+    'admin-seller-verifications',
+    '🪪',
+    'ตรวจสอบผู้ขาย',
+    'seller',
+  ],
+  [
+    'admin-withdraw',
+    '💸',
+    'อนุมัติถอนเงิน',
+    'withdrawal',
+  ],
+  [
+    'admin-report',
+    '🚨',
+    'รายงาน',
+    'report',
+  ],
+  [
+    'admin-support',
+    '💬',
+    'ข้อความผู้ใช้',
+    'support',
+  ],
 ];
+
+function updateAdminSidebarCounts(
+  actionCounts = {}
+) {
+  const counts = {
+    seller: Number(
+      actionCounts
+        .sellerVerificationPending || 0
+    ),
+
+    withdrawal: Number(
+      actionCounts
+        .withdrawalPending || 0
+    ),
+
+    report:
+      Number(
+        actionCounts
+          .transactionReportsOpen || 0
+      ) +
+      Number(
+        actionCounts
+          .reviewReportsPending || 0
+      ),
+  };
+
+  Object.entries(counts)
+    .forEach(([key, count]) => {
+      document
+        .querySelectorAll(
+          `[data-admin-nav-badge="${key}"]`
+        )
+        .forEach((badge) => {
+          badge.textContent =
+            count > 99
+              ? '99+'
+              : count.toLocaleString(
+                  'th-TH'
+                );
+
+          badge.hidden =
+            count <= 0;
+        });
+    });
+}
+
+window.updateAdminSidebarCounts =
+  updateAdminSidebarCounts;
+
 function renderAdminSidebars() {
   ['','2','3','4','5','6','7','8','9','10'].forEach(sfx => {
     const el = document.getElementById('adminSidebar'+sfx);
     if (!el) return;
     el.innerHTML = `
       <div style="padding:16px 20px;font-size:12px;color:var(--dim);font-weight:600;letter-spacing:.5px">ADMIN PANEL</div>
-      ${adminNavItems.map(([id,icon,label]) => `
-        <div class="admin-nav-item ${currentPage===id?'active':''}" onclick="goAdmin('${id}')">${icon} ${label}</div>
-      `).join('')}
-      <div class="divider" style="margin:16px 0"></div>
-      <div class="admin-nav-item" onclick="logout()">🚪 ออกจากระบบ</div>
+      ${adminNavItems.map(
+        ([id, icon, label, badgeKey]) => `
+          <div
+            class="admin-nav-item ${
+              currentPage === id
+                ? 'active'
+                : ''
+            }"
+            onclick="goAdmin('${id}')"
+          >
+            <span>
+              ${icon}
+            </span>
+
+            <span>
+              ${label}
+            </span>
+
+            ${
+              badgeKey
+                ? `
+                  <span
+                    class="admin-nav-count"
+                    data-admin-nav-badge="${badgeKey}"
+                    hidden
+                  >
+                    0
+                  </span>
+                `
+                : ''
+            }
+          </div>
+        `
+      ).join('')}
     `;
   });
 }
@@ -642,6 +827,52 @@ function setProductImage(mainImageId, thumbEl, imageSrc) {
 // Legacy mock editing removed. Real editing uses create-product-functions.js and my-products-functions.js.
 function openEditListing(productId){return window.openMyProductEditor?.(Number(productId));}
 function saveEditedListing(){return window.createProductFromForm?.();}
+
+function togglePasswordVisibility(
+  inputId,
+  buttonId
+) {
+  const input =
+    document.getElementById(inputId);
+
+  const button =
+    document.getElementById(buttonId);
+
+  if (!input || !button) {
+    return;
+  }
+
+  const isHidden =
+    input.type === 'password';
+
+  input.type =
+    isHidden
+      ? 'text'
+      : 'password';
+
+  button.textContent =
+    isHidden
+      ? '🙈'
+      : '👁️';
+
+  const label =
+    isHidden
+      ? 'ซ่อนรหัสผ่าน'
+      : 'แสดงรหัสผ่าน';
+
+  button.setAttribute(
+    'aria-label',
+    label
+  );
+
+  button.setAttribute(
+    'title',
+    label
+  );
+
+  input.focus();
+}
+
 async function login() {
 
     const username = document
@@ -1423,8 +1654,31 @@ function publicListingCard(product) {
   const image = product.primaryImageUrl
     ? `<img src="${publicListingEscape(product.primaryImageUrl)}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px"/>`
     : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">🎮</div>`;
+  const verificationBadge =
+    product.valorantVerification?.verified
+      ? `
+        <span class="product-verified-badge">
+          ✓ ตรวจสอบแล้ว
+        </span>
+      `
+      : '';
   return `<div class="card card-hover" onclick="openProductDetail(${Number(product.id)})" style="cursor:pointer">
-    ${image}<span class="badge badge-gray" style="margin-bottom:8px">${publicListingEscape(product.game?.name || '-')}</span>
+    ${image}
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          gap:6px;
+          flex-wrap:wrap;
+          margin-bottom:8px;
+        "
+      >
+        <span class="badge badge-gray">
+          ${publicListingEscape(product.game?.name || '-')}
+        </span>
+
+        ${verificationBadge}
+      </div>
     <div style="font-weight:600;font-size:14px;margin-bottom:4px">${publicListingEscape(product.title)}</div>
     <div style="color:var(--muted);font-size:12px;margin-bottom:10px">ผู้ขาย: ${publicListingEscape(product.seller?.username || '-')}</div>
     <div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">${Number(product.price || 0).toLocaleString('th-TH')} ฿</span><span style="font-size:12px;color:var(--muted)">ดูรายละเอียด →</span></div>

@@ -1,11 +1,11 @@
 const express = require('express');
 const path = require('path');
 const helmet = require('helmet');
-const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const config = require('./config/env');
 const authRoutes = require('./routes/auth.routes');
 const chatRoutes = require('./routes/chat.routes');
+const supportChatRoutes = require('./routes/support-chat.routes');
 const adminDashboardRoutes = require('./routes/admin-dashboard.routes');
 const adminModerationRoutes = require('./routes/admin-moderation.routes');
 const adminUserRoutes = require('./routes/admin-user.routes');
@@ -30,7 +30,6 @@ const { notFound, errorHandler } = require('./middleware/error-handler.middlewar
 
 const app = express();
 const projectRoot = path.resolve(__dirname, '../..');
-const allowedOrigins = config.frontendOrigin.split(',').map((origin) => origin.trim());
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
@@ -40,15 +39,7 @@ app.use(helmet({
   // after moving those handlers into assets/js/script.js in the frontend module.
   contentSecurityPolicy: false,
 }));
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Origin is not allowed by CORS.'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'Idempotency-Key'],
-}));
+
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 app.use('/api', globalLimit);
@@ -59,6 +50,10 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/chat', chatRoutes);
+app.use(
+  '/api/v1/support-chat',
+  supportChatRoutes
+);
 app.use('/api/v1/admin/dashboard', adminDashboardRoutes);
 app.use('/api/v1/admin/moderation', adminModerationRoutes);
 app.use('/api/v1/admin/users', adminUserRoutes);

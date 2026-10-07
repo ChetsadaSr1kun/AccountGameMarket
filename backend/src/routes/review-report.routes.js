@@ -25,6 +25,13 @@ router.get(
   controller.listAdminReports
 );
 
+router.get(
+  '/:reportId/chat',
+  authenticate,
+  authorize('ADMIN'),
+  controller.getReportChat
+);
+
 router.patch(
   '/:reportId',
   authenticate,

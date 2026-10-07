@@ -1,27 +1,40 @@
 let adminTransactionReports=[];
 let adminReportFilterState={query:'',status:'ALL',reason:'ALL',range:'LATEST'};
 function adminReportEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function adminReportAvatar(
+  avatarUrl,
+  username
+) {
+  const safeAvatarPattern =
+    /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
+
+  if (
+    typeof avatarUrl === 'string' &&
+    safeAvatarPattern.test(avatarUrl)
+  ) {
+    return `
+      <img
+        src="${adminReportEscape(avatarUrl)}"
+        alt="${adminReportEscape(
+          username || 'User'
+        )}"
+      >
+    `;
+  }
+
+  return '👤';
+}
 function adminReportReason(r){return ({SCAM:'หลอกลวง / พยายามโกง',ITEM_NOT_AS_DESCRIBED:'สินค้าไม่ตรงตามรายละเอียด',NO_DELIVERY:'ไม่ได้รับสินค้า / ไม่ส่งข้อมูล',HARASSMENT:'คำหยาบ / การคุกคาม',CHAT_ABUSE:'พฤติกรรมไม่เหมาะสมในการพูดคุย',OTHER:'อื่น ๆ'})[r]||r;}
 function adminReportStatus(status) {
   return ({
     PENDING: [
-      'รอตรวจสอบ',
-      'danger',
-    ],
-
-    REVIEWED: [
-      'กำลังตรวจสอบ',
+      'รอการตรวจสอบ',
       'warn',
     ],
 
     RESOLVED: [
       'ดำเนินการแล้ว',
       'success',
-    ],
-
-    DISMISSED: [
-      'ไม่พบปัญหา',
-      'info',
     ],
   })[status] || [status, 'info'];
 }
@@ -31,19 +44,9 @@ function updateAdminReportSummary(reports) {
       report.status === 'PENDING'
   ).length;
 
-  const reviewed = reports.filter(
-    (report) =>
-      report.status === 'REVIEWED'
-  ).length;
-
   const resolved = reports.filter(
     (report) =>
       report.status === 'RESOLVED'
-  ).length;
-
-  const dismissed = reports.filter(
-    (report) =>
-      report.status === 'DISMISSED'
   ).length;
 
   const set = (id, value) => {
@@ -51,7 +54,8 @@ function updateAdminReportSummary(reports) {
       document.getElementById(id);
 
     if (element) {
-      element.textContent = String(value);
+      element.textContent =
+        String(value);
     }
   };
 
@@ -61,18 +65,8 @@ function updateAdminReportSummary(reports) {
   );
 
   set(
-    'adminReportStatReviewed',
-    reviewed
-  );
-
-  set(
     'adminReportStatResolved',
     resolved
-  );
-
-  set(
-    'adminReportStatDismissed',
-    dismissed
   );
 
   const meta =
@@ -127,7 +121,11 @@ function renderFilteredAdminTransactionReports() {
 
       return `
         <article
-          class="report-entry admin-report-row"
+          class="
+            report-entry
+            admin-report-row
+            status-${statusTone}
+          "
           onclick="
             window.openAdminTransactionReportDetail(
               ${Number(report.id)}
@@ -147,7 +145,10 @@ function renderFilteredAdminTransactionReports() {
           <div class="admin-report-row-users">
             <div>
               <span class="admin-report-user-icon">
-                👤
+                ${adminReportAvatar(
+                  report.reporterAvatarUrl,
+                  report.reporterUsername
+                )}
               </span>
 
               <div>
@@ -170,7 +171,10 @@ function renderFilteredAdminTransactionReports() {
 
             <div>
               <span class="admin-report-user-icon muted">
-                👤
+                ${adminReportAvatar(
+                  report.reportedAvatarUrl,
+                  report.reportedUsername
+                )}
               </span>
 
               <div>
@@ -244,11 +248,7 @@ function renderFilteredAdminTransactionReports() {
 async function loadAdminTransactionReports(){const box=document.getElementById('adminTransactionReportList');if(!box)return;box.innerHTML='<div class="report-empty">กำลังโหลดรายงานการทำรายการ...</div>';try{const r=await fetch('/api/v1/transaction-reports/admin',{credentials:'include'});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'โหลดรายงานไม่สำเร็จ');renderAdminTransactionReports(b.data?.reports||b.reports||[]);}catch(e){console.error('loadAdminTransactionReports failed:',e);box.innerHTML=`<div class="notice danger">${adminReportEscape(e.message||'โหลดรายงานไม่สำเร็จ')}</div>`;}}
 function applyAdminReportFilter(){adminReportFilterState={query:document.getElementById('adminReportSearch')?.value.trim()||'',status:document.getElementById('adminReportStatusFilter')?.value||'ALL',reason:document.getElementById('adminReportReasonFilter')?.value||'ALL',range:document.getElementById('adminReportRangeFilter')?.value||'LATEST'};renderFilteredAdminTransactionReports();}
 function resetAdminReportFilters(){['adminReportSearch','adminReportStatusFilter','adminReportReasonFilter','adminReportRangeFilter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==='adminReportStatusFilter'||id==='adminReportReasonFilter'?'ALL':id==='adminReportRangeFilter'?'LATEST':'';});applyAdminReportFilter();}
-async function adminReviewTransactionReport(reportId,status){const labels={REVIEWED:'รับเคส',DISMISSED:'ไม่พบปัญหา',RESOLVED:'ดำเนินการแล้ว'};if(!confirm(`ยืนยันการดำเนินการ: ${labels[status]||status}`))return;const token=typeof csrfToken!=='undefined'?(csrfToken||getCookieValue('gm_csrf')):getCookieValue('gm_csrf');if(!token){alert('ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้า');return;}try{const r=await fetch(`/api/v1/transaction-reports/${Number(reportId)}`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify({status})});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'บันทึกการดำเนินการไม่สำเร็จ');await loadAdminTransactionReports();if(typeof showToast==='function')showToast('อัปเดตรายงานแล้ว','success');}catch(e){alert(e.message||'บันทึกการดำเนินการไม่สำเร็จ');}}
 async function loadAdminDashboardSummary() {
-  const root = document.getElementById('adminDashboardUserCount');
-
-  if (!root) return;
 
   const set = (id, value) => {
     const element = document.getElementById(id);
@@ -274,6 +274,9 @@ async function loadAdminDashboardSummary() {
     const summary = body.data?.summary || {};
     const totals = summary.totals || {};
     const actions = summary.actionCounts || {};
+    window.updateAdminSidebarCounts?.(
+      actions
+    );
 
     set(
       'adminDashboardUserCount',
@@ -492,7 +495,17 @@ async function loadAdminDashboardSummary() {
     ].forEach((id) => set(id, '—'));
   }
 }
-window.loadAdminTransactionReports=loadAdminTransactionReports;window.adminReviewTransactionReport=adminReviewTransactionReport;window.applyAdminReportFilter=applyAdminReportFilter;window.resetAdminReportFilters=resetAdminReportFilters;window.loadAdminDashboardSummary=loadAdminDashboardSummary;
+window.loadAdminTransactionReports =
+  loadAdminTransactionReports;
+
+window.applyAdminReportFilter =
+  applyAdminReportFilter;
+
+window.resetAdminReportFilters =
+  resetAdminReportFilters;
+
+window.loadAdminDashboardSummary =
+  loadAdminDashboardSummary;
 
 function adminSetReportView(view) {
   const currentView =

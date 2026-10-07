@@ -1,7 +1,51 @@
 const { pool } = require('../config/database');
 function mapOrder(row) {
   if (!row) return null;
-  return { id:Number(row.id), productId:Number(row.product_id), buyerId:Number(row.buyer_id), sellerId:Number(row.seller_id), amount:Number(row.amount), status:row.status, createdAt:row.created_at, updatedAt:row.updated_at, completedAt:row.completed_at };
+
+  return {
+    id:
+      Number(row.id),
+
+    productId:
+      Number(row.product_id),
+
+    buyerId:
+      Number(row.buyer_id),
+
+    sellerId:
+      Number(row.seller_id),
+
+    amount:
+      Number(row.amount),
+
+    vatRatePercent:
+      Number(
+        row.vat_rate_percent || 0
+      ),
+
+    vatAmount:
+      Number(
+        row.vat_amount || 0
+      ),
+
+    sellerNetAmount:
+      Number(
+        row.seller_net_amount ??
+        row.amount
+      ),
+
+    status:
+      row.status,
+
+    createdAt:
+      row.created_at,
+
+    updatedAt:
+      row.updated_at,
+
+    completedAt:
+      row.completed_at,
+  };
 }
 async function findProductForPurchase(
   productId,
@@ -32,7 +76,47 @@ async function findProductForPurchase(
   return rows[0] || null;
 }
 async function findPendingByBuyerAndProduct(buyerId,productId,executor=pool){const [rows]=await executor.execute("SELECT * FROM orders WHERE buyer_id=? AND product_id=? AND status='PENDING' LIMIT 1",[buyerId,productId]);return mapOrder(rows[0]);}
-async function create(data,executor=pool){const [result]=await executor.execute("INSERT INTO orders (product_id,buyer_id,seller_id,amount,status) VALUES (?,?,?,?, 'PENDING')",[data.productId,data.buyerId,data.sellerId,data.amount]);return result.insertId;}
+async function create(
+  data,
+  executor = pool
+) {
+  const [result] =
+    await executor.execute(
+      `
+      INSERT INTO orders (
+        product_id,
+        buyer_id,
+        seller_id,
+        amount,
+        vat_rate_percent,
+        vat_amount,
+        seller_net_amount,
+        status
+      )
+      VALUES (
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        'PENDING'
+      )
+      `,
+      [
+        data.productId,
+        data.buyerId,
+        data.sellerId,
+        data.amount,
+        data.vatRatePercent,
+        data.vatAmount,
+        data.sellerNetAmount,
+      ]
+    );
+
+  return result.insertId;
+}
 async function findByIdForPayment(orderId,buyerId,executor=pool){const [rows]=await executor.execute('SELECT o.*,p.status AS product_status FROM orders o INNER JOIN products p ON p.id=o.product_id WHERE o.id=? AND o.buyer_id=? LIMIT 1 FOR UPDATE',[orderId,buyerId]);return rows[0]||null;}
 async function markCompletedAndProductSold(orderId,productId,executor=pool){await executor.execute("UPDATE orders SET status='COMPLETED',completed_at=NOW(3) WHERE id=? AND status='PENDING'",[orderId]);await executor.execute("UPDATE products SET status='SOLD' WHERE id=? AND status='ACTIVE'",[productId]);}
 async function listByUser(
@@ -136,5 +220,68 @@ async function listByUser(
       ),
   }));
 }
-async function findByIdForUser(orderId,userId,executor=pool){const [rows]=await executor.execute("SELECT o.*,p.title,p.status product_status,g.name game_name FROM orders o INNER JOIN products p ON p.id=o.product_id INNER JOIN games g ON g.id=p.game_id WHERE o.id=? AND (o.buyer_id=? OR o.seller_id=?) LIMIT 1",[orderId,userId,userId]);const order=mapOrder(rows[0]);if(order&&rows[0])order.product={title:rows[0].title,status:rows[0].product_status,gameName:rows[0].game_name};return order;}
+async function findByIdForUser(
+  orderId,
+  userId,
+  executor = pool
+) {
+  const [rows] = await executor.execute(
+    `
+    SELECT
+      o.*,
+      p.title,
+      p.status AS product_status,
+      g.name AS game_name,
+      su.username AS seller_username,
+      (
+        SELECT pi.image_url
+        FROM product_images pi
+        WHERE pi.product_id = p.id
+        ORDER BY
+          pi.is_primary DESC,
+          pi.sort_order ASC,
+          pi.id ASC
+        LIMIT 1
+      ) AS primary_image_url
+
+    FROM orders o
+
+    INNER JOIN products p
+      ON p.id = o.product_id
+
+    INNER JOIN games g
+      ON g.id = p.game_id
+
+    INNER JOIN users su
+      ON su.id = o.seller_id
+
+    WHERE
+      o.id = ?
+      AND (
+        o.buyer_id = ?
+        OR o.seller_id = ?
+      )
+
+    LIMIT 1
+    `,
+    [orderId, userId, userId]
+  );
+
+  const order = mapOrder(rows[0]);
+
+  if (order && rows[0]) {
+    order.product = {
+      title: rows[0].title,
+      status: rows[0].product_status,
+      gameName: rows[0].game_name,
+      primaryImageUrl:
+        rows[0].primary_image_url || null,
+    };
+
+    order.sellerUsername =
+      rows[0].seller_username;
+  }
+
+  return order;
+}
 module.exports={findProductForPurchase,findPendingByBuyerAndProduct,create,findByIdForPayment,markCompletedAndProductSold,listByUser,findByIdForUser};

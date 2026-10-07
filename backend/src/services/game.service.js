@@ -1,7 +1,8 @@
 "use strict";
 
 const gameRepository = require("../repositories/game.repository");
-const gameImageService = require("./game-image.service");
+const gameImageService =
+  require("./game-image.service");
 const AppError = require("../utils/app-error");
 
 async function listGames() {
@@ -107,10 +108,11 @@ async function updateAdminGameImage(
   }
 }
 
-async function deactivateAdminGame(id) {
-  const game=await gameRepository.findAdminById(Number(id));
-  if(!game) throw new AppError('Game not found.',404,'GAME_NOT_FOUND');
-  return gameRepository.updateAdmin(Number(id),{status:'INACTIVE'});
-}
-
-module.exports = { listGames, getGame, listAdminGames, createAdminGame, updateAdminGame, updateAdminGameImage, deactivateAdminGame };
+module.exports = {
+  listGames,
+  getGame,
+  listAdminGames,
+  createAdminGame,
+  updateAdminGame,
+  updateAdminGameImage
+};

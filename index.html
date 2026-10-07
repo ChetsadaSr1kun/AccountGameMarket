@@ -189,12 +189,35 @@
     autocomplete="username">
 </div>
 <div class="inp-group">
-<label class="inp-label">รหัสผ่าน</label>
-<input
-    id="loginPassword"
-    class="inp"
-    placeholder="••••••••"
-    type="password">
+  <label class="inp-label">รหัสผ่าน</label>
+
+  <div class="password-input-wrap">
+
+    <input
+      id="loginPassword"
+      class="inp password-input"
+      placeholder="••••••••"
+      type="password"
+      autocomplete="current-password"
+    >
+
+    <button
+      id="loginPasswordToggle"
+      class="password-toggle-btn"
+      type="button"
+      onclick="
+        togglePasswordVisibility(
+          'loginPassword',
+          'loginPasswordToggle'
+        )
+      "
+      aria-label="แสดงรหัสผ่าน"
+      title="แสดงรหัสผ่าน"
+    >
+      👁️
+    </button>
+
+  </div>
 </div>
 <div class="flex-between" style="margin-bottom:22px">
 <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer">
@@ -1010,6 +1033,13 @@
             ช่องทางรับเงิน: <strong id="withdrawSummaryMethod">-</strong>
           </div>
 
+          <div
+            id="withdrawSummaryBankRow"
+            style="font-size:13px;margin-bottom:8px;display:none"
+          >
+            ธนาคาร: <strong id="withdrawSummaryBank">-</strong>
+          </div>
+
           <div style="font-size:13px">
             บัญชีรับเงิน: <strong id="withdrawSummaryAccount">-</strong>
           </div>
@@ -1127,12 +1157,50 @@
 <div class="card" style="padding:30px">
 <div id="create-product-feedback" class="notice" style="display:none;margin-bottom:16px"></div>
 <div class="grid2" style="gap:14px;margin-bottom:4px">
-<div class="inp-group"><label class="inp-label">เกม</label><select class="inp" id="create-product-game"><option value="">กำลังโหลดเกม...</option></select></div>
+<div class="inp-group">
+  <label class="inp-label">เกม</label>
+  <select
+    class="inp"
+    id="create-product-game"
+  >
+    <option value="">กำลังโหลดเกม...</option>
+  </select>
+</div>
 <div class="inp-group"><label class="inp-label">ชื่อประกาศ</label><input class="inp" id="create-product-title" placeholder="เช่น บัญชี Valorant Immortal สกินครบ"/></div>
 <div class="inp-group" style="grid-column:1/-1"><label class="inp-label">รายละเอียดเพิ่มเติม</label><textarea class="inp" id="create-product-description" placeholder="อธิบายรายละเอียดสินค้า สกินพิเศษ สิ่งที่มีในบัญชี ฯลฯ" rows="4" style="resize:none"></textarea></div>
-<div class="inp-group"><label class="inp-label">ราคา (บาท)</label><input class="inp" id="create-product-price" placeholder="กรอกราคา" type="number" min="0" step="0.01"/></div>
+<div class="inp-group">
+  <label class="inp-label">
+    ราคา (pts)
+  </label>
+
+  <input
+    class="inp"
+    id="create-product-price"
+    placeholder="กรอกราคา"
+    type="number"
+    min="0"
+    step="0.01"
+    oninput="window.updateCreateProductVatPreview?.()"
+  />
+
+  <div
+    id="create-product-vat-preview"
+    style="
+      margin-top:10px;
+      padding:10px 12px;
+      border:1px solid rgba(59,130,246,0.25);
+      border-radius:10px;
+      background:var(--accentDim);
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.7
+    "
+  >
+    กรอกราคาสินค้าเพื่อดูยอดที่คุณจะได้รับ
+  </div>
 </div>
 </div>
+
 <div class="inp-group">
 <label class="inp-label">ข้อมูลบัญชีสำหรับส่งให้ผู้ซื้อ (จะแสดงหลังการขาย)</label>
 <div class="card" style="padding:16px">
@@ -1144,6 +1212,115 @@
 </div>
 </div>
 </div>
+
+<div
+  id="create-product-valorant-verification"
+  class="create-product-valorant-verification"
+  hidden
+>
+  <div class="create-product-valorant-verification-head">
+
+    <div>
+      <div class="create-product-valorant-verification-title">
+        ✓ ตรวจสอบบัญชี Valorant
+      </div>
+
+      <div class="create-product-valorant-verification-subtitle">
+        ไม่บังคับ — ตรวจสอบว่าบัญชี Riot ID นี้มีอยู่จริง
+      </div>
+    </div>
+
+    <span class="badge badge-gray">
+      Optional
+    </span>
+
+  </div>
+
+  <div class="grid2 create-product-valorant-fields">
+
+    <div class="inp-group">
+      <label class="inp-label">
+        Riot ID
+      </label>
+
+      <input
+        id="create-product-riot-game-name"
+        class="inp"
+        type="text"
+        maxlength="100"
+        placeholder="เช่น Peter"
+        autocomplete="off"
+        oninput="
+          window.pendingValorantVerification = null;
+
+          const feedback =
+            document.getElementById(
+              'create-product-valorant-verification-feedback'
+            );
+
+          feedback.textContent = '';
+
+          feedback.classList.remove(
+            'is-success',
+            'is-error'
+          );
+
+          window.updateValorantVerifyButtonState?.();
+        "
+      />
+    </div>
+
+    <div class="inp-group">
+      <label class="inp-label">
+        Tag
+      </label>
+
+      <input
+        id="create-product-riot-tag-line"
+        class="inp"
+        type="text"
+        maxlength="20"
+        placeholder="เช่น TH1"
+        autocomplete="off"
+        oninput="
+          window.pendingValorantVerification = null;
+
+          const feedback =
+            document.getElementById(
+              'create-product-valorant-verification-feedback'
+            );
+
+          feedback.textContent = '';
+
+          feedback.classList.remove(
+            'is-success',
+            'is-error'
+          );
+
+          window.updateValorantVerifyButtonState?.();
+        "
+      />
+    </div>
+
+  </div>
+
+  <button
+    id="create-product-valorant-verify-button"
+    type="button"
+    class="btn btn-secondary btn-md"
+    onclick="verifyCreateProductValorantAccount()"
+    disabled
+  >
+    🔍 ตรวจสอบบัญชี Valorant
+  </button>
+
+  <div
+    id="create-product-valorant-verification-feedback"
+    class="create-product-valorant-verification-feedback"
+  ></div>
+
+</div>
+
 <div class="inp-group">
 <label class="inp-label">รูปภาพสินค้า <span id="product-image-count" style="float:right;color:var(--muted);font-weight:400">0/10 รูป</span></label>
 <input id="product-image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onchange="handleProductImageSelection(this.files)">
@@ -1153,7 +1330,7 @@
 <div id="product-image-feedback" style="margin-top:8px;font-size:12px;min-height:16px"></div>
 </div>
 <div class="flex gap-12">
-<button class="btn btn-primary btn-lg" id="create-product-save-button" onclick="createProductFromForm('DRAFT')">💾 บันทึกร่าง</button>
+<button class="btn btn-primary btn-lg" id="create-product-save-button" onclick="createProductFromForm('DRAFT')">💾 บันทึก</button>
 <button class="btn btn-secondary btn-md" onclick="cancelCreateProductEditor()">ยกเลิก</button>
 </div>
 </div>
@@ -1382,7 +1559,7 @@
             <div class="admin-dashboard-action-icon action-red">📄</div>
 
             <div>
-              <strong>รายงานธุรกรรม</strong>
+              <strong>รายงานผู้ใช้</strong>
 
               <div
                 id="adminDashboardTransactionReportPending"
@@ -1599,7 +1776,7 @@
               >
                 0
               </div>
-
+              
               <div class="admin-users-stat-title">
                 แบนถาวร
               </div>
@@ -1620,7 +1797,7 @@
           id="adminUsersWorkspace"
           class="admin-users-workspace"
         >
-
+        
         <section class="admin-users-panel admin-users-list-panel">
 
           <!-- Tabs -->
@@ -1934,12 +2111,6 @@
   </div>
 
 </div>
-<div class="page" id="pg-admin-products">
-<div class="admin-layout"><div class="admin-sidebar" id="adminSidebar10"></div><div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">📦 จัดการสินค้า</div><div class="sec-sub">ตรวจสอบและจัดการรายการสินค้าจากผู้ขาย</div></div><button class="btn btn-secondary btn-sm" onclick="adminLoadProducts()">↻ รีเฟรช</button></div>
-<div class="grid4" style="margin-bottom:20px"><div class="card stat-card"><div>📦</div><div id="adminProductTotal" class="stat-val">0</div><div class="stat-label">สินค้าทั้งหมด</div></div><div class="card stat-card"><div>🟢</div><div id="adminProductActive" class="stat-val">0</div><div class="stat-label">กำลังขาย</div></div><div class="card stat-card"><div>⏸</div><div id="adminProductPaused" class="stat-val">0</div><div class="stat-label">ซ่อน</div></div><div class="card stat-card"><div>✅</div><div id="adminProductSold" class="stat-val">0</div><div class="stat-label">ขายแล้ว</div></div></div>
-<div class="card" style="padding:18px"><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminProductSearch" oninput="adminFilterProducts()" placeholder="ค้นหาชื่อสินค้า / ผู้ขาย"></div><div class="report-field"><select id="adminProductGame" onchange="adminFilterProducts()"><option value="ALL">ทุกเกม</option></select></div><div class="report-field"><select id="adminProductStatus" onchange="adminFilterProducts()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">กำลังขาย</option><option value="PAUSED">ซ่อน</option><option value="SOLD">ขายแล้ว</option><option value="DRAFT">ฉบับร่าง</option><option value="CANCELLED">ยกเลิก</option></select></div></div><div id="adminProductList" class="report-list"></div></div>
-</div></div></div>
 <div
   class="modal-backdrop"
   id="adminProductModal"
@@ -2120,6 +2291,7 @@
 </div>
 <div class="modal-backdrop" id="adminSellerVerificationModal" hidden onclick="if(event.target===this)closeAdminSellerVerificationModal()"><div class="modal-dialog admin-seller-verification-modal" role="dialog" aria-modal="true"><div class="sec-header"><div><div class="sec-title">🪪 รายละเอียดการตรวจสอบ</div><div class="sec-sub">ตรวจสอบข้อมูลและเอกสารของผู้สมัคร</div></div><button class="btn btn-ghost btn-sm" onclick="closeAdminSellerVerificationModal()">✕</button></div><div id="adminSellerVerificationModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminSellerVerificationModal()">ปิด</button></div></div></div>
 <!-- Admin Report -->
+<!-- Admin Report -->
 <div class="page" id="pg-admin-report">
   <div class="admin-layout">
 
@@ -2177,9 +2349,9 @@
           <!-- Summary -->
           <div class="report-summary-grid">
 
-            <div class="report-stat danger">
+            <div class="report-stat warn">
               <div class="label">
-                ⏳ รอตรวจสอบ
+                ⏳ รอการตรวจสอบ
               </div>
 
               <div
@@ -2190,24 +2362,7 @@
               </div>
 
               <div class="sub">
-                รายงานที่ยังไม่ได้รับเคส
-              </div>
-            </div>
-
-            <div class="report-stat warn">
-              <div class="label">
-                🔎 กำลังตรวจสอบ
-              </div>
-
-              <div
-                id="adminReportStatReviewed"
-                class="value"
-              >
-                0
-              </div>
-
-              <div class="sub">
-                รายงานที่ Admin รับเคสแล้ว
+                รายงานที่ยังรอ Admin ตรวจสอบ
               </div>
             </div>
 
@@ -2224,24 +2379,7 @@
               </div>
 
               <div class="sub">
-                เคสที่ตรวจสอบและดำเนินการแล้ว
-              </div>
-            </div>
-
-            <div class="report-stat info">
-              <div class="label">
-                ✓ ไม่พบปัญหา
-              </div>
-
-              <div
-                id="adminReportStatDismissed"
-                class="value"
-              >
-                0
-              </div>
-
-              <div class="sub">
-                ตรวจสอบแล้วไม่พบความผิดปกติ
+                รายงานที่ตรวจสอบเสร็จเรียบร้อยแล้ว
               </div>
             </div>
 
@@ -2272,19 +2410,11 @@
                 </option>
 
                 <option value="PENDING">
-                  รอตรวจสอบ
-                </option>
-
-                <option value="REVIEWED">
-                  กำลังตรวจสอบ
+                  รอการตรวจสอบ
                 </option>
 
                 <option value="RESOLVED">
                   ดำเนินการแล้ว
-                </option>
-
-                <option value="DISMISSED">
-                  ไม่พบปัญหา
                 </option>
               </select>
             </div>
@@ -2397,8 +2527,8 @@
             </div>
           </div>
 
-        </div>
-      </div>
+                </div>
+              </div>
 
               <!-- User Reports View -->
               </div>
@@ -2417,10 +2547,78 @@
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar6"></div>
 <div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">🚫 รายชื่อผู้ใช้ที่ถูกระงับ</div><div class="sec-sub">จัดการสถานะบัญชีจาก Database จริง</div></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">↻ รีเฟรช</button></div>
-<div class="card" style="padding:18px"><div class="report-summary-box"><div class="report-summary-item"><div class="label">รอโหลด</div><strong id="adminSuspendedCount">—</strong><div class="sub">บัญชี SUSPENDED / BANNED</div></div><div class="report-summary-item"><div class="label">ความปลอดภัย</div><strong>Session ถูกยกเลิก</strong><div class="sub">ทุกการเปลี่ยนสถานะจะเพิ่ม token version</div></div></div><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminSuspendedSearch" oninput="adminFilterSuspendedUsers()" placeholder="ค้นหา username หรือ email"></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">โหลดข้อมูล</button></div><div id="adminSuspendedList" class="report-list"></div></div>
+<div class="sec-header">
+  <div>
+    <div class="sec-title">
+      🚫 รายชื่อผู้ใช้ที่ถูกแบน
+    </div>
+
+    <div class="sec-sub">
+      บัญชีที่ถูกแบนถาวรจากระบบ
+    </div>
+  </div>
+
+  <button
+    class="btn btn-secondary btn-sm"
+    onclick="adminLoadSuspendedUsers()"
+  >
+    ↻ รีเฟรช
+  </button>
+</div>
+<div class="card" style="padding:18px"><div class="report-summary-box"><div class="report-summary-item"><div class="label">บัญชีที่ถูกแบน</div>
+<strong id="adminSuspendedCount">—</strong>
+<div class="sub">บัญชี BANNED ทั้งหมด</div></div><div class="report-summary-item"><div class="label">ความปลอดภัย</div><strong>Session ถูกยกเลิก</strong><div class="sub">ทุกการเปลี่ยนสถานะจะเพิ่ม token version</div></div></div><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminSuspendedSearch" oninput="adminFilterSuspendedUsers()" placeholder="ค้นหา username หรือ email"></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">โหลดข้อมูล</button></div><div id="adminSuspendedList" class="report-list"></div></div>
 </div>
 </div>
+</div>
+<!-- Admin Support Inbox -->
+<div
+  class="page"
+  id="pg-admin-support"
+>
+  <div class="admin-layout">
+
+    <div
+      class="admin-sidebar"
+      id="adminSidebar10"
+    ></div>
+
+    <div class="admin-content">
+
+      <div class="sec-header">
+        <div>
+          <div class="sec-title">
+            💬 ข้อความจากผู้ใช้
+          </div>
+
+          <div class="sec-sub">
+            ตอบคำถามและช่วยเหลือสมาชิก GameMarket
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="adminSupportApp"
+        class="card"
+        style="
+          padding:0;
+          width:100%;
+          max-width:1350px;
+          margin:0 auto;
+          min-height:620px;
+          overflow:hidden;
+        "
+      >
+        <div
+          class="report-empty"
+          style="margin:24px"
+        >
+          เลือกข้อความจากผู้ใช้เพื่อเริ่มการสนทนา
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 <div class="page" id="pg-notifications">
 <div class="page-wrap" style="max-width:920px;margin:0 auto;padding:32px 20px">
@@ -2466,7 +2664,6 @@
     <div id="seller-profile-content"></div>
   </div>
 </div>
-
 <script src="assets/js/product-detail-functions.js"></script>
 <script src="assets/js/order-flow-ui.js"></script>
 <script src="assets/js/product-review-ui.js"></script>
@@ -2489,6 +2686,7 @@
 <script src="assets/js/admin-moderation-ui.js"></script>
 <script src="assets/js/chat-ui.js"></script>
 <script src="assets/js/admin-chat-log-ui.js"></script>
+<script src="assets/js/admin-support-ui.js"></script>
 <script src='assets/js/admin-transaction-report-detail-ui.js'></script>
 <script src="assets/js/transaction-report-ui.js"></script>
 <script src="assets/js/notification-ui.js"></script>

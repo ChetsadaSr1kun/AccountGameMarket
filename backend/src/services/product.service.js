@@ -1,5 +1,10 @@
 ﻿const productRepository = require('../repositories/product.repository');
 const productCredentialRepository = require('../repositories/product-credential.repository');
+const valorantVerificationRepository =
+  require('../repositories/valorant-verification.repository');
+
+const valorantVerificationService =
+  require('./valorant-verification.service');
 const { encrypt, decrypt } = require('../utils/credential-crypto');
 const AppError = require('../utils/app-error');
 const { withTransaction } = require('../utils/transaction');
@@ -41,52 +46,352 @@ async function assertGame(gameId, executor) {
   return game;
 }
 
+async function prepareValorantVerification(
+  game,
+  verification,
+  productId = null
+) {
+  if (!verification) {
+    return null;
+  }
+
+  if (game?.slug !== 'valorant') {
+    throw new AppError(
+      'Valorant verification is only available for Valorant products.',
+      422,
+      'VALORANT_VERIFICATION_GAME_REQUIRED'
+    );
+  }
+
+  const result =
+    await valorantVerificationService
+      .lookupValorantAccount(
+        verification.gameName,
+        verification.tagLine
+      );
+
+  if (!result.exists) {
+    throw new AppError(
+      'Valorant account was not found.',
+      422,
+      'VALORANT_ACCOUNT_NOT_FOUND'
+    );
+  }
+
+  const existingVerification =
+    await valorantVerificationRepository
+      .findByPuuid(
+        result.puuid
+      );
+
+  if (
+    existingVerification &&
+    existingVerification.productId !==
+      Number(productId || 0)
+  ) {
+    throw new AppError(
+      'This Valorant account is already verified on another product.',
+      409,
+      'VALORANT_ACCOUNT_ALREADY_VERIFIED'
+    );
+  }
+
+  return {
+    gameName:
+      result.gameName,
+
+    tagLine:
+      result.tagLine,
+
+    puuid:
+      result.puuid,
+  };
+}
+
 async function listMyProducts(user) { assertSeller(user); return productRepository.listBySeller(user.id); }
 
-async function getMyProduct(user, productId) {
+async function getMyProduct(
+  user,
+  productId
+) {
   assertSeller(user);
-  const product = await productRepository.findByIdForSeller(user.id, productId);
-  if (!product) throw new AppError('Product not found.', 404, 'PRODUCT_NOT_FOUND');
-  product.credentials = await loadCredentials(productId, require('../config/database').pool);
+
+  const product =
+    await productRepository
+      .findByIdForSeller(
+        user.id,
+        productId
+      );
+
+  if (!product) {
+    throw new AppError(
+      'Product not found.',
+      404,
+      'PRODUCT_NOT_FOUND'
+    );
+  }
+
+  const pool =
+    require('../config/database').pool;
+
+  product.credentials =
+    await loadCredentials(
+      productId,
+      pool
+    );
+
+  product.valorantVerification =
+    await valorantVerificationRepository
+      .findByProductId(
+        productId,
+        pool
+      );
+
   return product;
 }
 
-async function createMyProduct(user, data) {
+async function createMyProduct(
+  user,
+  data
+) {
   assertSeller(user);
-  return withTransaction(async (connection) => {
-    await assertGame(data.gameId, connection);
-    const status = data.status || 'DRAFT';
-    if (status === 'ACTIVE') assertActiveCredentials(data.credentials);
-    const productId = await productRepository.create({ sellerId: user.id, ...data, status }, connection);
-    if (data.credentials) await productCredentialRepository.upsert(productId, encryptCredentials(data.credentials), connection);
-    const product = await productRepository.findByIdForSeller(user.id, productId, connection);
-    product.credentials = await loadCredentials(productId, connection);
-    return product;
-  });
+
+  const game =
+    await assertGame(
+      data.gameId
+    );
+
+  const preparedVerification =
+    await prepareValorantVerification(
+      game,
+      data.valorantVerification
+    );
+
+  return withTransaction(
+    async (connection) => {
+      const status =
+        data.status || 'DRAFT';
+
+      if (status === 'ACTIVE') {
+        assertActiveCredentials(
+          data.credentials
+        );
+      }
+
+      const productId =
+        await productRepository.create(
+          {
+            sellerId: user.id,
+            ...data,
+            status,
+          },
+          connection
+        );
+
+      if (data.credentials) {
+        await productCredentialRepository
+          .upsert(
+            productId,
+            encryptCredentials(
+              data.credentials
+            ),
+            connection
+          );
+      }
+
+      if (preparedVerification) {
+        await valorantVerificationRepository
+          .saveVerified(
+            productId,
+            preparedVerification,
+            connection
+          );
+      }
+
+      const product =
+        await productRepository
+          .findByIdForSeller(
+            user.id,
+            productId,
+            connection
+          );
+
+      product.credentials =
+        await loadCredentials(
+          productId,
+          connection
+        );
+
+      product.valorantVerification =
+        await valorantVerificationRepository
+          .findByProductId(
+            productId,
+            connection
+          );
+
+      return product;
+    }
+  );
 }
 
-async function updateMyProduct(user, productId, data) {
+async function updateMyProduct(
+  user,
+  productId,
+  data
+) {
   assertSeller(user);
-  return withTransaction(async (connection) => {
-    const existing = await productRepository.findByIdForSeller(user.id, productId, connection);
-    if (!existing) throw new AppError('Product not found.', 404, 'PRODUCT_NOT_FOUND');
-    if (data.gameId && data.gameId !== existing.gameId) throw new AppError('Changing a product game is not supported.', 422, 'GAME_CHANGE_NOT_ALLOWED');
-    const targetStatus = data.status !== undefined ? data.status : existing.status;
-    if (targetStatus === 'ACTIVE') {
-      if (data.credentials !== undefined) assertActiveCredentials(data.credentials);
-      else assertActiveCredentials(await loadCredentials(productId, connection));
+
+  const existingBeforeTransaction =
+    await productRepository
+      .findByIdForSeller(
+        user.id,
+        productId
+      );
+
+  if (!existingBeforeTransaction) {
+    throw new AppError(
+      'Product not found.',
+      404,
+      'PRODUCT_NOT_FOUND'
+    );
+  }
+
+  if (
+    data.gameId &&
+    data.gameId !==
+      existingBeforeTransaction.gameId
+  ) {
+    throw new AppError(
+      'Changing a product game is not supported.',
+      422,
+      'GAME_CHANGE_NOT_ALLOWED'
+    );
+  }
+
+  const game =
+    await assertGame(
+      existingBeforeTransaction.gameId
+    );
+
+  const preparedVerification =
+    await prepareValorantVerification(
+      game,
+      data.valorantVerification,
+      productId
+    );
+
+  return withTransaction(
+    async (connection) => {
+      const existing =
+        await productRepository
+          .findByIdForSeller(
+            user.id,
+            productId,
+            connection
+          );
+
+      if (!existing) {
+        throw new AppError(
+          'Product not found.',
+          404,
+          'PRODUCT_NOT_FOUND'
+        );
+      }
+
+      const targetStatus =
+        data.status !== undefined
+          ? data.status
+          : existing.status;
+
+      if (targetStatus === 'ACTIVE') {
+        if (
+          data.credentials !== undefined
+        ) {
+          assertActiveCredentials(
+            data.credentials
+          );
+        } else {
+          assertActiveCredentials(
+            await loadCredentials(
+              productId,
+              connection
+            )
+          );
+        }
+      }
+
+      const fields = {};
+
+      if (data.title !== undefined) {
+        fields.title = data.title;
+      }
+
+      if (
+        data.description !== undefined
+      ) {
+        fields.description =
+          data.description;
+      }
+
+      if (data.price !== undefined) {
+        fields.price = data.price;
+      }
+
+      if (data.status !== undefined) {
+        fields.status = data.status;
+      }
+
+      await productRepository.update(
+        productId,
+        user.id,
+        fields,
+        connection
+      );
+
+      if (data.credentials) {
+        await productCredentialRepository
+          .upsert(
+            productId,
+            encryptCredentials(
+              data.credentials
+            ),
+            connection
+          );
+      }
+
+      if (preparedVerification) {
+        await valorantVerificationRepository
+          .saveVerified(
+            productId,
+            preparedVerification,
+            connection
+          );
+      }
+
+      const product =
+        await productRepository
+          .findByIdForSeller(
+            user.id,
+            productId,
+            connection
+          );
+
+      product.credentials =
+        await loadCredentials(
+          productId,
+          connection
+        );
+
+      product.valorantVerification =
+        await valorantVerificationRepository
+          .findByProductId(
+            productId,
+            connection
+          );
+
+      return product;
     }
-    const fields = {};
-    if (data.title !== undefined) fields.title = data.title;
-    if (data.description !== undefined) fields.description = data.description;
-    if (data.price !== undefined) fields.price = data.price;
-    if (data.status !== undefined) fields.status = data.status;
-    await productRepository.update(productId, user.id, fields, connection);
-    if (data.credentials) await productCredentialRepository.upsert(productId, encryptCredentials(data.credentials), connection);
-    const product = await productRepository.findByIdForSeller(user.id, productId, connection);
-    product.credentials = await loadCredentials(productId, connection);
-    return product;
-  });
+  );
 }
 
 async function deleteMyProduct(user, productId) {

@@ -7,11 +7,30 @@ const credentialsSchema = z.object({
   emailPassword: z.string().max(1000).optional(),
 }).strict();
 
+const valorantVerificationSchema =
+  z.object({
+    gameName:
+      z.string()
+        .trim()
+        .min(1)
+        .max(100),
+
+    tagLine:
+      z.string()
+        .trim()
+        .min(1)
+        .max(20),
+  })
+  .strict();
+
 const baseProductSchema = z.object({
   gameId: z.coerce.number().int().positive().optional(), title: z.string().trim().min(3).max(200).optional(),
   description: z.string().trim().min(1).max(10000).optional(), price: z.coerce.number().finite().min(0).optional(),
   status: z.enum(['DRAFT', 'ACTIVE', 'PAUSED']).optional(),
   credentials: credentialsSchema.optional(),
+  valorantVerification:
+    valorantVerificationSchema
+      .optional(),
 }).strict();
 
 const createProductSchema = baseProductSchema.extend({
@@ -21,4 +40,11 @@ const createProductSchema = baseProductSchema.extend({
 });
 
 const updateProductSchema = baseProductSchema.refine((value) => Object.keys(value).length > 0, { message: 'At least one field must be provided.' });
-module.exports = { createProductSchema, updateProductSchema };
+
+
+
+module.exports = {
+  createProductSchema,
+  updateProductSchema,
+  valorantVerificationSchema,
+};

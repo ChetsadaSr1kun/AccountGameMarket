@@ -19,8 +19,8 @@ test.after(async () => {
   await resetGlobalLimitForTests();
 });
 
-test('global API limiter retains its 300-request production threshold', async () => {
-  assert.equal(GLOBAL_LIMIT_MAX, 300);
+test('global API limiter retains its 600-request production threshold', async () => {
+  assert.equal(GLOBAL_LIMIT_MAX, 600);
 
   for (let attempt = 0; attempt < GLOBAL_LIMIT_MAX; attempt += 1) {
     const response = await api.get('/api/health');

@@ -52,8 +52,11 @@ async function updateAdminGameImage(
   }
 }
 
-async function deactivateAdminGame(req, res, next) {
-  try { return res.status(200).json({ data: { game: await gameService.deactivateAdminGame(Number(req.params.id)) } }); } catch (error) { return next(error); }
-}
-
-module.exports = { listGames, getGame, listAdminGames, createAdminGame, updateAdminGame, updateAdminGameImage, deactivateAdminGame };
+module.exports = {
+  listGames,
+  getGame,
+  listAdminGames,
+  createAdminGame,
+  updateAdminGame,
+  updateAdminGameImage
+};

@@ -248,6 +248,8 @@
         await action(id, type, isReject ? { reason } : {});
         modal.style.display = 'none';
         await window.loadAdminWithdrawalRequests();
+        await window
+        .loadAdminDashboardSummary?.();
       } catch (error) {
         alert(error.message || 'ดำเนินการไม่สำเร็จ');
       } finally { submit.disabled = false; }

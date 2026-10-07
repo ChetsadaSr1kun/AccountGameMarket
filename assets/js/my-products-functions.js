@@ -33,16 +33,148 @@ function renderMyProducts(products) {
 }
 
 function productCardHtml(product) {
-  const id = Number(product.id);
-  const title = escapeHtml(product.title || product.name || 'ประกาศสินค้า');
-  const game = escapeHtml(product.game_name || product.game?.name || '-');
-  const price = Number(product.price || 0).toLocaleString('th-TH');
-  const status = String(product.status || 'DRAFT').toUpperCase();
-  const statusLabel = status === 'DRAFT' ? 'ฉบับร่าง' : status === 'ACTIVE' ? 'เปิดขาย' : status === 'PAUSED' ? 'พักขาย' : status;
-  const publishButton = status === 'DRAFT'
-    ? `<button class="btn btn-primary btn-sm" onclick="publishMyProduct(${id})">🚀 เผยแพร่</button>`
-    : '';
-  return `<div class="card" style="margin-bottom:12px;padding:18px 22px"><div class="flex-between"><div><div style="font-weight:700">${title}</div><div style="color:var(--muted);font-size:13px;margin-top:4px">${game} · ${escapeHtml(statusLabel)}</div><div class="kanit" style="font-size:20px;font-weight:800;color:var(--accent);margin-top:8px">${price} บาท</div></div><div class="flex gap-8">${publishButton}<button class="btn btn-secondary btn-sm" onclick="openMyProductEditor(${id})">แก้ไข</button><button class="btn btn-danger btn-sm" onclick="deleteMyProduct(${id})">ลบ</button></div></div></div>`;
+  const id =
+    Number(product.id);
+
+  const title =
+    escapeHtml(
+      product.title ||
+      product.name ||
+      'ประกาศสินค้า'
+    );
+
+  const game =
+    escapeHtml(
+      product.game_name ||
+      product.game?.name ||
+      '-'
+    );
+
+  const price =
+    Number(
+      product.price || 0
+    ).toLocaleString('th-TH');
+
+  const status =
+    String(
+      product.status || 'DRAFT'
+    ).toUpperCase();
+
+  const statusLabel =
+    status === 'DRAFT'
+      ? 'ฉบับร่าง'
+      : status === 'ACTIVE'
+        ? 'เปิดขาย'
+        : status === 'PAUSED'
+          ? 'พักขาย'
+          : status;
+
+  const publishButton =
+    status === 'DRAFT'
+      ? `
+        <button
+          class="btn btn-primary btn-sm"
+          onclick="publishMyProduct(${id})"
+        >
+          🚀 เผยแพร่
+        </button>
+      `
+      : '';
+
+  const imageUrl =
+    product.primaryImageUrl
+      ? escapeHtml(
+          product.primaryImageUrl
+        )
+      : '';
+
+  const previewHtml =
+    imageUrl
+      ? `
+        <img
+          class="my-product-preview-image"
+          src="${imageUrl}"
+          alt="${title}"
+          loading="lazy"
+        >
+      `
+      : `
+        <div class="my-product-preview-empty">
+          🎮
+        </div>
+      `;
+
+  return `
+    <div class="card my-product-card">
+
+      <div class="my-product-preview">
+        ${previewHtml}
+      </div>
+
+      <div class="my-product-info">
+
+        <div class="my-product-title">
+          ${title}
+        </div>
+
+        <div
+          class="my-product-meta"
+          style="
+            display:flex;
+            align-items:center;
+            gap:6px;
+            flex-wrap:wrap;
+          "
+        >
+          <span>
+            ${game}
+            ·
+            ${escapeHtml(statusLabel)}
+          </span>
+
+          ${
+            product.valorantVerification?.verified
+              ? `
+                <span class="product-verified-badge">
+                  ✓ ตรวจสอบแล้ว
+                </span>
+              `
+              : ''
+          }
+        </div>
+
+        <div class="kanit my-product-price">
+          ${price} บาท
+        </div>
+
+      </div>
+
+      <div class="my-product-actions">
+
+        ${publishButton}
+
+        <button
+          class="btn btn-secondary btn-sm"
+          onclick="
+            openMyProductEditor(${id})
+          "
+        >
+          แก้ไข
+        </button>
+
+        <button
+          class="btn btn-danger btn-sm"
+          onclick="
+            deleteMyProduct(${id})
+          "
+        >
+          ลบ
+        </button>
+
+      </div>
+
+    </div>
+  `;
 }
 
 async function publishMyProduct(id) {

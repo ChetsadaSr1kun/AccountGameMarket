@@ -567,14 +567,33 @@ function renderUserProfileSellerProducts(
 
               <div
                 style="
-                  color:var(--muted);
-                  font-size:12px;
+                  display:flex;
+                  align-items:center;
+                  gap:6px;
+                  flex-wrap:wrap;
                   margin-bottom:6px;
                 "
               >
-                ${userProfileEscape(
-                  product.game?.name || '-'
-                )}
+                <span
+                  style="
+                    color:var(--muted);
+                    font-size:12px;
+                  "
+                >
+                  ${userProfileEscape(
+                    product.game?.name || '-'
+                  )}
+                </span>
+
+                ${
+                  product.valorantVerification?.verified
+                    ? `
+                      <span class="product-verified-badge">
+                        ✓ ตรวจสอบแล้ว
+                      </span>
+                    `
+                    : ''
+                }
               </div>
 
               <div
@@ -735,6 +754,10 @@ function renderUserProfileSellerReviews(
   const rating =
     sellerProfile.rating || {};
 
+  const sellerUsername =
+    sellerProfile.seller?.username ||
+    'ผู้ขาย';
+
   window.sellerRatingReviews =
     reviews;
 
@@ -855,7 +878,9 @@ function renderUserProfileSellerReviews(
                           margin-bottom:5px;
                         "
                       >
-                        ↳ คำตอบจากผู้ขาย
+                        ↳ ${userProfileEscape(
+                          sellerUsername
+                        )}
                       </div>
 
                       <div

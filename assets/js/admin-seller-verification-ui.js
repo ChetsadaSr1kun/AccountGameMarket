@@ -11,8 +11,56 @@
   window.loadAdminSellerVerificationRequests=async()=>{const list=document.getElementById('adminSellerVerificationList');if(list)list.innerHTML='<div class="notice info">กำลังโหลดข้อมูล...</div>';try{const [a,b]=await Promise.all([req('/api/v1/seller-verification/admin/pending'),req('/api/v1/seller-verification/admin/history')]);const pa=await a.json().catch(()=>({})),hb=await b.json().catch(()=>({}));if(!a.ok)throw Error(pa.error?.message||'โหลดคำขอไม่สำเร็จ');if(!b.ok)throw Error(hb.error?.message||'โหลดประวัติไม่สำเร็จ');records=[...(pa.data?.requests||[]),...(hb.data?.history||[])];const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('adminSellerPendingCount',pa.data?.requests?.length||0);set('adminSellerApprovedCount',(hb.data?.history||[]).filter(x=>x.status==='APPROVED').length);set('adminSellerRejectedCount',(hb.data?.history||[]).filter(x=>x.status==='REJECTED').length);render();}catch(e){if(list)list.innerHTML=`<div class="notice warn">${esc(e.message)}</div>`;}};
   window.filterAdminSellerVerification=render;
   async function action(id,a,body){const r=await req(`/api/v1/seller-verification/${id}/${a}`,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf()},body:body?JSON.stringify(body):undefined}),b=await r.json().catch(()=>({}));if(!r.ok)throw Error(b.error?.message||'ดำเนินการไม่สำเร็จ');}
-  window.adminApproveSellerVerification=async id=>{if(!confirm('ยืนยันการอนุมัติผู้ขายรายนี้?'))return;try{await action(id,'approve');await window.loadAdminSellerVerificationRequests();}catch(e){alert(e.message);}};
-  window.adminRejectSellerVerification=async id=>{const reason=prompt('ระบุเหตุผลที่ปฏิเสธ');if(reason===null)return;try{await action(id,'reject',{reason});await window.loadAdminSellerVerificationRequests();}catch(e){alert(e.message);}};
+  window.adminApproveSellerVerification =
+    async id => {
+      if (!confirm(
+        'ยืนยันการอนุมัติผู้ขายหรือไม่?'
+      )) {
+        return;
+      }
+
+      try {
+        await action(
+          id,
+          'approve'
+        );
+
+        await window
+          .loadAdminSellerVerificationRequests();
+
+        await window
+          .loadAdminDashboardSummary?.();
+
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+  window.adminRejectSellerVerification =
+  async id => {
+    const reason =
+      prompt('ระบุเหตุผลที่ปฏิเสธ');
+
+    if (reason === null) {
+      return;
+    }
+
+    try {
+      await action(
+        id,
+        'reject',
+        { reason }
+      );
+
+      await window
+        .loadAdminSellerVerificationRequests();
+
+      await window
+        .loadAdminDashboardSummary?.();
+
+    } catch (e) {
+      alert(e.message);
+    }
+  };
   window.adminViewSellerVerification = async id => {
   try {
     const r = await req(

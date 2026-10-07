@@ -27,6 +27,24 @@ async function create(data, executor) {
 async function list(userId) { return (await repository.listByUserId(userId)).map(map); }
 async function count(userId) { return repository.unreadCount(userId); }
 async function markRead(userId,id) { return map(await repository.markRead(userId,validateId(id))); }
+
+async function markChatRead(
+  userId,
+  conversationId
+) {
+  return repository.markChatRead(
+    Number(userId),
+    Number(conversationId)
+  );
+}
+
 async function markAllRead(userId) { return repository.markAllRead(userId); }
 
-module.exports = { create, list, count, markRead, markAllRead };
+module.exports = {
+  create,
+  list,
+  count,
+  markRead,
+  markChatRead,
+  markAllRead,
+};

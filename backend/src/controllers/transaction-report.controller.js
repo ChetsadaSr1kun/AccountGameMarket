@@ -5,5 +5,23 @@ const createReport=asyncHandler(async(req,res)=>success(res,201,{report:await se
 const listPendingReports=asyncHandler(async(req,res)=>success(res,200,{reports:await service.listPendingReports()}));
 const listAdminReports=asyncHandler(async(req,res)=>success(res,200,{reports:await service.listAdminReports()}));
 const getReportDetail=asyncHandler(async(req,res)=>success(res,200,{report:await service.getReportDetail(req.params.id)}));
+const getReportChat =
+  asyncHandler(
+    async (req, res) =>
+      success(
+        res,
+        200,
+        await service.getReportChat(
+          req.params.id
+        )
+      )
+  );
 const updateReport=asyncHandler(async(req,res)=>success(res,200,{report:await service.updateReport(req.user.id,req.params.id,req.body||{})}));
-module.exports={createReport,listPendingReports,listAdminReports,getReportDetail,updateReport};
+module.exports = {
+  createReport,
+  listPendingReports,
+  listAdminReports,
+  getReportDetail,
+  getReportChat,
+  updateReport,
+};

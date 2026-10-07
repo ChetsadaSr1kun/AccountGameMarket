@@ -1,5 +1,7 @@
 const AppError = require('../utils/app-error');
 const repository = require('../repositories/review-report.repository');
+const chatRepository =
+  require('../repositories/chat.repository');
 
 const ALLOWED_REASONS = new Set([
   'FALSE_REVIEW',
@@ -44,6 +46,141 @@ async function listAdminReports() {
     await repository.listAll()
   ).map(mapReport);
 }
+
+async function getReportChat(
+  reportId
+) {
+  const id =
+    Number(reportId);
+
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
+    throw new AppError(
+      'A valid reportId is required.',
+      400,
+      'INVALID_REPORT_ID'
+    );
+  }
+
+  const report =
+    await repository.findChatContext(
+      id
+    );
+
+  if (!report) {
+    throw new AppError(
+      'Review report not found.',
+      404,
+      'REPORT_NOT_FOUND'
+    );
+  }
+
+  const reporterId =
+    Number(report.reporter_id);
+
+  const reviewerId =
+    Number(report.reviewer_id);
+
+  const conversation =
+    await chatRepository
+      .findConversationBetweenUsers(
+        reporterId,
+        reviewerId
+      );
+
+  const baseResult = {
+    reportId:
+      Number(report.id),
+
+    reviewId:
+      Number(report.review_id),
+
+    reporter: {
+      id:
+        reporterId,
+
+      username:
+        report.reporter_username ||
+        '-',
+
+      avatarUrl:
+        report.reporter_avatar_url ||
+        null,
+    },
+
+    reported: {
+      id:
+        reviewerId,
+
+      username:
+        report.reviewer_username ||
+        '-',
+
+      avatarUrl:
+        report.reviewer_avatar_url ||
+        null,
+    },
+  };
+
+  if (!conversation) {
+    return {
+      ...baseResult,
+      conversation: null,
+      messages: [],
+    };
+  }
+
+  const messages =
+    await chatRepository
+      .listRecentMessagesForAdmin(
+        conversation.id,
+        200
+      );
+
+  return {
+    ...baseResult,
+
+    conversation: {
+      id:
+        Number(conversation.id),
+
+      createdAt:
+        conversation.created_at,
+
+      updatedAt:
+        conversation.updated_at,
+    },
+
+    messages:
+      messages.map(
+        message => ({
+          id:
+            Number(message.id),
+
+          senderId:
+            Number(
+              message.sender_id
+            ),
+
+          senderUsername:
+            message.sender_username,
+
+          senderAvatarUrl:
+            message.sender_avatar ||
+            null,
+
+          body:
+            message.body,
+
+          createdAt:
+            message.created_at,
+        })
+      ),
+  };
+}
+
 async function resolveReport(adminId, reportId, action, adminNote='') {
   const id=Number(reportId), status=String(action||'').trim().toUpperCase(), note=String(adminNote||'').trim();
   if(!Number.isInteger(id)||id<=0) throw new AppError('A valid reportId is required.',400,'INVALID_REPORT_ID');
@@ -58,6 +195,7 @@ module.exports = {
   createReport,
   listPendingReports,
   listAdminReports,
+  getReportChat,
   resolveReport,
   ALLOWED_REASONS,
 };

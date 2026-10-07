@@ -1,5 +1,6 @@
 'use strict';
 
+const withdrawalService = require('../../backend/src/services/withdrawal.service');
 const { after, before, test } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
@@ -26,7 +27,12 @@ const runId = crypto.randomUUID().replaceAll('-', '');
 const emailPrefix = `orderpurchase_${runId}_`;
 const password = 'TestPassword123';
 const productPrice = 250;
+const expectedVatRatePercent = 7;
+const expectedVatAmount = 18;
+const expectedSellerNetAmount = 232;
+
 const buyerStartingBalance = 1000;
+const pendingWithdrawalAmount = 300;
 const sellerStartingBalance = 100;
 const productTitle = `Audit marketplace product ${runId.slice(0, 10)}`;
 const productDescription = 'Public marketplace and wallet purchase fixture.';
@@ -231,6 +237,20 @@ test('settles a verified buyer wallet purchase exactly once', async () => {
   assert.ok(orderId > 0);
   assert.equal(created.body.data.order.status, 'PENDING');
   assert.equal(created.body.data.order.amount, productPrice);
+  assert.equal(
+    created.body.data.order.vatRatePercent,
+    expectedVatRatePercent
+  );
+
+  assert.equal(
+    created.body.data.order.vatAmount,
+    expectedVatAmount
+  );
+
+  assert.equal(
+    created.body.data.order.sellerNetAmount,
+    expectedSellerNetAmount
+  );
   assert.equal(await walletBalance(buyer.id), buyerStartingBalance);
   assert.equal(await walletBalance(seller.id), sellerStartingBalance);
   assert.equal((await ledgerRows(buyer.id, 'PURCHASE')).length, 0);
@@ -243,6 +263,23 @@ test('settles a verified buyer wallet purchase exactly once', async () => {
     .set('Cookie', cookieHeader(buyer.auth));
   assert.equal(credentialsBeforePayment.status, 403);
   assert.equal(credentialsBeforePayment.body.error.code, 'ORDER_NOT_PAID');
+  const withdrawal = await withdrawalService.createRequest(buyer.id, {
+    amount: pendingWithdrawalAmount,
+    paymentMethod: 'PROMPTPAY',
+    accountName: 'Order Purchase Buyer',
+    accountNumber: '0812345678',
+  });
+
+  assert.equal(withdrawal.status, 'PENDING');
+  assert.equal(
+    await walletBalance(buyer.id),
+    buyerStartingBalance - pendingWithdrawalAmount
+  );
+
+  const expectedBuyerBalance =
+    buyerStartingBalance -
+    pendingWithdrawalAmount -
+  productPrice;
 
   const paid = await api
     .post(`/api/v1/orders/${orderId}/pay`)
@@ -251,26 +288,66 @@ test('settles a verified buyer wallet purchase exactly once', async () => {
   assert.equal(paid.status, 200);
   assert.equal(paid.body.data.order.status, 'COMPLETED');
 
-  const [[settledOrder]] = await pool.execute(
-    'SELECT status, amount, completed_at FROM orders WHERE id = ?',
-    [orderId],
-  );
+  const [[settledOrder]] =
+    await pool.execute(
+      `
+      SELECT
+        status,
+        amount,
+        vat_rate_percent,
+        vat_amount,
+        seller_net_amount,
+        completed_at
+      FROM orders
+      WHERE id = ?
+      `,
+      [orderId],
+    );
   assert.equal(settledOrder.status, 'COMPLETED');
   assert.equal(Number(settledOrder.amount), productPrice);
+  assert.equal(
+    Number(
+      settledOrder.vat_rate_percent
+    ),
+    expectedVatRatePercent
+  );
+
+  assert.equal(
+    Number(settledOrder.vat_amount),
+    expectedVatAmount
+  );
+
+  assert.equal(
+    Number(
+      settledOrder.seller_net_amount
+    ),
+    expectedSellerNetAmount
+  );
   assert.ok(settledOrder.completed_at);
   const [[soldProduct]] = await pool.execute('SELECT status FROM products WHERE id = ?', [productId]);
   assert.equal(soldProduct.status, 'SOLD');
 
-  assert.equal(await walletBalance(buyer.id), buyerStartingBalance - productPrice);
-  assert.equal(await walletBalance(seller.id), sellerStartingBalance + productPrice);
+  assert.equal(await walletBalance(buyer.id), expectedBuyerBalance);
+  assert.equal(
+    await walletBalance(seller.id),
+    sellerStartingBalance +
+      expectedSellerNetAmount
+  );
   const purchases = await ledgerRows(buyer.id, 'PURCHASE');
   const sales = await ledgerRows(seller.id, 'SALE');
   assert.equal(purchases.length, 1);
   assert.equal(Number(purchases[0].amount), productPrice);
-  assert.equal(Number(purchases[0].balance_after), buyerStartingBalance - productPrice);
+  assert.equal(Number(purchases[0].balance_after), expectedBuyerBalance);
   assert.equal(sales.length, 1);
-  assert.equal(Number(sales[0].amount), productPrice);
-  assert.equal(Number(sales[0].balance_after), sellerStartingBalance + productPrice);
+  assert.equal(
+    Number(sales[0].amount),
+    expectedSellerNetAmount
+  );
+  assert.equal(
+    Number(sales[0].balance_after),
+    sellerStartingBalance +
+      expectedSellerNetAmount
+  );
   assert.equal(await notificationCount(buyer.id, 'ORDER_PURCHASE'), 1);
   assert.equal(await notificationCount(seller.id, 'ORDER_SOLD'), 1);
 
@@ -280,8 +357,12 @@ test('settles a verified buyer wallet purchase exactly once', async () => {
     .set('X-CSRF-Token', csrfToken(buyer.auth));
   assert.equal(duplicatePayment.status, 409);
   assert.equal(duplicatePayment.body.error.code, 'ORDER_NOT_PAYABLE');
-  assert.equal(await walletBalance(buyer.id), buyerStartingBalance - productPrice);
-  assert.equal(await walletBalance(seller.id), sellerStartingBalance + productPrice);
+  assert.equal(await walletBalance(buyer.id), expectedBuyerBalance);
+  assert.equal(
+    await walletBalance(seller.id),
+    sellerStartingBalance +
+      expectedSellerNetAmount
+  );
   assert.equal((await ledgerRows(buyer.id, 'PURCHASE')).length, 1);
   assert.equal((await ledgerRows(seller.id, 'SALE')).length, 1);
   assert.equal(await notificationCount(buyer.id, 'ORDER_PURCHASE'), 1);

@@ -113,6 +113,65 @@ test('rejects customer access to report detail', async () => {
   assert.equal(response.body.error.code, 'FORBIDDEN');
 });
 
+test('rejects unauthenticated access to report chat', async () => {
+  const response = await api
+    .get(
+      '/api/v1/transaction-reports/999999/chat'
+    );
+
+  assert.equal(
+    response.status,
+    401
+  );
+
+  assert.equal(
+    response.body.error.code,
+    'UNAUTHENTICATED'
+  );
+});
+
+test('rejects customer access to report chat', async () => {
+  const response = await api
+    .get(
+      '/api/v1/transaction-reports/999999/chat'
+    )
+    .set(
+      'Cookie',
+      cookieHeader(customerAuth)
+    );
+
+  assert.equal(
+    response.status,
+    403
+  );
+
+  assert.equal(
+    response.body.error.code,
+    'FORBIDDEN'
+  );
+});
+
+test('allows an admin to reach report chat lookup but rejects a missing report cleanly', async () => {
+  const response = await api
+    .get(
+      '/api/v1/transaction-reports/999999/chat'
+    )
+    .set(
+      'Cookie',
+      cookieHeader(adminAuth)
+    );
+
+  assert.equal(
+    response.status,
+    404
+  );
+
+  assert.equal(
+    response.body.error.code,
+    'REPORT_NOT_FOUND'
+  );
+});
+
 test('rejects customer report status changes before CSRF validation', async () => {
   const response = await api
     .patch('/api/v1/transaction-reports/999999')
@@ -162,7 +221,10 @@ test('allows an admin to reach report update authorization after valid CSRF', as
     .patch('/api/v1/transaction-reports/999999')
     .set('Cookie', cookieHeader(adminAuth))
     .set('X-CSRF-Token', cookieValue(adminAuth, 'gm_csrf'))
-    .send({ status: 'RESOLVED' });
+    .send({
+      status: 'RESOLVED',
+      outcome: 'ACTION_TAKEN',
+    });
   assert.equal(response.status, 404);
   assert.equal(response.body.error.code, 'REPORT_NOT_FOUND');
 });

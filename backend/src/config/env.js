@@ -109,5 +109,14 @@ module.exports = {
     twilioVerifyServiceSid: process.env.TWILIO_VERIFY_SERVICE_SID || '',
   },
 
+  riot: {
+    apiKey:
+      process.env.RIOT_API_KEY || '',
+
+    accountBaseUrl:
+      process.env.RIOT_ACCOUNT_BASE_URL ||
+      'https://asia.api.riotgames.com',
+  },
+
   slipOk,
 };

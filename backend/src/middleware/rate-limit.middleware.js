@@ -1,7 +1,7 @@
 const { MemoryStore, rateLimit, ipKeyGenerator } = require('express-rate-limit');
 
 const GLOBAL_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-const GLOBAL_LIMIT_MAX = 300;
+const GLOBAL_LIMIT_MAX = 600;
 const globalLimitStore = new MemoryStore();
 
 function limit(message, windowMs, max) {

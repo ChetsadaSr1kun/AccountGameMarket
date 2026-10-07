@@ -342,161 +342,98 @@ function renderAdminReviewReports(reports) {
           class="
             report-entry
             admin-review-report-entry
+            admin-review-report-row
             status-${statusMeta.badgeClass}
+          "
+          onclick="
+            openAdminReviewReportDetail(
+              ${Number(report.id)}
+            )
           "
         >
 
-          <div class="admin-review-report-head">
+          <div class="admin-review-report-row-id">
+            <strong>
+              #${Number(report.id)}
+            </strong>
 
-            <div>
-              <strong>
-                รายงาน #${Number(report.id)}
-              </strong>
-
-              <span
-                class="inline-badge ${statusMeta.badgeClass}"
-              >
-                ${statusMeta.label}
-              </span>
-            </div>
-
-            <time>
+            <span>
               ${adminReviewReportEscape(date)}
-            </time>
-
+            </span>
           </div>
 
 
-          <div class="admin-review-report-meta">
+          <div class="admin-review-report-row-users">
 
             <div>
-              <span>👤 ผู้รายงาน</span>
               <strong>
                 ${adminReviewReportEscape(
                   report.reporterUsername || '-'
                 )}
               </strong>
+
+              <span>
+                ผู้รายงาน
+              </span>
             </div>
 
+            <span class="admin-review-report-row-arrow">
+              →
+            </span>
+
             <div>
-              <span>⭐ ผู้รีวิว</span>
               <strong>
                 ${adminReviewReportEscape(
                   report.reviewerUsername || '-'
                 )}
               </strong>
-            </div>
 
-            <div>
-              <span>🏪 ผู้ขาย</span>
-              <strong>
-                ${adminReviewReportEscape(
-                  report.sellerUsername || '-'
-                )}
-              </strong>
+              <span>
+                ผู้รีวิว
+              </span>
             </div>
 
           </div>
 
 
-          <div class="admin-review-report-content">
+          <div class="admin-review-report-row-info">
 
-            <div class="admin-review-report-review">
+            <strong>
+              ${adminReviewReportEscape(
+                adminReviewReportReason(
+                  report.reason
+                )
+              )}
+            </strong>
 
-              <div class="admin-review-report-stars">
+            <div class="admin-review-report-row-rating">
+              <span>
                 ${adminReviewReportStars(
                   report.rating
                 )}
-
-                <strong>
-                  ${Number(report.rating || 0)}/5
-                </strong>
-              </div>
-
-              <p>
-                ${adminReviewReportEscape(comment)}
-              </p>
-
-            </div>
-
-            <div class="admin-review-report-reason">
-
-              <span>
-                เหตุผลที่รายงาน
               </span>
 
               <strong>
-                ${adminReviewReportEscape(
-                  adminReviewReportReason(
-                    report.reason
-                  )
-                )}
+                ${Number(report.rating || 0)}/5
               </strong>
-
-              ${
-                report.description
-                  ? `
-                    <p>
-                      ${adminReviewReportEscape(
-                        report.description
-                      )}
-                    </p>
-                  `
-                  : ''
-              }
-
             </div>
 
           </div>
 
 
-          <div class="admin-review-report-actions">
+          <div class="admin-review-report-row-status">
 
-          <button
-            class="btn btn-secondary btn-sm"
-            type="button"
-            onclick="
-              openAdminReviewReportDetail(
-                ${Number(report.id)}
-              )
-            "
-          >
-            🔍 ดูรายละเอียด
-          </button>
+            <span
+              class="inline-badge ${statusMeta.badgeClass}"
+            >
+              ${statusMeta.label}
+            </span>
 
-          ${
-            isPending
-              ? `
-                <button
-                  class="btn btn-secondary btn-sm"
-                  type="button"
-                  onclick="
-                    resolveAdminReviewReport(
-                      ${Number(report.id)},
-                      'DISMISSED'
-                    )
-                  "
-                >
-                  ✅ ไม่พบปัญหา
-                </button>
+            <span class="admin-review-report-row-chevron">
+              ›
+            </span>
 
-                <button
-                  class="btn btn-danger btn-sm"
-                  type="button"
-                  onclick="
-                    resolveAdminReviewReport(
-                      ${Number(report.id)},
-                      'REMOVED'
-                    )
-                  "
-                >
-                  🚫 ซ่อนรีวิว
-                </button>
-              `
-              : ''
-          }
-
-        </div>
+          </div>
 
         </article>
       `;
@@ -505,10 +442,708 @@ function renderAdminReviewReports(reports) {
 
   window.adminReviewReports = rows;
 }
-function openAdminReviewReportDetail(reportId){const x=(window.adminReviewReports||[]).find(r=>Number(r.id)===Number(reportId));if(!x)return;alert(`รายงาน #${x.id}\n\nเหตุผล: ${adminReviewReportReason(x.reason)}\n\nผู้รายงาน: ${x.reporterUsername||'-'}\nผู้รีวิว: ${x.reviewerUsername||'-'}\nผู้ขาย: ${x.sellerUsername||'-'}\n\nรีวิว:\n${x.comment||'ไม่ได้เขียนความคิดเห็น'}${x.description?`\n\nรายละเอียดการรายงาน:\n${x.description}`:''}`);}
-async function resolveAdminReviewReport(reportId,action){const label=action==='REMOVED'?'ซ่อนรีวิว':'ปิดรายงานโดยไม่พบปัญหา';if(!confirm(`ยืนยันการ${label}หรือไม่?`))return;const token=typeof csrfToken!=='undefined'?(csrfToken||getCookieValue('gm_csrf')):getCookieValue('gm_csrf');if(!token){alert('ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่');return;}try{const r=await fetch(`/api/v1/review-reports/${Number(reportId)}`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify({action,adminNote:action==='REMOVED'?'ซ่อนรีวิวเนื่องจากละเมิดแนวทางการใช้งาน':''})});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'ดำเนินการกับรายงานไม่สำเร็จ');await loadAdminReviewReports();}catch(e){console.error('resolveAdminReviewReport failed:',e);alert(e.message||'ดำเนินการไม่สำเร็จ');}}
+function closeAdminReviewReportDetail() {
+  document
+    .getElementById(
+      'adminReviewReportDetailModal'
+    )
+    ?.remove();
+}
+
+function adminReviewReportAvatar(
+  avatarUrl,
+  username
+) {
+  if (
+    typeof adminReportAvatar ===
+    'function'
+  ) {
+    return adminReportAvatar(
+      avatarUrl,
+      username
+    );
+  }
+
+  return '👤';
+}
+
+function openAdminReviewReportDetail(
+  reportId
+) {
+  closeAdminReviewReportDetail();
+
+  const report =
+    (
+      window.adminReviewReports ||
+      []
+    ).find(
+      item =>
+        Number(item.id) ===
+        Number(reportId)
+    );
+
+  if (!report) {
+    return;
+  }
+
+  const statusMeta =
+    adminReviewReportStatusMeta(
+      report.status
+    );
+
+  const isPending =
+    report.status === 'PENDING';
+
+  const createdAt =
+    report.createdAt
+      ? new Date(
+          report.createdAt
+        ).toLocaleString('th-TH')
+      : '-';
+
+  const resolvedAt =
+    report.resolvedAt
+      ? new Date(
+          report.resolvedAt
+        ).toLocaleString('th-TH')
+      : null;
+
+  const comment =
+    report.comment ||
+    'ไม่ได้เขียนความคิดเห็น';
+
+  const description =
+    report.description ||
+    'ไม่ได้ระบุรายละเอียดเพิ่มเติม';
+
+  const modal =
+    document.createElement('div');
+
+  modal.id =
+    'adminReviewReportDetailModal';
+
+  modal.className =
+    'modal-overlay';
+
+  modal.style.display =
+    'flex';
+
+  modal.innerHTML = `
+    <div
+      class="
+        modal-card
+        admin-review-report-detail-modal
+      "
+    >
+
+      <div class="admin-review-detail-header">
+
+        <div>
+          <div class="review-modal-title">
+            รายละเอียดรายงานรีวิว
+            #${Number(report.id)}
+          </div>
+
+          <div class="review-modal-product">
+            Review #${Number(
+              report.reviewId
+            )}
+            •
+            ${adminReviewReportEscape(
+              createdAt
+            )}
+          </div>
+        </div>
+
+        <div class="admin-review-detail-header-actions">
+
+          <span
+            class="
+              inline-badge
+              ${statusMeta.badgeClass}
+            "
+          >
+            ${statusMeta.label}
+          </span>
+
+          <button
+            class="btn btn-ghost btn-sm"
+            type="button"
+            onclick="
+              closeAdminReviewReportDetail()
+            "
+          >
+            ✕
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="admin-review-detail-users">
+
+        <div>
+          <span>
+            ผู้รายงาน
+          </span>
+
+          <strong>
+            ${adminReviewReportEscape(
+              report.reporterUsername ||
+              '-'
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            ผู้รีวิว
+          </span>
+
+          <strong>
+            ${adminReviewReportEscape(
+              report.reviewerUsername ||
+              '-'
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            ผู้ขาย
+          </span>
+
+          <strong>
+            ${adminReviewReportEscape(
+              report.sellerUsername ||
+              '-'
+            )}
+          </strong>
+        </div>
+
+      </div>
+
+      <div class="admin-report-chat-review-action">
+
+      <button
+        class="btn btn-secondary btn-sm"
+        type="button"
+        onclick="
+          openAdminReviewReportChatReview(
+            ${Number(report.id)}
+          )
+        "
+      >
+        💬 ตรวจสอบแชทระหว่างผู้ใช้
+      </button>
+
+      <span>
+        ดูบทสนทนาระหว่างผู้รายงานและผู้รีวิว
+      </span>
+
+    </div>
+
+
+      <div class="admin-review-detail-section">
+
+        <div class="admin-review-detail-label">
+          เหตุผลที่รายงาน
+        </div>
+
+        <div class="admin-review-detail-reason">
+          ${adminReviewReportEscape(
+            adminReviewReportReason(
+              report.reason
+            )
+          )}
+        </div>
+
+      </div>
+
+
+      <div class="admin-review-detail-section">
+
+        <div class="admin-review-detail-label">
+          รายละเอียดจากผู้รายงาน
+        </div>
+
+        <div class="admin-review-detail-text">
+          ${adminReviewReportEscape(
+            description
+          )}
+        </div>
+
+      </div>
+
+
+      <div class="admin-review-detail-section">
+
+        <div class="admin-review-detail-label">
+          รีวิวที่ถูกรายงาน
+        </div>
+
+        <div class="admin-review-detail-review">
+
+          <div class="admin-review-detail-stars">
+
+            ${adminReviewReportStars(
+              report.rating
+            )}
+
+            <strong>
+              ${Number(
+                report.rating || 0
+              )}/5
+            </strong>
+
+          </div>
+
+          <div class="admin-review-detail-text">
+            ${adminReviewReportEscape(
+              comment
+            )}
+          </div>
+
+        </div>
+
+      </div>
+
+
+      ${
+        report.adminNote ||
+        resolvedAt
+          ? `
+            <div class="admin-review-detail-section">
+
+              <div class="admin-review-detail-label">
+                ผลการดำเนินการ
+              </div>
+
+              <div class="admin-review-detail-resolution">
+
+                ${
+                  report.adminNote
+                    ? `
+                      <div>
+                        ${adminReviewReportEscape(
+                          report.adminNote
+                        )}
+                      </div>
+                    `
+                    : ''
+                }
+
+                ${
+                  resolvedAt
+                    ? `
+                      <small>
+                        ดำเนินการเมื่อ
+                        ${adminReviewReportEscape(
+                          resolvedAt
+                        )}
+                      </small>
+                    `
+                    : ''
+                }
+
+              </div>
+
+            </div>
+          `
+          : ''
+      }
+
+      ${
+        isPending
+          ? `
+            <div class="admin-review-detail-actions">
+
+              <button
+                class="btn btn-secondary"
+                type="button"
+                onclick="
+                  resolveAdminReviewReport(
+                    ${Number(report.id)},
+                    'DISMISSED'
+                  )
+                "
+              >
+                ✓ ไม่พบปัญหา
+              </button>
+
+              <button
+                class="btn btn-danger"
+                type="button"
+                onclick="
+                  resolveAdminReviewReport(
+                    ${Number(report.id)},
+                    'REMOVED'
+                  )
+                "
+              >
+                🚫 ซ่อนรีวิว
+              </button>
+
+            </div>
+          `
+          : ''
+      }
+
+    </div>
+  `;
+
+  document.body.appendChild(
+    modal
+  );
+}
+
+function closeAdminReviewReportChatReview() {
+  document
+    .getElementById(
+      'adminReviewReportChatReviewModal'
+    )
+    ?.remove();
+}
+
+async function openAdminReviewReportChatReview(
+  reportId
+) {
+  closeAdminReviewReportChatReview();
+
+  const id =
+    Number(reportId);
+
+  if (
+    !Number.isInteger(id) ||
+    id <= 0
+  ) {
+    return;
+  }
+
+  const modal =
+    document.createElement('div');
+
+  modal.id =
+    'adminReviewReportChatReviewModal';
+
+  modal.className =
+    'modal-overlay';
+
+  modal.style.display =
+    'flex';
+
+  modal.innerHTML = `
+    <div
+      class="
+        modal-card
+        admin-transaction-detail-modal
+        admin-report-chat-review-modal
+      "
+    >
+
+      <div class="admin-report-modal-header">
+
+        <div>
+          <div class="review-modal-title">
+            💬 ตรวจสอบแชทระหว่างผู้ใช้
+          </div>
+
+          <div class="review-modal-product">
+            Review Report #${id}
+          </div>
+        </div>
+
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          onclick="
+            closeAdminReviewReportChatReview()
+          "
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div
+        id="adminReviewReportChatReviewContent"
+      >
+        กำลังโหลดบทสนทนา...
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(
+    modal
+  );
+
+  const content =
+    document.getElementById(
+      'adminReviewReportChatReviewContent'
+    );
+
+  try {
+    const response =
+      await fetch(
+        `/api/v1/review-reports/${id}/chat`,
+        {
+          credentials: 'include',
+        }
+      );
+
+    const body =
+      await response
+        .json()
+        .catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        body.error?.message ||
+        'โหลดบทสนทนาไม่สำเร็จ'
+      );
+    }
+
+    const data =
+      body.data;
+
+    if (!data || !content) {
+      throw new Error(
+        'ข้อมูลบทสนทนาไม่ถูกต้อง'
+      );
+    }
+
+    const reporterName =
+      adminReviewReportEscape(
+        data.reporter?.username ||
+        '-'
+      );
+
+    const reviewerName =
+      adminReviewReportEscape(
+        data.reported?.username ||
+        '-'
+      );
+
+    const messages =
+      Array.isArray(
+        data.messages
+      )
+        ? data.messages
+        : [];
+
+    if (!data.conversation) {
+      content.innerHTML = `
+        <div class="admin-report-chat-review-users">
+
+          <strong>
+            ${reporterName}
+          </strong>
+
+          <span>
+            ↔
+          </span>
+
+          <strong>
+            ${reviewerName}
+          </strong>
+
+        </div>
+
+        <div class="admin-report-chat-review-summary">
+          Review Report #${Number(
+            data.reportId
+          )}
+          • Review #${Number(
+            data.reviewId
+          )}
+        </div>
+
+        <div class="admin-report-chat-review-note">
+          💬 ไม่พบประวัติการสนทนาระหว่างผู้รายงานและผู้รีวิว
+        </div>
+
+        <div class="admin-report-chat-readonly">
+          🔒 โหมดตรวจสอบเท่านั้น
+          Admin ไม่สามารถส่งหรือแก้ไขข้อความได้
+        </div>
+      `;
+
+      return;
+    }
+
+    const reporterId =
+      Number(
+        data.reporter?.id
+      );
+
+    const reviewerId =
+      Number(
+        data.reported?.id
+      );
+
+    const messageHtml =
+      messages
+        .map(message => {
+          const senderId =
+            Number(
+              message.senderId
+            );
+
+          const role =
+            senderId === reporterId
+              ? 'reporter'
+              : (
+                  senderId === reviewerId
+                    ? 'reported'
+                    : 'unknown'
+                );
+
+          const roleLabel =
+            role === 'reporter'
+              ? 'ผู้รายงาน'
+              : (
+                  role === 'reported'
+                    ? 'ผู้รีวิว'
+                    : 'ผู้ใช้'
+                );
+
+          const senderName =
+            adminReviewReportEscape(
+              message.senderUsername ||
+              '-'
+            );
+
+          const senderAvatar =
+            adminReviewReportAvatar(
+              message.senderAvatarUrl,
+              message.senderUsername
+            );
+
+          const bodyText =
+            adminReviewReportEscape(
+              message.body ||
+              ''
+            );
+
+          const createdAt =
+            message.createdAt
+              ? new Date(
+                  message.createdAt
+                ).toLocaleString(
+                  'th-TH'
+                )
+              : '-';
+
+          return `
+            <div
+              class="
+                admin-report-chat-message
+                ${role}
+              "
+            >
+
+              <div class="admin-report-chat-message-head">
+
+                <div class="admin-report-chat-avatar">
+                  ${senderAvatar}
+                </div>
+
+                <div class="admin-report-chat-message-user">
+
+                  <strong>
+                    ${senderName}
+                  </strong>
+
+                  <span>
+                    ${roleLabel}
+                  </span>
+
+                </div>
+
+              </div>
+
+              <div class="admin-report-chat-message-bubble">
+                <div class="admin-report-chat-message-body">${bodyText}</div>
+              </div>
+
+              <time class="admin-report-chat-message-time">
+                ${adminReviewReportEscape(
+                  createdAt
+                )}
+              </time>
+
+            </div>
+          `;
+        })
+        .join('');
+
+    content.innerHTML = `
+      <div class="admin-report-chat-review-users">
+
+        <strong>
+          ${reporterName}
+        </strong>
+
+        <span>
+          ↔
+        </span>
+
+        <strong>
+          ${reviewerName}
+        </strong>
+
+      </div>
+
+      <div class="admin-report-chat-review-summary">
+        Review Report #${Number(
+          data.reportId
+        )}
+        • Review #${Number(
+          data.reviewId
+        )}
+        • ${messages.length.toLocaleString(
+          'th-TH'
+        )} ข้อความ
+      </div>
+
+      <div class="admin-report-chat-message-list">
+        ${messageHtml}
+      </div>
+
+      <div class="admin-report-chat-readonly">
+        🔒 โหมดตรวจสอบเท่านั้น
+        Admin ไม่สามารถส่งหรือแก้ไขข้อความได้
+      </div>
+    `;
+
+  } catch (error) {
+    console.error(
+      'load review report chat failed',
+      error
+    );
+
+    if (content) {
+      content.innerHTML = `
+        <div class="notice danger">
+          ${adminReviewReportEscape(
+            error.message ||
+            'ไม่สามารถโหลดบทสนทนาได้'
+          )}
+        </div>
+      `;
+    }
+  }
+}
+
+async function resolveAdminReviewReport(reportId,action){const label=action==='REMOVED'?'ซ่อนรีวิว':'ปิดรายงานโดยไม่พบปัญหา';if(!confirm(`ยืนยันการ${label}หรือไม่?`))return;const token=typeof csrfToken!=='undefined'?(csrfToken||getCookieValue('gm_csrf')):getCookieValue('gm_csrf');if(!token){alert('ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่');return;}try{const r=await fetch(`/api/v1/review-reports/${Number(reportId)}`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':token},body:JSON.stringify({action,adminNote:action==='REMOVED'?'ซ่อนรีวิวเนื่องจากละเมิดแนวทางการใช้งาน':''})});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.error?.message||'ดำเนินการกับรายงานไม่สำเร็จ');closeAdminReviewReportDetail();await loadAdminReviewReports();await window
+  .loadAdminDashboardSummary?.();}catch(e){console.error('resolveAdminReviewReport failed:',e);alert(e.message||'ดำเนินการไม่สำเร็จ');}}
+
 function initAdminReviewReports(){const page=document.getElementById('pg-admin-report');if(page&&!page.dataset.reviewReportsBound){page.dataset.reviewReportsBound='1';loadAdminReviewReports();}}
 window.loadAdminReviewReports=loadAdminReviewReports;window.resolveAdminReviewReport=resolveAdminReviewReport;window.openAdminReviewReportDetail=openAdminReviewReportDetail;
+window.closeAdminReviewReportDetail =
+  closeAdminReviewReportDetail;
 window.adminSetReviewReportFilter =
   adminSetReviewReportFilter;
 
@@ -708,3 +1343,9 @@ if (document.readyState === 'loading') {
 } else {
   injectAdminReviewReportPanel();
 }
+
+window.openAdminReviewReportChatReview =
+  openAdminReviewReportChatReview;
+
+window.closeAdminReviewReportChatReview =
+  closeAdminReviewReportChatReview;
