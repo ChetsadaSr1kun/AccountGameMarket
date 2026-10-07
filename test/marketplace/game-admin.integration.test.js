@@ -5,13 +5,12 @@ const request = require('supertest');
 const { pool } = require('../../backend/src/config/database');
 const { hashPassword } = require('../../backend/src/utils/password');
 const userRepository = require('../../backend/src/repositories/user.repository');
-const roleRepository = require('../../backend/src/repositories/role.repository');
 const app = require('../../backend/src/app');
 const { cleanupTestUsers, closeTestDatabasePool, prepareTestDatabase } = require('../helpers/test-database');
-if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== 'gamemarket_test') throw new Error('Test database guard failed.');
+if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== require('../helpers/database-name')) throw new Error('Test database guard failed.');
 const api=request(app), runId=crypto.randomUUID().replaceAll('-',''), email=`gameadmin_${runId}@example.test`, username=`gameadmin_${runId.slice(0,12)}`, password='TestPassword123', slug=`game-admin-${runId.slice(0,10)}`;let auth;
 const cookies=r=>(r.headers['set-cookie']||[]).map(v=>v.split(';',1)[0]).join('; ');const csrf=r=>(r.headers['set-cookie']||[]).find(v=>v.startsWith('gm_csrf='))?.split(';',1)[0].slice(8);
-before(async()=>{await prepareTestDatabase();await cleanupTestUsers('gameadmin_');const id=await userRepository.create(pool,{email,username,firstName:'Game',lastName:'Admin',phone:'0891234567',dateOfBirth:'1990-01-01',passwordHash:await hashPassword(password),accountMode:'ADMIN'});const [roleId]=await roleRepository.findIdsByCodes(pool,['ADMIN']);await userRepository.assignRoles(pool,id,[roleId]);auth=await api.post('/api/v1/auth/login').send({username,password});assert.equal(auth.status,200);});
+before(async()=>{await prepareTestDatabase();await cleanupTestUsers('gameadmin_');const id=await userRepository.create(pool,{email,username,firstName:'Game',lastName:'Admin',phone:'0891234567',dateOfBirth:'1990-01-01',passwordHash:await hashPassword(password),accountMode:'ADMIN'});auth=await api.post('/api/v1/auth/login').send({username,password});assert.equal(auth.status,200);});
 after(async()=>{await pool.execute('DELETE FROM games WHERE slug LIKE ?',[`${slug}%`]);await cleanupTestUsers('gameadmin_');await closeTestDatabasePool();});
 test('rejects unauthenticated admin game list',async()=>{const r=await api.get('/api/v1/games/admin');assert.equal(r.status,401);});
 test('allows admin to list games with active product counts',async()=>{const r=await api.get('/api/v1/games/admin').set('Cookie',cookies(auth));assert.equal(r.status,200);assert.ok(Array.isArray(r.body.data.games));assert.ok(

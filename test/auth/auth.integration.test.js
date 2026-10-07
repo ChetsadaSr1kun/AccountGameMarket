@@ -5,7 +5,7 @@ const request = require('supertest');
 const { pool } = require('../../backend/src/config/database');
 const { hashPassword } = require('../../backend/src/utils/password');
 
-if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== 'gamemarket_test') {
+if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== require('../helpers/database-name')) {
   throw new Error('Run authentication tests with npm test so the test database safety guard is active.');
 }
 

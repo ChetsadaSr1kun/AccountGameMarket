@@ -5,7 +5,6 @@ const request = require('supertest');
 const { pool } = require('../../backend/src/config/database');
 const { hashPassword } = require('../../backend/src/utils/password');
 const userRepository = require('../../backend/src/repositories/user.repository');
-const roleRepository = require('../../backend/src/repositories/role.repository');
 const app = require('../../backend/src/app');
 const {
   cleanupTestUsers,
@@ -13,7 +12,7 @@ const {
   prepareTestDatabase,
 } = require('../helpers/test-database');
 
-if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== 'gamemarket_test') {
+if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== require('../helpers/database-name')) {
   throw new Error('Run transaction report security tests with the test database guard active.');
 }
 
@@ -52,9 +51,7 @@ async function createAdmin() {
     passwordHash,
     accountMode: 'ADMIN',
   });
-  const [adminRoleId] = await roleRepository.findIdsByCodes(pool, ['ADMIN']);
-  assert.ok(adminRoleId);
-  await userRepository.assignRoles(pool, adminId, [adminRoleId]);
+  assert.deepEqual((await userRepository.findAuthUserById(adminId)).roles, ['ADMIN']);
 }
 
 before(async () => {

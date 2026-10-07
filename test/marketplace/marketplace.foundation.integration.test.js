@@ -38,7 +38,6 @@ async function cleanupSeller() {
   if (!users.length) return;
   const sellerId = users[0].id;
   await pool.execute('DELETE FROM products WHERE seller_id = ?', [sellerId]);
-  await pool.execute('DELETE FROM user_roles WHERE user_id = ?', [sellerId]);
   await pool.execute('DELETE FROM users WHERE id = ?', [sellerId]);
 }
 

@@ -1,7 +1,6 @@
 const config = require('../backend/src/config/env');
 const { pool } = require('../backend/src/config/database');
 const userRepository = require('../backend/src/repositories/user.repository');
-const roleRepository = require('../backend/src/repositories/role.repository');
 const { withTransaction } = require('../backend/src/utils/transaction');
 const { hashPassword } = require('../backend/src/utils/password');
 
@@ -24,9 +23,6 @@ async function run() {
     if (existingEmail || existingUsername) throw new Error('Admin email or username already exists.');
 
     const userId = await userRepository.create(connection, { email, username, passwordHash, accountMode: 'ADMIN' });
-    const [adminRoleId] = await roleRepository.findIdsByCodes(connection, ['ADMIN']);
-    if (!adminRoleId) throw new Error('ADMIN role is missing. Run the database migration first.');
-    await userRepository.assignRoles(connection, userId, [adminRoleId]);
     console.log(`Admin user created with id ${userId}.`);
   });
 }

@@ -9,12 +9,11 @@ const request = require('supertest');
 const { pool } = require('../../backend/src/config/database');
 const { hashPassword } = require('../../backend/src/utils/password');
 const userRepository = require('../../backend/src/repositories/user.repository');
-const roleRepository = require('../../backend/src/repositories/role.repository');
 const sellerVerificationRepository = require('../../backend/src/repositories/seller-verification.repository');
 const app = require('../../backend/src/app');
 const { cleanupTestUsers, closeTestDatabasePool, prepareTestDatabase } = require('../helpers/test-database');
 
-if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== 'gamemarket_test') {
+if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== require('../helpers/database-name')) {
   throw new Error('Seller verification tests are locked to the gamemarket_test database.');
 }
 
@@ -84,8 +83,6 @@ async function createAdmin() {
     passwordHash: await hashPassword(password),
     accountMode: 'ADMIN',
   });
-  const [adminRoleId] = await roleRepository.findIdsByCodes(pool, ['ADMIN']);
-  await userRepository.assignRoles(pool, userId, [adminRoleId]);
   const auth = await api.post('/api/v1/auth/login').send({ username: payload.username, password });
   assert.equal(auth.status, 200);
   return { ...payload, id: userId, auth };

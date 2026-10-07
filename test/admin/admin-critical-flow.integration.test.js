@@ -7,13 +7,12 @@ const request = require('supertest');
 const { pool } = require('../../backend/src/config/database');
 const { hashPassword } = require('../../backend/src/utils/password');
 const userRepository = require('../../backend/src/repositories/user.repository');
-const roleRepository = require('../../backend/src/repositories/role.repository');
 const walletRepository = require('../../backend/src/repositories/wallet.repository');
 const withdrawalService = require('../../backend/src/services/withdrawal.service');
 const app = require('../../backend/src/app');
 const { cleanupTestUsers, closeTestDatabasePool, prepareTestDatabase } = require('../helpers/test-database');
 
-if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== 'gamemarket_test') {
+if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== require('../helpers/database-name')) {
   throw new Error('Admin critical-flow tests are locked to the gamemarket_test database.');
 }
 
@@ -68,9 +67,6 @@ async function createUser(label, roles, accountMode) {
     passwordHash: await hashPassword(password),
     accountMode,
   });
-  const roleIds = await roleRepository.findIdsByCodes(pool, roles);
-  assert.equal(roleIds.length, roles.length);
-  await userRepository.assignRoles(pool, userId, roleIds);
   const auth = await api.post('/api/v1/auth/login').send({ username, password });
   assert.equal(auth.status, 200);
   return { id: Number(userId), username, auth };

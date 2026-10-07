@@ -30,10 +30,6 @@ const userRepository =
     '../../backend/src/repositories/user.repository'
   );
 
-const roleRepository =
-  require(
-    '../../backend/src/repositories/role.repository'
-  );
 
 const app =
   require('../../backend/src/app');
@@ -48,8 +44,7 @@ const {
 
 if (
   process.env.NODE_ENV !== 'test' ||
-  process.env.DB_NAME !==
-    'gamemarket_test'
+  process.env.DB_NAME !== require('../helpers/database-name')
 ) {
   throw new Error(
     'Run report chat review tests with the test database guard active.'
@@ -195,21 +190,6 @@ async function createAdmin() {
           'ADMIN',
       }
     );
-
-  const [adminRoleId] =
-    await roleRepository
-      .findIdsByCodes(
-        pool,
-        ['ADMIN']
-      );
-
-  assert.ok(adminRoleId);
-
-  await userRepository.assignRoles(
-    pool,
-    adminId,
-    [adminRoleId]
-  );
 
   const login =
     await api

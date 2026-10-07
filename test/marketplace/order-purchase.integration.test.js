@@ -9,7 +9,6 @@ const request = require('supertest');
 const app = require('../../backend/src/app');
 const { pool } = require('../../backend/src/config/database');
 const userRepository = require('../../backend/src/repositories/user.repository');
-const roleRepository = require('../../backend/src/repositories/role.repository');
 const { encrypt } = require('../../backend/src/utils/credential-crypto');
 const { hashPassword } = require('../../backend/src/utils/password');
 const {
@@ -18,7 +17,7 @@ const {
   prepareTestDatabase,
 } = require('../helpers/test-database');
 
-if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== 'gamemarket_test') {
+if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== require('../helpers/database-name')) {
   throw new Error('Order-purchase tests are locked to the gamemarket_test database.');
 }
 
@@ -81,9 +80,6 @@ async function createVerifiedUser(label, roles, accountMode) {
     passwordHash: await hashPassword(password),
     accountMode,
   });
-  const roleIds = await roleRepository.findIdsByCodes(pool, roles);
-  assert.equal(roleIds.length, roles.length);
-  await userRepository.assignRoles(pool, userId, roleIds);
   await userRepository.markEmailVerified(pool, userId);
   await userRepository.markPhoneVerified(pool, userId);
 

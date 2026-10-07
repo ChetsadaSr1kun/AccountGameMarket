@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const config = require('../config/env');
 const userRepository = require('../repositories/user.repository');
-const roleRepository = require('../repositories/role.repository');
 const refreshTokenRepository = require('../repositories/refresh-token.repository');
 const passwordResetTokenRepository = require('../repositories/password-reset-token.repository');
 const emailService = require('./email.service');
@@ -72,9 +71,6 @@ async function register(input, meta) {
       passwordHash,
       accountMode: policy.accountMode,
     });
-    const roleIds = await roleRepository.findIdsByCodes(connection, policy.roles);
-    if (roleIds.some((roleId) => !roleId)) throw new AppError('Required roles are missing from the database.', 500, 'ROLE_SETUP_ERROR');
-    await userRepository.assignRoles(connection, userId, roleIds);
 
     const user = await userRepository.findAuthUserById(userId, connection);
     const tokens = await issueSession(user, meta, connection);

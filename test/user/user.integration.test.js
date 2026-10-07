@@ -9,7 +9,7 @@ const userRepository = require("../../backend/src/repositories/user.repository")
 const emailService = require("../../backend/src/services/email.service");
 const smsService = require("../../backend/src/services/sms.service");
 
-if (process.env.NODE_ENV !== "test" || process.env.DB_NAME !== "gamemarket_test") {
+if (process.env.NODE_ENV !== "test" || process.env.DB_NAME !== require('../helpers/database-name')) {
   throw new Error("Run user tests with npm test so the test database safety guard is active.");
 }
 

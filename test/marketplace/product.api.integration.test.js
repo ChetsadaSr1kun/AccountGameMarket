@@ -39,8 +39,6 @@ async function register(label, overrides = {}) {
 
 async function promoteRegisteredUserToSeller(email) {
   const [users] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
-  const [roles] = await pool.execute("SELECT id FROM roles WHERE code = 'SELLER'");
-  await pool.execute('INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)', [users[0].id, roles[0].id]);
   await pool.execute("UPDATE users SET account_mode = 'UNIFIED' WHERE id = ?", [users[0].id]);
 }
 
@@ -51,18 +49,12 @@ async function createUserDirect(email, username, accountMode = 'SELLER_ONLY') {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [email, username, passwordHash, accountMode, 'Direct', 'User', '0812345678', '2000-01-01'],
   );
-  const [roles] = await pool.execute('SELECT id FROM roles WHERE code = ?', [accountMode === 'SELLER_ONLY' ? 'SELLER' : 'CUSTOMER']);
-  await pool.execute('INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)', [result.insertId, roles[0].id]);
   return result.insertId;
 }
 
 async function cleanup() {
   const patterns = [sellerEmail, buyerEmail, sellerBEmail, `%_product_${runId}@example.test`, `%_${runId.slice(0, 18)}`];
   for (const pattern of patterns) {
-    await pool.execute(
-      `DELETE user_roles FROM user_roles INNER JOIN users ON users.id = user_roles.user_id WHERE users.email = ? OR users.email LIKE ?`,
-      [pattern, pattern],
-    );
     await pool.execute('DELETE FROM users WHERE email = ? OR email LIKE ?', [pattern, pattern]);
   }
 }

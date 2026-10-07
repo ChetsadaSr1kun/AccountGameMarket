@@ -20,6 +20,18 @@ async function snapshot(baseline) {
       columns = fields.map((field) => field.Field);
     }
     let sql = `SELECT ${columns.map(quote).join(',')} FROM ${quote(table)}`;
+    if (baseline && table === 'user_roles') {
+      const [[field]] = await pool.query(`SELECT COUNT(*) n FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='admin_role_assigned_at'`);
+      if (field.n) {
+        sql = [['admin', 1], ['seller', 2], ['customer', 3]].map(([role, id]) =>
+          `SELECT id user_id,${id} role_id,${role}_role_assigned_at assigned_at
+           FROM users WHERE ${role}_role_assigned_at IS NOT NULL`).join(' UNION ALL ');
+      }
+    }
+    if (baseline && table === 'roles' && !tables.some((row) => Object.values(row)[0] === 'roles')) {
+      sql = "SELECT 1 id,'ADMIN' code,'Administrator' name UNION ALL SELECT 2,'SELLER','Seller' UNION ALL SELECT 3,'CUSTOMER','Customer'";
+    }
     if (baseline && table === 'seller_verification_documents') {
       const [[field]] = await pool.query(`SELECT COUNT(*) n FROM information_schema.COLUMNS
         WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='seller_verification_requests' AND COLUMN_NAME='id_front_id'`);

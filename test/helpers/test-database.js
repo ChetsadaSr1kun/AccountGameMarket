@@ -6,7 +6,7 @@ const config = require('../../backend/src/config/env');
 const { pool } = require('../../backend/src/config/database');
 const { resetGlobalLimitForTests } = require('../../backend/src/middleware/rate-limit.middleware');
 
-const TEST_DATABASE_NAME = 'gamemarket_test';
+const TEST_DATABASE_NAME = require('./database-name');
 const avatarDirectory = path.resolve(__dirname, '../../uploads/avatars');
 const avatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
@@ -63,6 +63,16 @@ async function prepareTestDatabase() {
       await databaseConnection.query(sql);
       await databaseConnection.execute('INSERT INTO schema_migrations (filename) VALUES (?)', [filename]);
     }
+    // Seller fixture cleanup uses user-ID directories on disk. Reserve a high
+    // ID range in new test schemas so it cannot overlap existing local uploads.
+    const [[userTable]] = await databaseConnection.execute(
+      "SELECT AUTO_INCREMENT next_id FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_NAME='users'",
+      [TEST_DATABASE_NAME],
+    );
+    if (Number(userTable.next_id) <= 1) {
+      const firstId = 4000000000000 + require('node:crypto').randomInt(1000000) * 1000;
+      await databaseConnection.query(`ALTER TABLE users AUTO_INCREMENT=${firstId}`);
+    }
   } finally {
     await databaseConnection.end();
   }
@@ -88,12 +98,6 @@ async function cleanupTestUsers(emailPrefix) {
   await pool.execute(
     `DELETE user_verification_otps FROM user_verification_otps
      INNER JOIN users ON users.id = user_verification_otps.user_id
-     WHERE users.email LIKE ?`,
-    [emailPattern],
-  );
-  await pool.execute(
-    `DELETE user_roles FROM user_roles
-     INNER JOIN users ON users.id = user_roles.user_id
      WHERE users.email LIKE ?`,
     [emailPattern],
   );

@@ -2,7 +2,7 @@ const { pool } = require('../config/database');
 
 async function findSeller(sellerId, executor = pool) {
   const [rows] = await executor.execute(`SELECT u.id,u.username,u.avatar_url,u.created_at,
-    CASE WHEN EXISTS (SELECT 1 FROM user_roles ur INNER JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=u.id AND r.code='SELLER') THEN 1 ELSE 0 END is_seller,
+    (u.account_mode IN ('UNIFIED','SELLER_ONLY')) is_seller,
     CASE WHEN u.email_verified_at IS NOT NULL AND u.phone_verified_at IS NOT NULL THEN 1 ELSE 0 END account_verified
     FROM users u WHERE u.id=? LIMIT 1`, [sellerId]);
   return rows[0] || null;

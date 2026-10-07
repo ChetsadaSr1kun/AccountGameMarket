@@ -74,7 +74,6 @@ after(async () => {
     await pool.execute('DELETE FROM refresh_tokens WHERE user_id IN (SELECT id FROM users WHERE email=?)', [email]);
     await pool.execute('DELETE FROM password_reset_tokens WHERE user_id IN (SELECT id FROM users WHERE email=?)', [email]);
     await pool.execute('DELETE FROM user_verification_otps WHERE user_id IN (SELECT id FROM users WHERE email=?)', [email]);
-    await pool.execute('DELETE FROM user_roles WHERE user_id IN (SELECT id FROM users WHERE email=?)', [email]);
     await pool.execute('DELETE FROM users WHERE email=?', [email]);
   }
   await closeTestDatabasePool();
