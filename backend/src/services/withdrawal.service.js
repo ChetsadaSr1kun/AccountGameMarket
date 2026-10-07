@@ -104,7 +104,7 @@ async function createRequestWithConnection(userId, data, connection) {
     );
   }
 
-  const wallet = await walletRepository.findByUserId(
+  const balanceAfter = await walletRepository.getBalanceDecimal(
     userId,
     connection
   );
@@ -128,8 +128,8 @@ async function createRequestWithConnection(userId, data, connection) {
     {
       userId,
       type: 'WITHDRAWAL',
-      amount: -amount,
-      balanceAfter: wallet.balance,
+      amount: `-${String(amount)}`,
+      balanceAfter,
       referenceType: 'WITHDRAWAL_REQUEST',
       referenceId: Number(request.id),
       note: 'Withdrawal request pending review',

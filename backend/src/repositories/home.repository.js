@@ -13,9 +13,9 @@ async function getUserHome(userId) {
   const [[wallet]] =
     await pool.execute(
       `
-        SELECT COALESCE(balance, 0) balance
-        FROM wallets
-        WHERE user_id = ?
+        SELECT wallet_balance balance
+        FROM users
+        WHERE id = ?
         LIMIT 1
       `,
       [userId]

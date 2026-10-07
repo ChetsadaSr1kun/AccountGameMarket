@@ -107,7 +107,6 @@ async function cleanupFixtures() {
     await pool.execute(`DELETE FROM withdrawal_requests WHERE user_id IN (${placeholders})`, userIds);
     await pool.execute(`DELETE FROM notifications WHERE user_id IN (${placeholders})`, userIds);
     await pool.execute(`DELETE FROM wallet_transactions WHERE wallet_user_id IN (${placeholders})`, userIds);
-    await pool.execute(`DELETE FROM wallets WHERE user_id IN (${placeholders})`, userIds);
   }
   await cleanupTestUsers(emailPrefix);
 }
@@ -831,7 +830,7 @@ test('approves an authentic reserved withdrawal without deducting the wallet twi
   const startingBalance = 1000;
   const withdrawalAmount = 250;
   await walletRepository.ensureWallet(withdrawalApprovalUser.id);
-  await pool.execute('UPDATE wallets SET balance = ? WHERE user_id = ?', [startingBalance, withdrawalApprovalUser.id]);
+  await pool.execute('UPDATE users SET wallet_balance = ? WHERE id = ?', [startingBalance, withdrawalApprovalUser.id]);
 
   const request = await withdrawalService.createRequest(withdrawalApprovalUser.id, {
     amount: withdrawalAmount,
@@ -934,7 +933,7 @@ test('rejects an authentic reserved withdrawal and refunds the wallet exactly on
   const startingBalance = 1000;
   const withdrawalAmount = 300;
   await walletRepository.ensureWallet(withdrawalRejectionUser.id);
-  await pool.execute('UPDATE wallets SET balance = ? WHERE user_id = ?', [startingBalance, withdrawalRejectionUser.id]);
+  await pool.execute('UPDATE users SET wallet_balance = ? WHERE id = ?', [startingBalance, withdrawalRejectionUser.id]);
 
   const request = await withdrawalService.createRequest(withdrawalRejectionUser.id, {
     amount: withdrawalAmount,

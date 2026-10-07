@@ -25,7 +25,7 @@ async function listUsers(search = '', status = 'ALL', role = 'ALL') {
     params.push(...modes);
   }
   const sql = `SELECT u.id,u.username,u.email,u.first_name,u.last_name,u.phone,u.account_mode,u.status,u.email_verified_at,u.phone_verified_at,u.created_at,
-    COALESCE((SELECT w.balance FROM wallets w WHERE w.user_id=u.id),0) wallet_balance,
+    u.wallet_balance,
     (SELECT COUNT(*) FROM orders o WHERE o.seller_id=u.id AND o.status='COMPLETED') sold_count,
     (SELECT COUNT(*) FROM orders o WHERE o.buyer_id=u.id AND o.status='COMPLETED') bought_count
     FROM users u ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY u.created_at DESC LIMIT 200`;
@@ -77,14 +77,7 @@ async function getUser(userId) {
         WHERE rt.user_id = u.id
       ) AS last_session_at,
 
-      COALESCE(
-        (
-          SELECT w.balance
-          FROM wallets w
-          WHERE w.user_id = u.id
-        ),
-        0
-      ) AS wallet_balance,
+      u.wallet_balance,
 
       (
         SELECT COUNT(*)

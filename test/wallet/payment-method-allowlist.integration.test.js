@@ -109,7 +109,7 @@ test('completes a BANK withdrawal attempt after the email and phone OTP flow', a
 
   try {
     await walletRepository.ensureWallet(userId);
-    await pool.execute('UPDATE wallets SET balance = ? WHERE user_id = ?', [1000, userId]);
+    await pool.execute('UPDATE users SET wallet_balance = ? WHERE id = ?', [1000, userId]);
 
     const attempt = await withdrawalAttemptService.createAttempt(userId, {
       amount: 100,

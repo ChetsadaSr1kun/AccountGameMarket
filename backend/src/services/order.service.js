@@ -1,3 +1,4 @@
+const walletRepository = require('../repositories/wallet.repository');
 const orderRepository = require('../repositories/order.repository');
 const { withTransaction } = require('../utils/transaction');
 const AppError = require('../utils/app-error');
@@ -69,42 +70,15 @@ async function payOrder(user, orderId) {
     if (order.status !== 'PENDING') throw new AppError('This order cannot be paid.', 409, 'ORDER_NOT_PAYABLE');
     if (order.product_status !== 'ACTIVE') throw new AppError('This product is no longer available.', 409, 'PRODUCT_NOT_AVAILABLE');
 
-    const [buyerWalletRows] = await connection.execute(
-      'SELECT balance FROM wallets WHERE user_id=? FOR UPDATE',
-      [user.id]
-    );
-
-    const buyerBalance = Number(
-      buyerWalletRows[0]?.balance || 0
-    );
-
-    const amount = Number(order.amount);
-
-    const sellerNetAmount =
-      Number(
-        order.seller_net_amount ??
-        amount
-      );
-
-    if (buyerBalance < amount) {
-      throw new AppError(
-        'Insufficient wallet balance.',
-        400,
-        'INSUFFICIENT_BALANCE'
-      );
+    const amount = order.amount;
+    const sellerNetAmount = order.seller_net_amount ?? amount;
+    const reserved = await walletRepository.reserveBalance(user.id, amount, connection);
+    if (!reserved) {
+      throw new AppError('Insufficient wallet balance.', 400, 'INSUFFICIENT_BALANCE');
     }
-
-    const newBuyerBalance = buyerBalance - amount;
-    await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newBuyerBalance, user.id]);
+    const newBuyerBalance = await walletRepository.getBalanceDecimal(user.id, connection);
     await connection.execute("INSERT INTO wallet_transactions (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note) VALUES (?,'PURCHASE',?,?,?,?,?)", [user.id, amount, newBuyerBalance, 'ORDER', order.id, 'Order payment']);
-
-    await connection.execute('INSERT INTO wallets (user_id,balance) VALUES (?,0) ON DUPLICATE KEY UPDATE user_id=user_id', [order.seller_id]);
-    const [sellerWalletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [order.seller_id]);
-    const sellerBalance = Number(sellerWalletRows[0]?.balance || 0);
-    const newSellerBalance =
-      sellerBalance +
-      sellerNetAmount;
-    await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newSellerBalance, order.seller_id]);
+    const newSellerBalance = await walletRepository.creditBalance(order.seller_id, sellerNetAmount, connection);
     await connection.execute(
       "INSERT INTO wallet_transactions (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note) VALUES (?,'SALE',?,?,?,?,?)",
       [

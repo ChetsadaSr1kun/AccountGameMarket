@@ -63,9 +63,7 @@ async function decide(requestId, adminId, approved, reason = null) {
     if (!approved && !String(reason || '').trim()) throw new AppError('Rejection reason is required.', 400, 'REJECTION_REASON_REQUIRED');
     if (approved) {
       await wallet.ensureWallet(request.user_id, connection);
-      const [walletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [request.user_id]);
-      const newBalance = Number(walletRows[0].balance) + Number(request.amount);
-      await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newBalance, request.user_id]);
+      const newBalance = await wallet.creditBalance(request.user_id, request.amount, connection);
       await connection.execute(`INSERT INTO wallet_transactions
         (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note)
         VALUES (?,'TOP_UP',?,?,?,?,?)`, [request.user_id, request.amount, newBalance, 'WALLET_TOPUP', request.id, `เติมพ้อยท์ #${request.id}`]);
@@ -209,9 +207,7 @@ async function decideWithdrawal(requestId, adminId, approved, reason = null) {
       await notificationService.create({ userId: request.user_id, type: 'WALLET_WITHDRAW_APPROVED', title: '\u0e16\u0e2d\u0e19\u0e1e\u0e49\u0e2d\u0e22\u0e17\u0e4c\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08', message: 'คำขอถอน #' + request.id + ' ได้รับการอนุมัติแล้ว', referenceType: 'WITHDRAWAL', referenceId: request.id }, connection);
     } else {
       await wallet.ensureWallet(request.user_id, connection);
-      const [walletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [request.user_id]);
-      const newBalance = Number(walletRows[0].balance) + Number(request.amount);
-      await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newBalance, request.user_id]);
+      const newBalance = await wallet.creditBalance(request.user_id, request.amount, connection);
       await connection.execute(`INSERT INTO wallet_transactions
         (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note)
         VALUES (?,'REFUND',?,?,?,?,?)`, [request.user_id, request.amount, newBalance, 'WITHDRAWAL_REQUEST', request.id, 'คืนพ้อยท์จากคำขอถอนที่ไม่อนุมัติ']);

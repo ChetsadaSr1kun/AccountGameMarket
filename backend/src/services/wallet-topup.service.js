@@ -139,9 +139,7 @@ async function processSlipOkVerification(topupId, userId, file) {
     const duplicate = await repository.findBySlipOkTransRef(transRef, connection, true);
     if (duplicate && Number(duplicate.id) !== Number(request.id)) throw new AppError('สลิปนี้ถูกใช้เติมพ้อยท์ไปแล้ว', 409, 'SLIP_ALREADY_USED');
     await walletRepository.ensureWallet(request.user_id, connection);
-    const [walletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [request.user_id]);
-    const newBalance = Number(walletRows[0].balance) + Number(request.amount);
-    await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newBalance, request.user_id]);
+    const newBalance = await walletRepository.creditBalance(request.user_id, request.amount, connection);
     await connection.execute(`INSERT INTO wallet_transactions (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note)
       VALUES (?,'TOP_UP',?,?,?,?,?)`, [request.user_id, request.amount, newBalance, 'WALLET_TOPUP', request.id, 'เติมพ้อยท์ผ่าน SlipOK #' + request.id]);
     await repository.updateSlipOkResult(request.id, { providerStatus: 'VERIFIED', providerReferenceNo: transRef, providerPaidAt: new Date(), status: 'APPROVED',

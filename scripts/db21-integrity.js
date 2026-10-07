@@ -20,6 +20,12 @@ async function snapshot(baseline) {
       columns = fields.map((field) => field.Field);
     }
     let sql = `SELECT ${columns.map(quote).join(',')} FROM ${quote(table)}`;
+    if (baseline && table === 'wallets') {
+      const [[field]] = await pool.query(`SELECT COUNT(*) n FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='wallet_balance'`);
+      if (field.n) sql = `SELECT id user_id,wallet_balance balance,wallet_created_at created_at,
+        wallet_updated_at updated_at FROM users WHERE wallet_created_at IS NOT NULL`;
+    }
     if (baseline && table === 'user_roles') {
       const [[field]] = await pool.query(`SELECT COUNT(*) n FROM information_schema.COLUMNS
         WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='admin_role_assigned_at'`);

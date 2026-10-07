@@ -130,7 +130,7 @@ test('credits a verified SlipOK slip once and creates its wallet notification', 
     assert.equal(row.provider_status, 'VERIFIED');
     assert.equal(row.slipok_trans_ref, 'SLIP-UNIQUE-250');
 
-    const [[wallet]] = await pool.execute('SELECT balance FROM wallets WHERE user_id = ?', [userId]);
+    const [[wallet]] = await pool.execute('SELECT wallet_balance balance FROM users WHERE id = ?', [userId]);
     assert.equal(Number(wallet.balance), 250);
 
     const [[tx]] = await pool.execute(
@@ -159,7 +159,7 @@ test('rejects a SlipOK slip when the receiver does not match the configured bank
   config.slipOk.receiverAccount = testReceiverAccount;
   try {
     await assert.rejects(topupService.processSlipOkVerification(request.id, userId, { buffer: Buffer.from('fake'), mimetype: 'image/png', originalname: 'slip.png' }), (error) => error?.code === 'SLIP_RECEIVER_MISMATCH');
-    const [[wallet]] = await pool.execute('SELECT balance FROM wallets WHERE user_id = ?', [userId]);
+    const [[wallet]] = await pool.execute('SELECT wallet_balance balance FROM users WHERE id = ?', [userId]);
     assert.equal(Number(wallet.balance), 250);
   } finally {
     slipOkService.checkSlip = originalCheckSlip;
@@ -226,7 +226,7 @@ test('rejects a SlipOK slip that is older than the top-up request window', async
       topupService.processSlipOkVerification(request.id, userId, { buffer: Buffer.from('fake'), mimetype: 'image/png', originalname: 'slip.png' }),
       (error) => error?.code === 'SLIP_TIMESTAMP_TOO_OLD',
     );
-    const [[wallet]] = await pool.execute('SELECT balance FROM wallets WHERE user_id = ?', [userId]);
+    const [[wallet]] = await pool.execute('SELECT wallet_balance balance FROM users WHERE id = ?', [userId]);
     assert.equal(Number(wallet.balance), 350);
   } finally {
     slipOkService.checkSlip = originalCheckSlip;
@@ -252,7 +252,7 @@ test('rejects a SlipOK slip with a future transaction timestamp', async () => {
       topupService.processSlipOkVerification(request.id, userId, { buffer: Buffer.from('fake'), mimetype: 'image/png', originalname: 'slip.png' }),
       (error) => error?.code === 'SLIP_TIMESTAMP_IN_FUTURE',
     );
-    const [[wallet]] = await pool.execute('SELECT balance FROM wallets WHERE user_id = ?', [userId]);
+    const [[wallet]] = await pool.execute('SELECT wallet_balance balance FROM users WHERE id = ?', [userId]);
     assert.equal(Number(wallet.balance), 350);
   } finally {
     slipOkService.checkSlip = originalCheckSlip;
@@ -266,7 +266,7 @@ test('does not allow legacy admin crediting for a SlipOK-managed request', async
     walletAdminService.decide(request.id, userId, true),
     (error) => error?.code === 'TOPUP_MANAGED_BY_PROVIDER',
   );
-  const [[wallet]] = await pool.execute('SELECT balance FROM wallets WHERE user_id = ?', [userId]);
+  const [[wallet]] = await pool.execute('SELECT wallet_balance balance FROM users WHERE id = ?', [userId]);
   assert.equal(Number(wallet.balance), 350);
   await pool.execute('DELETE FROM wallet_topup_requests WHERE id = ?', [request.id]);
 });

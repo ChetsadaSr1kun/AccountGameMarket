@@ -90,7 +90,7 @@ async function createVerifiedUser(label, roles, accountMode) {
 }
 
 async function walletBalance(userId) {
-  const [[wallet]] = await pool.execute('SELECT balance FROM wallets WHERE user_id = ?', [userId]);
+  const [[wallet]] = await pool.execute('SELECT wallet_balance balance FROM users WHERE id = ?', [userId]);
   return Number(wallet.balance);
 }
 
@@ -131,7 +131,6 @@ async function cleanupFixtures() {
   }
   if (userIds.length > 0) {
     const placeholders = userIds.map(() => '?').join(', ');
-    await pool.execute(`DELETE FROM wallets WHERE user_id IN (${placeholders})`, userIds);
   }
   await cleanupTestUsers(emailPrefix);
 }
@@ -170,12 +169,9 @@ before(async () => {
     ],
   );
 
-  await pool.execute('INSERT INTO wallets (user_id, balance) VALUES (?, ?), (?, ?)', [
-    buyer.id,
-    buyerStartingBalance,
-    seller.id,
-    sellerStartingBalance,
-  ]);
+  for (const [id, balance] of [[buyer.id, buyerStartingBalance], [seller.id, sellerStartingBalance]]) {
+    await pool.execute('UPDATE users SET wallet_balance=?,wallet_created_at=UTC_TIMESTAMP(3),wallet_updated_at=UTC_TIMESTAMP(3) WHERE id=?', [balance, id]);
+  }
 });
 
 after(async () => {
