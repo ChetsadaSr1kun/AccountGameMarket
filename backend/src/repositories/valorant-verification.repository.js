@@ -41,16 +41,34 @@ async function findByProductId(
     await executor.execute(
       `
       SELECT
-        product_id,
-        riot_game_name,
-        riot_tag_line,
-        riot_puuid,
-        verified_at,
-        last_checked_at,
-        created_at,
-        updated_at
-      FROM product_valorant_verifications
-      WHERE product_id = ?
+        id AS product_id,
+
+        valorant_riot_game_name
+          AS riot_game_name,
+
+        valorant_riot_tag_line
+          AS riot_tag_line,
+
+        valorant_riot_puuid
+          AS riot_puuid,
+
+        valorant_verified_at
+          AS verified_at,
+
+        valorant_last_checked_at
+          AS last_checked_at,
+
+        valorant_verification_created_at
+          AS created_at,
+
+        valorant_verification_updated_at
+          AS updated_at
+
+      FROM products
+
+      WHERE id = ?
+        AND valorant_riot_puuid IS NOT NULL
+
       LIMIT 1
       `,
       [productId]
@@ -70,16 +88,33 @@ async function findByPuuid(
     await executor.execute(
       `
       SELECT
-        product_id,
-        riot_game_name,
-        riot_tag_line,
-        riot_puuid,
-        verified_at,
-        last_checked_at,
-        created_at,
-        updated_at
-      FROM product_valorant_verifications
-      WHERE riot_puuid = ?
+        id AS product_id,
+
+        valorant_riot_game_name
+          AS riot_game_name,
+
+        valorant_riot_tag_line
+          AS riot_tag_line,
+
+        valorant_riot_puuid
+          AS riot_puuid,
+
+        valorant_verified_at
+          AS verified_at,
+
+        valorant_last_checked_at
+          AS last_checked_at,
+
+        valorant_verification_created_at
+          AS created_at,
+
+        valorant_verification_updated_at
+          AS updated_at
+
+      FROM products
+
+      WHERE valorant_riot_puuid = ?
+
       LIMIT 1
       `,
       [puuid]
@@ -105,14 +140,21 @@ async function saveVerified(
   if (existing) {
     await executor.execute(
       `
-      UPDATE product_valorant_verifications
+      UPDATE products
       SET
-        riot_game_name = ?,
-        riot_tag_line = ?,
-        riot_puuid = ?,
-        last_checked_at =
-          UTC_TIMESTAMP(3)
-      WHERE product_id = ?
+        valorant_riot_game_name = ?,
+        valorant_riot_tag_line = ?,
+        valorant_riot_puuid = ?,
+
+        valorant_last_checked_at =
+          UTC_TIMESTAMP(3),
+
+        valorant_verification_updated_at =
+          UTC_TIMESTAMP(3),
+
+        updated_at = updated_at
+
+      WHERE id = ?
       `,
       [
         data.gameName,
@@ -130,28 +172,33 @@ async function saveVerified(
 
   await executor.execute(
     `
-    INSERT INTO product_valorant_verifications (
-      product_id,
-      riot_game_name,
-      riot_tag_line,
-      riot_puuid,
-      verified_at,
-      last_checked_at
-    )
-    VALUES (
-      ?,
-      ?,
-      ?,
-      ?,
-      UTC_TIMESTAMP(3),
-      UTC_TIMESTAMP(3)
-    )
+    UPDATE products
+    SET
+      valorant_riot_game_name = ?,
+      valorant_riot_tag_line = ?,
+      valorant_riot_puuid = ?,
+
+      valorant_verified_at =
+        UTC_TIMESTAMP(3),
+
+      valorant_last_checked_at =
+        UTC_TIMESTAMP(3),
+
+      valorant_verification_created_at =
+        UTC_TIMESTAMP(3),
+
+      valorant_verification_updated_at =
+        UTC_TIMESTAMP(3),
+
+      updated_at = updated_at
+
+    WHERE id = ?
     `,
     [
-      productId,
       data.gameName,
       data.tagLine,
       data.puuid,
+      productId,
     ]
   );
 
@@ -169,9 +216,19 @@ async function deleteByProductId(
   const [result] =
     await executor.execute(
       `
-      DELETE
-      FROM product_valorant_verifications
-      WHERE product_id = ?
+      UPDATE products
+      SET
+        valorant_riot_game_name = NULL,
+        valorant_riot_tag_line = NULL,
+        valorant_riot_puuid = NULL,
+        valorant_verified_at = NULL,
+        valorant_last_checked_at = NULL,
+        valorant_verification_created_at = NULL,
+        valorant_verification_updated_at = NULL,
+
+        updated_at = updated_at
+
+      WHERE id = ?
       `,
       [productId]
     );

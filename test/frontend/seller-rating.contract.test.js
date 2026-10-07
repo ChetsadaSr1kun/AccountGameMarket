@@ -1,46 +1,50 @@
 const assert = require('node:assert/strict');
-const fs = require('fs');
-const vm = require('vm');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 const { test } = require('node:test');
 
-const ROOT = 'C:\\Project Final\\GameMarket';
-const source = fs.readFileSync(`${ROOT}\\assets\\js\\seller-rating-ui.js`, 'utf8');
-const index = fs.readFileSync(`${ROOT}\\index.html`, 'utf8');
+// The legacy seller-rating-ui.js was replaced by the current profile page.
+const source = fs.readFileSync(path.resolve(__dirname, '../../assets/js/user-profile-ui.js'), 'utf8');
 
-function makeContext(user) {
-  const card = { style: { display: 'none' } };
+function makeContext(roles) {
   const target = {
     innerHTML: '',
-    closest: () => card,
+    removeAttribute() {},
+    insertAdjacentHTML(position, html) { this.innerHTML += html; },
   };
-  let fetchCalls = 0;
+  const urls = [];
+  const errors = [];
   const context = {
-    console: { error() {} },
-    currentUser: user,
+    console: { error(...args) { errors.push(args); } },
+    currentUser: { id: 15, username: 'fixture', roles },
     window: {},
     document: { getElementById: () => target },
-    fetch: async () => {
-      fetchCalls += 1;
-      return { ok: true, json: async () => ({ data: { rating: {}, reviews: [] } }) };
+    fetch: async (url) => {
+      urls.push(url);
+      const data = url.includes('/sellers/')
+        ? { rating: { averageRating: 4.5, reviewCount: 2 }, completedSales: 3, reviews: [], activeProducts: [] }
+        : { orders: [], wallet: { transactions: [] } };
+      return { ok: true, json: async () => ({ data }) };
     },
   };
   vm.runInNewContext(source, context);
-  return { context, card, target, getFetchCalls: () => fetchCalls };
+  return { context, target, urls, errors };
 }
 
- test('hides seller rating card and skips seller API for non-sellers', async () => {
-  assert.match(index, /<div class="card" style="margin-bottom:16px;display:none">\s*<h4[^>]*>⭐ คะแนนผู้ขาย/);
-  const { context, card, target, getFetchCalls } = makeContext({ id: 15, roles: ['BUYER'] });
-  await context.window.loadProfileSellerRating();
-  assert.equal(card.style.display, 'none');
-  assert.equal(target.innerHTML, '');
-  assert.equal(getFetchCalls(), 0);
+test('customer profile skips the seller API and seller rating panel', async () => {
+  const { context, target, urls, errors } = makeContext(['CUSTOMER']);
+  await context.window.loadUserProfile();
+  assert.equal(errors.length, 0);
+  assert.deepEqual(urls, ['/api/v1/orders', '/api/v1/wallet']);
+  assert.doesNotMatch(target.innerHTML, /คะแนนผู้ขาย/);
 });
 
-test('shows seller rating card and loads seller API for sellers', async () => {
-  const { context, card, target, getFetchCalls } = makeContext({ id: 15, roles: ['SELLER'] });
-  await context.window.loadProfileSellerRating();
-  assert.equal(card.style.display, '');
-  assert.equal(getFetchCalls(), 1);
-  assert.match(target.innerHTML, /seller-rating-empty/);
+test('seller profile consumes the existing seller rating response', async () => {
+  const { context, target, urls, errors } = makeContext(['CUSTOMER', 'SELLER']);
+  await context.window.loadUserProfile();
+  assert.equal(errors.length, 0);
+  assert.deepEqual(urls, ['/api/v1/orders', '/api/v1/wallet', '/api/v1/sellers/15']);
+  assert.match(target.innerHTML, /คะแนนผู้ขาย/);
+  assert.match(target.innerHTML, /4\.5/);
 });

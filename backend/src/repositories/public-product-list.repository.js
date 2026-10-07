@@ -65,10 +65,8 @@ async function listPublic(filters = {}, executor = pool) {
             u.username AS seller_username,
             pi.image_url AS primary_image_url,
 
-            EXISTS (
-              SELECT 1
-              FROM product_valorant_verifications vv
-              WHERE vv.product_id = p.id
+            (
+              p.valorant_riot_puuid IS NOT NULL
             ) AS valorant_verified
        FROM products p
        INNER JOIN games g ON g.id=p.game_id

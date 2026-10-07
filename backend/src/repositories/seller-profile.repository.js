@@ -39,11 +39,9 @@ async function listActiveProducts(sellerId, limit=6, executor = pool) {
   g.name game_name,
   pi.image_url primary_image_url,
 
-  EXISTS (
-    SELECT 1
-    FROM product_valorant_verifications vv
-    WHERE vv.product_id = p.id
-  ) valorant_verified
+  (
+    p.valorant_riot_puuid IS NOT NULL
+  ) AS valorant_verified
 FROM products p
 INNER JOIN games g
   ON g.id=p.game_id

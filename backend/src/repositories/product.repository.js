@@ -54,10 +54,8 @@ const productSelect = `
       LIMIT 1
     ) AS primary_image_url,
 
-    EXISTS (
-      SELECT 1
-      FROM product_valorant_verifications vv
-      WHERE vv.product_id = p.id
+    (
+      p.valorant_riot_puuid IS NOT NULL
     ) AS valorant_verified
 
   FROM products p
