@@ -5,8 +5,34 @@ const {requireCsrf}=require('../middleware/csrf.middleware');
 const router=express.Router();
 router.use(authenticate);
 router.post('/',requireCsrf,controller.createReport);
-router.get('/pending',authorize('ADMIN'),controller.listPendingReports);
-router.get('/admin',authorize('ADMIN'),controller.listAdminReports);
-router.get('/:id',authorize('ADMIN'),controller.getReportDetail);
-router.patch('/:id',authorize('ADMIN'),requireCsrf,controller.updateReport);
+router.get(
+  '/pending',
+  authorize('ADMIN'),
+  controller.listPendingReports
+);
+
+router.get(
+  '/admin',
+  authorize('ADMIN'),
+  controller.listAdminReports
+);
+
+router.get(
+  '/:id/chat',
+  authorize('ADMIN'),
+  controller.getReportChat
+);
+
+router.get(
+  '/:id',
+  authorize('ADMIN'),
+  controller.getReportDetail
+);
+
+router.patch(
+  '/:id',
+  authorize('ADMIN'),
+  requireCsrf,
+  controller.updateReport
+);
 module.exports=router;

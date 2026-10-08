@@ -10,7 +10,7 @@ function openReviewModal(order) {
   if (!modal) { modal = document.createElement('div'); modal.id = 'reviewModal'; modal.className = 'modal-overlay'; document.body.appendChild(modal); }
   const title = reviewEscape(order.product?.title || 'สินค้า');
   modal.innerHTML = `<div class="modal-card review-modal-card" style="max-width:520px;width:calc(100% - 32px)">
-    <div class="review-modal-header"><div><div class="review-modal-title">⭐ รีวิวสินค้า</div><div class="review-modal-product">${title}</div></div><button class="btn btn-ghost btn-sm" onclick="closeReviewModal()" aria-label="ปิด">✕</button></div>
+    <div class="review-modal-header"><div><div class="review-modal-title"><img class="ui-emoji" src="assets/icons/star.svg" alt=""> รีวิวสินค้า</div><div class="review-modal-product">${title}</div></div><button class="btn btn-ghost btn-sm" onclick="closeReviewModal()" aria-label="ปิด">✕</button></div>
     <div class="review-label">ให้คะแนนสินค้า</div>
     <div id="reviewStars" class="review-stars">${[1,2,3,4,5].map((n) => `<button type="button" data-rating="${n}" onclick="setReviewRating(${n})" aria-label="ให้ ${n} ดาว">☆</button>`).join('')}</div>
     <div class="review-label">ความคิดเห็น <span>(ไม่บังคับ)</span></div>

@@ -1,6 +1,17 @@
 const AppError = require('../utils/app-error');
 const repository = require('../repositories/seller-profile.repository');
-function mapReview(row){return {id:Number(row.id),rating:Number(row.rating),comment:row.comment||'',buyerUsername:row.buyer_username,sellerReply:row.seller_reply||null,sellerReplyAt:row.seller_reply_at||null,createdAt:row.created_at};}
+function mapReview(row) {
+  return {
+    id: Number(row.id),
+    sellerId: Number(row.seller_id),
+    rating: Number(row.rating),
+    comment: row.comment || '',
+    buyerUsername: row.buyer_username,
+    sellerReply: row.seller_reply || null,
+    sellerReplyAt: row.seller_reply_at || null,
+    createdAt: row.created_at,
+  };
+}
 async function getProfile(sellerId){
   const id=Number(sellerId); if(!Number.isInteger(id)||id<=0) throw new AppError('A valid sellerId is required.',400,'INVALID_SELLER_ID');
   const seller=await repository.findSeller(id); if(!seller) throw new AppError('Seller not found.',404,'SELLER_NOT_FOUND');

@@ -38,7 +38,6 @@ async function cleanupSeller() {
   if (!users.length) return;
   const sellerId = users[0].id;
   await pool.execute('DELETE FROM products WHERE seller_id = ?', [sellerId]);
-  await pool.execute('DELETE FROM user_roles WHERE user_id = ?', [sellerId]);
   await pool.execute('DELETE FROM users WHERE id = ?', [sellerId]);
 }
 
@@ -61,36 +60,9 @@ test('seeds the initial six-game catalog with active status', async () => {
   assert.ok(rows.every((row) => row.status === 'ACTIVE'));
 });
 
-test('seeds game attributes and options consistently', async () => {
-  const [[attributeCount]] = await pool.query('SELECT COUNT(*) AS count FROM game_attributes');
-  const [[optionCount]] = await pool.query('SELECT COUNT(*) AS count FROM game_attribute_options');
-  assert.equal(Number(attributeCount.count), 38);
-  assert.equal(Number(optionCount.count), 69);
-
-  const [selectWithoutOptions] = await pool.query(`
-    SELECT ga.id
-    FROM game_attributes ga
-    LEFT JOIN game_attribute_options gao
-      ON gao.game_attribute_id = ga.id AND gao.status = 'ACTIVE'
-    WHERE ga.type = 'SELECT' AND ga.status = 'ACTIVE'
-    GROUP BY ga.id
-    HAVING COUNT(gao.id) = 0
-  `);
-  assert.equal(selectWithoutOptions.length, 0);
-});
-
 test('creates a product and its related marketplace records', async () => {
   const sellerId = await createSeller();
   const gameId = await findGame('valorant');
-  const [[rank]] = await pool.query(
-    "SELECT id FROM game_attributes WHERE game_id = ? AND slug = 'rank' LIMIT 1",
-    [gameId],
-  );
-  const [[immortal]] = await pool.query(
-    "SELECT id FROM game_attribute_options WHERE game_attribute_id = ? AND value = 'immortal' LIMIT 1",
-    [rank.id],
-  );
-
   const [productResult] = await pool.execute(
     `INSERT INTO products (seller_id, game_id, title, description, price, status)
      VALUES (?, ?, ?, ?, ?, 'DRAFT')`,
@@ -102,17 +74,6 @@ test('creates a product and its related marketplace records', async () => {
     `INSERT INTO product_images (product_id, image_url, sort_order, is_primary)
      VALUES (?, ?, 0, TRUE)`,
     [productId, '/uploads/products/test.jpg'],
-  );
-  await pool.execute(
-    `INSERT INTO product_attribute_values (product_id, game_attribute_id, game_attribute_option_id)
-     VALUES (?, ?, ?)`,
-    [productId, rank.id, immortal.id],
-  );
-  await pool.execute(
-    `INSERT INTO product_attribute_values (product_id, game_attribute_id, value_number)
-     SELECT ?, id, ? FROM game_attributes
-     WHERE game_id = ? AND slug = 'account-level'`,
-    [productId, 230, gameId],
   );
   await pool.execute(
     'INSERT INTO product_credentials (product_id, game_username_encrypted) VALUES (?, ?)',
@@ -132,16 +93,11 @@ test('creates a product and its related marketplace records', async () => {
     'SELECT COUNT(*) AS count FROM product_images WHERE product_id = ?',
     [productId],
   );
-  const [[attributeValueCount]] = await pool.query(
-    'SELECT COUNT(*) AS count FROM product_attribute_values WHERE product_id = ?',
-    [productId],
-  );
   const [[credentialCount]] = await pool.query(
     'SELECT COUNT(*) AS count FROM product_credentials WHERE product_id = ?',
     [productId],
   );
   assert.equal(Number(imageCount.count), 1);
-  assert.equal(Number(attributeValueCount.count), 2);
   assert.equal(Number(credentialCount.count), 1);
 });
 

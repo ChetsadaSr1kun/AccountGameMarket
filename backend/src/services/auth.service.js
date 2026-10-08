@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const config = require('../config/env');
 const userRepository = require('../repositories/user.repository');
-const roleRepository = require('../repositories/role.repository');
 const refreshTokenRepository = require('../repositories/refresh-token.repository');
 const passwordResetTokenRepository = require('../repositories/password-reset-token.repository');
 const emailService = require('./email.service');
@@ -72,9 +71,6 @@ async function register(input, meta) {
       passwordHash,
       accountMode: policy.accountMode,
     });
-    const roleIds = await roleRepository.findIdsByCodes(connection, policy.roles);
-    if (roleIds.some((roleId) => !roleId)) throw new AppError('Required roles are missing from the database.', 500, 'ROLE_SETUP_ERROR');
-    await userRepository.assignRoles(connection, userId, roleIds);
 
     const user = await userRepository.findAuthUserById(userId, connection);
     const tokens = await issueSession(user, meta, connection);
@@ -161,14 +157,29 @@ async function resetPassword(input) {
   const tokenHash = hashOpaqueToken(input.token);
   const passwordHash = await hashPassword(input.newPassword);
 
-  await withTransaction(async (connection) => {
+  const result = await withTransaction(async (connection) => {
     const resetToken = await passwordResetTokenRepository.findActiveForUpdate(connection, tokenHash);
-    if (!resetToken) throw new AppError('Reset token is invalid or expired.', 400, 'INVALID_RESET_TOKEN');
+
+    if (!resetToken) {
+      throw new AppError('Reset token is invalid or expired.', 400, 'INVALID_RESET_TOKEN');
+    }
+
+    const user = await userRepository.findAuthUserById(resetToken.user_id, connection);
+
     await userRepository.updatePassword(connection, resetToken.user_id, passwordHash);
     await userRepository.incrementTokenVersion(connection, resetToken.user_id);
     await refreshTokenRepository.revokeAllForUser(connection, resetToken.user_id);
     await passwordResetTokenRepository.markUsed(connection, resetToken.id);
+
+    return {
+      username: user?.username || '-',
+    };
   });
+
+  return {
+    username: result.username,
+    resetAt: new Date().toISOString(),
+  };
 }
 
 async function changePassword(userId, input) {

@@ -1,0 +1,1545 @@
+function userProfileEscape(value) {
+  return String(value ?? '').replace(
+    /[&<>"']/g,
+    (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[char])
+  );
+}
+
+function userProfileAvatar(user) {
+  const username =
+    String(user?.username || 'U');
+
+  if (user?.avatarUrl) {
+    return `
+      <img
+        src="${userProfileEscape(
+          user.avatarUrl
+        )}"
+        alt="รูปโปรไฟล์"
+        style="
+          width:86px;
+          height:86px;
+          object-fit:cover;
+          border-radius:50%;
+        "
+      >
+    `;
+  }
+
+  return `
+    <div
+      class="avatar"
+      style="
+        width:86px;
+        height:86px;
+        font-size:36px;
+        background:var(--accent);
+      "
+    >
+      ${userProfileEscape(
+        username.charAt(0).toUpperCase()
+      )}
+    </div>
+  `;
+}
+
+function renderUserProfileLoading() {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target) return;
+
+  target.innerHTML = `
+    <div
+      style="
+        padding:28px;
+        text-align:center;
+        color:var(--muted);
+      "
+    >
+      กำลังโหลดโปรไฟล์...
+    </div>
+  `;
+}
+
+function renderUserProfileOverview(
+  user
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target) return;
+
+  const verified =
+    Boolean(
+      user?.accountVerified ||
+      (
+        user?.emailVerified &&
+        user?.phoneVerified
+      )
+    );
+
+  target.className = '';
+  target.removeAttribute('style');
+
+  target.innerHTML = `
+    <div
+      class="card"
+      style="
+        padding:26px;
+        margin-bottom:16px;
+      "
+    >
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          gap:18px;
+          flex-wrap:wrap;
+        "
+      >
+        ${userProfileAvatar(user)}
+
+        <div
+          style="
+            flex:1;
+            min-width:180px;
+          "
+        >
+          <div
+            style="
+              font-family:'Kanit',sans-serif;
+              font-size:24px;
+              font-weight:800;
+              margin-bottom:4px;
+            "
+          >
+            ${userProfileEscape(
+              user?.username || 'ผู้ใช้งาน'
+            )}
+          </div>
+
+          <div
+            style="
+              color:var(--muted);
+              font-size:13px;
+              margin-bottom:10px;
+            "
+          >
+            ${userProfileEscape(
+              user?.email || ''
+            )}
+          </div>
+
+          <span
+            class="badge ${
+              verified
+                ? 'badge-green'
+                : 'badge-blue'
+            }"
+          >
+            ${
+              verified
+                ? '✓ ยืนยันตัวตนแล้ว'
+                : 'ยังไม่ยืนยันตัวตน'
+            }
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          onclick="goPage('profile')"
+        >
+          ✏️ แก้ไขข้อมูล
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="card"
+      style="
+        padding:26px;
+        margin-bottom:16px;
+      "
+    >
+      <div
+        style="
+          font-family:'Kanit',sans-serif;
+          font-size:18px;
+          font-weight:800;
+          margin-bottom:22px;
+        "
+      >
+        <img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> ข้อมูลส่วนตัว
+      </div>
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:
+            repeat(2,minmax(0,1fr));
+          gap:20px 32px;
+        "
+      >
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            ชื่อจริง
+          </div>
+
+          <div style="font-weight:700">
+            ${userProfileEscape(
+              user?.firstName || 'ยังไม่ได้ระบุ'
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            นามสกุล
+          </div>
+
+          <div style="font-weight:700">
+            ${userProfileEscape(
+              user?.lastName || 'ยังไม่ได้ระบุ'
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            อีเมล
+          </div>
+
+          <div style="font-weight:700">
+            ${userProfileEscape(
+              user?.email || '-'
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            เบอร์โทรศัพท์
+          </div>
+
+          <div style="font-weight:700">
+            ${userProfileEscape(
+              user?.phone || 'ยังไม่ได้ระบุ'
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            วันเกิด
+          </div>
+
+          <div style="font-weight:700">
+            ${
+              user?.dateOfBirth
+                ? new Date(
+                    user.dateOfBirth
+                  ).toLocaleDateString(
+                    'th-TH'
+                  )
+                : 'ยังไม่ได้ระบุ'
+            }
+          </div>
+        </div>
+
+        <div>
+          <div
+            style="
+              color:var(--muted);
+              font-size:12px;
+              margin-bottom:5px;
+            "
+          >
+            สถานะบัญชี
+          </div>
+
+          <div style="font-weight:700">
+            ${
+              verified
+                ? '✓ ยืนยันตัวตนแล้ว'
+                : 'ยังไม่ยืนยันตัวตน'
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+  `;
+}
+
+function renderUserProfileSellerStats(
+  sellerProfile
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target || !sellerProfile) return;
+
+  const rating =
+    sellerProfile.rating || {};
+
+  const averageRating =
+    Number(
+      rating.averageRating || 0
+    );
+
+  const reviewCount =
+    Number(
+      rating.reviewCount || 0
+    );
+
+  const completedSales =
+    Number(
+      sellerProfile.completedSales || 0
+    );
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:26px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            font-family:'Kanit',sans-serif;
+            font-size:18px;
+            font-weight:800;
+            margin-bottom:20px;
+          "
+        >
+          🏪 ภาพรวมผู้ขาย
+        </div>
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:
+              repeat(3,minmax(0,1fr));
+            gap:14px;
+          "
+        >
+          <div
+            style="
+              padding:20px;
+              background:var(--bg3);
+              border-radius:12px;
+              text-align:center;
+            "
+          >
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-bottom:8px;
+              "
+            >
+              <img class="ui-emoji" src="assets/icons/star.svg" alt=""> คะแนนผู้ขาย
+            </div>
+
+            <div
+              class="kanit"
+              style="
+                font-size:26px;
+                font-weight:800;
+              "
+            >
+              ${averageRating.toFixed(1)}
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-top:4px;
+              "
+            >
+              จาก 5 คะแนน
+            </div>
+          </div>
+
+          <div
+            style="
+              padding:20px;
+              background:var(--bg3);
+              border-radius:12px;
+              text-align:center;
+            "
+          >
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-bottom:8px;
+              "
+            >
+              ✅ ขายสำเร็จ
+            </div>
+
+            <div
+              class="kanit"
+              style="
+                font-size:26px;
+                font-weight:800;
+              "
+            >
+              ${completedSales.toLocaleString(
+                'th-TH'
+              )}
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-top:4px;
+              "
+            >
+              รายการ
+            </div>
+          </div>
+
+          <div
+            style="
+              padding:20px;
+              background:var(--bg3);
+              border-radius:12px;
+              text-align:center;
+            "
+          >
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-bottom:8px;
+              "
+            >
+              <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> รีวิวทั้งหมด
+            </div>
+
+            <div
+              class="kanit"
+              style="
+                font-size:26px;
+                font-weight:800;
+              "
+            >
+              ${reviewCount.toLocaleString(
+                'th-TH'
+              )}
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-top:4px;
+              "
+            >
+              รีวิว
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  );
+}
+
+function renderUserProfileSellerProducts(
+  sellerProfile
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target || !sellerProfile) return;
+
+  const products =
+    Array.isArray(
+      sellerProfile.activeProducts
+    )
+      ? sellerProfile.activeProducts
+      : [];
+
+  const productsHtml =
+    products.length
+      ? products.map((product) => {
+          const imageHtml =
+            product.primaryImageUrl
+              ? `
+                <img
+                  src="${userProfileEscape(
+                    product.primaryImageUrl
+                  )}"
+                  alt="${userProfileEscape(
+                    product.title
+                  )}"
+                  style="
+                    width:100%;
+                    height:150px;
+                    object-fit:cover;
+                    border-radius:10px;
+                    margin-bottom:12px;
+                  "
+                >
+              `
+              : `
+                <div
+                  style="
+                    height:150px;
+                    border-radius:10px;
+                    background:var(--bg3);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:36px;
+                    margin-bottom:12px;
+                  "
+                >
+                  <img class="ui-emoji" src="assets/icons/game.svg" alt="">
+                </div>
+              `;
+
+          return `
+            <div
+              class="card card-hover"
+              style="
+                padding:14px;
+                cursor:pointer;
+              "
+              onclick="openProductDetail(
+                ${Number(product.id)}
+              )"
+            >
+              ${imageHtml}
+
+              <div
+                style="
+                  display:flex;
+                  align-items:center;
+                  gap:6px;
+                  flex-wrap:wrap;
+                  margin-bottom:6px;
+                "
+              >
+                <span
+                  style="
+                    color:var(--muted);
+                    font-size:12px;
+                  "
+                >
+                  ${userProfileEscape(
+                    product.game?.name || '-'
+                  )}
+                </span>
+
+                ${
+                  product.valorantVerification?.verified
+                    ? `
+                      <span class="product-verified-badge">
+                        ✓ ตรวจสอบแล้ว
+                      </span>
+                    `
+                    : ''
+                }
+              </div>
+
+              <div
+                style="
+                  font-weight:700;
+                  margin-bottom:10px;
+                  overflow:hidden;
+                  text-overflow:ellipsis;
+                  white-space:nowrap;
+                "
+              >
+                ${userProfileEscape(
+                  product.title || 'สินค้า'
+                )}
+              </div>
+
+              <div
+                style="
+                  display:flex;
+                  align-items:center;
+                  justify-content:space-between;
+                  gap:10px;
+                "
+              >
+                <div
+                  class="kanit"
+                  style="
+                    font-size:18px;
+                    font-weight:800;
+                    color:var(--accent);
+                  "
+                >
+                  ${Number(
+                    product.price || 0
+                  ).toLocaleString(
+                    'th-TH'
+                  )} pts
+                </div>
+
+                <span
+                  class="badge badge-green"
+                >
+                  กำลังขาย
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('')
+      : `
+        <div
+          style="
+            grid-column:1/-1;
+            padding:30px;
+            text-align:center;
+            color:var(--muted);
+          "
+        >
+          <div
+            style="
+              font-size:32px;
+              margin-bottom:10px;
+            "
+          >
+            <img class="ui-emoji" src="assets/icons/game.svg" alt="">
+          </div>
+
+          <div style="margin-bottom:14px">
+            ยังไม่มีสินค้าที่กำลังขาย
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            onclick="goPage('add-listing')"
+          >
+            ＋ ลงขายสินค้า
+          </button>
+        </div>
+      `;
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:26px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:20px;
+          "
+        >
+          <div
+            style="
+              font-family:'Kanit',sans-serif;
+              font-size:18px;
+              font-weight:800;
+            "
+          >
+            <img class="ui-emoji" src="assets/icons/game.svg" alt=""> สินค้าที่กำลังขาย
+          </div>
+
+          ${
+            products.length
+              ? `
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  onclick="goPage('my-listings')"
+                >
+                  ดูทั้งหมด →
+                </button>
+              `
+              : ''
+          }
+        </div>
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:
+              repeat(
+                auto-fit,
+                minmax(210px,1fr)
+              );
+            gap:14px;
+          "
+        >
+          ${productsHtml}
+        </div>
+      </div>
+    `
+  );
+}
+
+function renderUserProfileSellerReviews(
+  sellerProfile
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target || !sellerProfile) return;
+
+  const reviews =
+    Array.isArray(sellerProfile.reviews)
+      ? sellerProfile.reviews
+      : [];
+
+  const rating =
+    sellerProfile.rating || {};
+
+  const sellerUsername =
+    sellerProfile.seller?.username ||
+    'ผู้ขาย';
+
+  window.sellerRatingReviews =
+    reviews;
+
+  const averageRating =
+    Number(
+      rating.averageRating || 0
+    );
+
+  const reviewsHtml =
+    reviews.length
+      ? reviews.map((review) => {
+          const stars =
+            '★★★★★'
+              .split('')
+              .map((star, index) => `
+                <span
+                  style="
+                    color:${
+                      index <
+                      Math.round(
+                        Number(
+                          review.rating || 0
+                        )
+                      )
+                        ? '#f5b942'
+                        : 'var(--dim)'
+                    };
+                  "
+                >
+                  ${star}
+                </span>
+              `)
+              .join('');
+
+          return `
+            <div
+              style="
+                padding:11px 0;
+                border-bottom:
+                  1px solid var(--border);
+              "
+            >
+              <div
+                style="
+                  display:flex;
+                  align-items:flex-start;
+                  justify-content:space-between;
+                  gap:10px;
+                  margin-bottom:4px;
+                "
+              >
+                <div>
+                  <div
+                    style="
+                      font-weight:700;
+                      margin-bottom:2px;
+                    "
+                  >
+                    ${userProfileEscape(
+                      review.buyerUsername ||
+                      'ผู้ซื้อ'
+                    )}
+                  </div>
+
+                  <div>
+                    ${stars}
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    color:var(--muted);
+                    font-size:12px;
+                    white-space:nowrap;
+                  "
+                >
+                  ${
+                    review.createdAt
+                      ? new Date(
+                          review.createdAt
+                        ).toLocaleDateString(
+                          'th-TH'
+                        )
+                      : '-'
+                  }
+                </div>
+              </div>
+
+              <div
+                style="
+                  color:var(--text);
+                  margin-top:5px;
+                  font-size:13px;
+                  line-height:1.5;
+                "
+              >
+                ${userProfileEscape(
+                  review.comment ||
+                  'ไม่ได้เขียนความคิดเห็น'
+                )}
+              </div>
+
+              ${
+                review.sellerReply
+                  ? `
+                    <div
+                      style="
+                        margin-top:8px;
+                        padding:9px 11px;
+                        background:var(--bg3);
+                        border-radius:10px;
+                      "
+                    >
+                      <div
+                        style="
+                          font-weight:700;
+                          font-size:13px;
+                          margin-bottom:5px;
+                        "
+                      >
+                        ↳ ${userProfileEscape(
+                          sellerUsername
+                        )}
+                      </div>
+
+                      <div
+                        style="
+                          color:var(--muted);
+                          font-size:13px;
+                        "
+                      >
+                        ${userProfileEscape(
+                          review.sellerReply
+                        )}
+                      </div>
+                    </div>
+                  `
+                  : ''
+              }
+
+              <div
+                style="
+                  display:flex;
+                  gap:6px;
+                  justify-content:flex-end;
+                  flex-wrap:wrap;
+                  margin-top:8px;
+                "
+              >
+                ${
+                  !review.sellerReply
+                    ? `
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-sm"
+                        onclick="
+                          openSellerReplyModal(
+                            ${Number(review.id)}
+                          )
+                        "
+                      >
+                        <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ตอบกลับ
+                      </button>
+                    `
+                    : ''
+                }
+
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm"
+                  onclick="
+                    openSellerReviewReportModal(
+                      ${Number(review.id)}
+                    )
+                  "
+                >
+                  🚩 รายงานรีวิวนี้
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')
+      : `
+        <div
+          style="
+            padding:30px;
+            text-align:center;
+            color:var(--muted);
+          "
+        >
+          ยังไม่มีรีวิวจากผู้ซื้อ
+        </div>
+      `;
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:18px 20px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:8px;
+          "
+        >
+          <div
+            style="
+              font-family:'Kanit',sans-serif;
+              font-size:18px;
+              font-weight:800;
+            "
+          >
+            <img class="ui-emoji" src="assets/icons/star.svg" alt=""> รีวิวจากผู้ซื้อ
+          </div>
+
+          <div
+            style="
+              color:var(--muted);
+              font-size:13px;
+            "
+          >
+            ${averageRating.toFixed(1)} / 5
+            ·
+            ${reviews.length.toLocaleString(
+              'th-TH'
+            )} รีวิว
+          </div>
+        </div>
+
+        <div>
+          ${reviewsHtml}
+        </div>
+      </div>
+    `
+  );
+}
+
+function renderUserProfileSellerCta(
+  user
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target) return;
+
+  const roles =
+    Array.isArray(user?.roles)
+      ? user.roles
+      : [];
+
+  const isSeller =
+    roles.includes('SELLER');
+
+  if (isSeller) return;
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:26px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:20px;
+            flex-wrap:wrap;
+          "
+        >
+          <div>
+            <div
+              style="
+                font-family:'Kanit',sans-serif;
+                font-size:18px;
+                font-weight:800;
+                margin-bottom:6px;
+              "
+            >
+              🏪 เริ่มขายบน GameMarket
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:13px;
+              "
+            >
+              สมัครเป็นผู้ขายเพื่อเริ่มลงสินค้า
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            onclick="goPage('seller-verify')"
+          >
+            สมัครเป็นผู้ขาย
+          </button>
+        </div>
+      </div>
+    `
+  );
+}
+
+async function loadUserProfile() {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target) return;
+
+  renderUserProfileLoading();
+
+  const user =
+    typeof currentUser !== 'undefined'
+      ? currentUser
+      : window.currentUser;
+
+  if (!user?.id) {
+    target.innerHTML = `
+      <div class="notice danger">
+        ไม่พบข้อมูลผู้ใช้งาน
+      </div>
+    `;
+    return;
+  }
+
+  const roles =
+  Array.isArray(user?.roles)
+    ? user.roles
+    : [];
+
+    const isSeller =
+    roles.includes('SELLER');
+
+  try {
+    const [
+    ordersResponse,
+    walletResponse,
+    ] = await Promise.all([
+    fetch(
+        '/api/v1/orders',
+        {
+        credentials: 'include',
+        }
+    ),
+    fetch(
+        '/api/v1/wallet',
+        {
+        credentials: 'include',
+        }
+    ),
+    ]);
+
+    const ordersBody =
+    await ordersResponse
+        .json()
+        .catch(() => ({}));
+
+    const walletBody =
+    await walletResponse
+        .json()
+        .catch(() => ({}));
+
+    if (!ordersResponse.ok) {
+    throw new Error(
+        ordersBody.error?.message ||
+        'โหลดข้อมูลคำสั่งซื้อไม่สำเร็จ'
+    );
+    }
+
+    if (!walletResponse.ok) {
+    throw new Error(
+        walletBody.error?.message ||
+        'โหลดข้อมูลกระเป๋าไม่สำเร็จ'
+    );
+    }
+
+    const orders =
+    ordersBody.data?.orders ||
+    ordersBody.orders ||
+    [];
+
+    const wallet =
+    walletBody.data?.wallet ||
+    walletBody.wallet ||
+    {};
+
+    const walletTransactions =
+    Array.isArray(wallet.transactions)
+        ? wallet.transactions
+        : [];
+
+    let sellerProfile = null;
+
+    if (isSeller) {
+    const sellerResponse =
+        await fetch(
+        `/api/v1/sellers/${user.id}`,
+        {
+            credentials: 'include',
+        }
+        );
+
+    const sellerBody =
+        await sellerResponse
+        .json()
+        .catch(() => ({}));
+
+    if (!sellerResponse.ok) {
+        throw new Error(
+        sellerBody.error?.message ||
+        'โหลดข้อมูลผู้ขายไม่สำเร็จ'
+        );
+    }
+
+    sellerProfile =
+        sellerBody.data || null;
+    }
+
+    renderUserProfileOverview(
+    user
+    );
+
+    renderUserProfileSellerStats(
+    sellerProfile
+    );
+
+    renderUserProfileSellerProducts(
+    sellerProfile
+    );
+
+    renderUserProfileSellerReviews(
+    sellerProfile
+    );
+
+    const activities =
+    buildUserProfileActivities(
+        orders,
+        walletTransactions,
+        user.id
+    );
+
+    renderUserProfileActivities(
+    activities
+    );
+
+    renderUserProfileSellerCta(
+    user
+    );
+
+  } catch (error) {
+    console.error(
+      'loadUserProfile failed:',
+      error
+    );
+
+    target.innerHTML = `
+      <div class="notice danger">
+        ${userProfileEscape(
+          error.message ||
+          'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ'
+        )}
+      </div>
+    `;
+  }
+}
+
+window.loadUserProfile =
+  loadUserProfile;
+
+function userProfileActivityTime(value) {
+  if (!value) return 0;
+
+  const time =
+    new Date(value).getTime();
+
+  return Number.isNaN(time)
+    ? 0
+    : time;
+}
+
+function userProfileActivityDate(value) {
+  if (!value) return '-';
+
+  const date =
+    new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
+  return date.toLocaleString(
+    'th-TH',
+    {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }
+  );
+}
+
+function buildUserProfileActivities(
+  orders,
+  walletTransactions,
+  userId
+) {
+  const activities = [];
+
+  (
+    Array.isArray(orders)
+      ? orders
+      : []
+  ).forEach((order) => {
+    const isBuyer =
+      Number(order.buyerId) ===
+      Number(userId);
+
+    const status =
+      String(
+        order.status || ''
+      ).toUpperCase();
+
+    if (
+    isBuyer &&
+    status === 'COMPLETED'
+    ) {
+      const occurredAt =
+        order.completedAt ||
+        order.updatedAt ||
+        order.createdAt;
+
+      activities.push({
+        type: 'PURCHASE',
+        icon: '<img class="ui-emoji" src="assets/icons/shop.svg" alt="">',
+        title: 'ซื้อสินค้าสำเร็จ',
+        detail:
+          order.product?.title ||
+          'สินค้า',
+        occurredAt,
+      });
+    }
+  });
+
+  (
+  Array.isArray(walletTransactions)
+    ? walletTransactions
+    : []
+    ).forEach((transaction) => {
+    const type =
+        String(
+        transaction.type || ''
+        ).toUpperCase();
+
+    const occurredAt =
+        transaction.createdAt;
+
+    const amount =
+        Math.abs(
+        Number(
+            transaction.amount || 0
+        )
+        ).toLocaleString('th-TH');
+
+    if (type === 'TOP_UP') {
+        activities.push({
+        type,
+        icon: '<img class="ui-emoji" src="assets/icons/wallet.svg" alt="">',
+        title: 'ฝากพ้อยท์',
+        detail: `+${amount} pts`,
+        occurredAt,
+        });
+    }
+
+    if (type === 'WITHDRAWAL') {
+        activities.push({
+        type,
+        icon: '📤',
+        title: 'ถอนพ้อยท์',
+        detail: `-${amount} pts`,
+        occurredAt,
+        });
+    }
+
+    if (type === 'REFUND') {
+        activities.push({
+        type,
+        icon: '↩️',
+        title: 'คืนพ้อยท์',
+        detail: `+${amount} pts`,
+        occurredAt,
+        });
+    }
+
+    if (type === 'SALE') {
+        activities.push({
+        type,
+        icon: '💵',
+        title: 'รายได้จากการขาย',
+        detail: `+${amount} pts`,
+        occurredAt,
+        });
+    }
+    });
+
+  return activities
+    .sort(
+      (a, b) =>
+        userProfileActivityTime(
+          b.occurredAt
+        ) -
+        userProfileActivityTime(
+          a.occurredAt
+        )
+    )
+    .slice(0, 5);
+}
+
+function renderUserProfileActivities(
+  activities
+) {
+  const target =
+    document.getElementById(
+      'userProfileContent'
+    );
+
+  if (!target) return;
+
+  const items =
+    Array.isArray(activities)
+      ? activities
+      : [];
+
+  const listHtml =
+    items.length
+      ? items.map((activity) => `
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:14px;
+              padding:14px 0;
+              border-bottom:
+                1px solid var(--border);
+            "
+          >
+            <div
+              style="
+                width:38px;
+                height:38px;
+                border-radius:10px;
+                background:var(--bg3);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:18px;
+                flex-shrink:0;
+              "
+            >
+              ${activity.icon}
+            </div>
+
+            <div
+              style="
+                flex:1;
+                min-width:0;
+              "
+            >
+              <div
+                style="
+                  font-weight:700;
+                  margin-bottom:3px;
+                "
+              >
+                ${userProfileEscape(
+                  activity.title
+                )}
+              </div>
+
+              <div
+                style="
+                  color:var(--muted);
+                  font-size:13px;
+                "
+              >
+                ${userProfileEscape(
+                  activity.detail
+                )}
+              </div>
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                white-space:nowrap;
+              "
+            >
+              ${userProfileEscape(
+                userProfileActivityDate(
+                  activity.occurredAt
+                )
+              )}
+            </div>
+          </div>
+        `).join('')
+      : `
+        <div
+          style="
+            padding:24px 0;
+            text-align:center;
+            color:var(--muted);
+          "
+        >
+          ยังไม่มีกิจกรรมล่าสุด
+        </div>
+      `;
+
+  target.insertAdjacentHTML(
+    'beforeend',
+    `
+      <div
+        class="card"
+        style="
+          padding:24px;
+          margin-bottom:16px;
+        "
+      >
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:16px;
+            margin-bottom:8px;
+          "
+        >
+          <div
+            style="
+              font-family:'Kanit',sans-serif;
+              font-size:18px;
+              font-weight:800;
+            "
+          >
+            🧾 กิจกรรมล่าสุด
+          </div>
+        </div>
+
+        <div>
+          ${listHtml}
+        </div>
+
+        <div
+          style="
+            text-align:right;
+            margin-top:16px;
+          "
+        >
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            onclick="goPage('history')"
+          >
+            ดูประวัติทั้งหมด →
+          </button>
+        </div>
+      </div>
+    `
+  );
+}

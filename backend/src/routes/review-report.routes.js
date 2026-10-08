@@ -4,8 +4,40 @@ const { authenticate, authorize } = require('../middleware/auth.middleware');
 const { requireCsrf } = require('../middleware/csrf.middleware');
 
 const router = express.Router();
-router.post('/', authenticate, requireCsrf, controller.createReport);
-router.get('/pending', authenticate, authorize('ADMIN'), controller.listPendingReports);
-router.patch('/:reportId', authenticate, authorize('ADMIN'), requireCsrf, controller.resolveReport);
+router.post(
+  '/',
+  authenticate,
+  requireCsrf,
+  controller.createReport
+);
+
+router.get(
+  '/pending',
+  authenticate,
+  authorize('ADMIN'),
+  controller.listPendingReports
+);
+
+router.get(
+  '/admin',
+  authenticate,
+  authorize('ADMIN'),
+  controller.listAdminReports
+);
+
+router.get(
+  '/:reportId/chat',
+  authenticate,
+  authorize('ADMIN'),
+  controller.getReportChat
+);
+
+router.patch(
+  '/:reportId',
+  authenticate,
+  authorize('ADMIN'),
+  requireCsrf,
+  controller.resolveReport
+);
 
 module.exports = router;

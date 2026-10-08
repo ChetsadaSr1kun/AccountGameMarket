@@ -131,7 +131,7 @@ async function loadWallet() {
     if (totalTopupEl) totalTopupEl.textContent = formattedTopup;
     if (totalWithdrawalEl) totalWithdrawalEl.textContent = formattedWithdrawal;
     const navBalanceEl = document.getElementById('walletNavBalance');
-    if (navBalanceEl) navBalanceEl.textContent = `💰 ${formattedBalance} pts`;
+    if (navBalanceEl) navBalanceEl.innerHTML = `<img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ${formattedBalance} pts`;
     renderWalletTransactions(Array.isArray(wallet.transactions) ? wallet.transactions : [], requests, withdrawalRequests);
     const pendingEl = document.getElementById('walletPendingWithdrawalAmount');
     const pendingCard = document.getElementById('walletPendingWithdrawalCard');
@@ -177,7 +177,7 @@ async function refreshWalletNavBalance() {
     const wallet = body.data?.wallet || body.wallet;
     if (wallet) {
       const balance = Number(wallet.balance || 0).toLocaleString('th-TH');
-      navBalanceEl.innerHTML = `<span>💰 ${balance} pts</span>`;
+      navBalanceEl.innerHTML = `<span><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ${balance} pts</span>`;
     }
   } catch (error) {
     console.error('refreshWalletNavBalance failed:', error);

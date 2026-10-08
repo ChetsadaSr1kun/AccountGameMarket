@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>GameMarket — ตลาดซื้อขายไอดีเกม</title>
+<link rel="icon" type="image/png" href="assets/images/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&amp;family=Sarabun:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/product-detail.css">
@@ -12,12 +13,12 @@
 <body>
 <!-- ===================== NAVBAR ===================== -->
 <nav class="navbar" id="mainNav">
-<a class="logo" onclick="goPage('home')">
-<div class="logo-icon">G</div>
-<div class="logo-text">
-<div class="logo-title">GameMarket</div>
-<div class="logo-sub">Marketplace ซื้อขายไอดีเกม</div>
-</div>
+<a class="logo" onclick="isLoggedIn ? loginAndGo('home-user') : goPage('home')" aria-label="GameMarket">
+  <img
+    src="assets/images/gamemarket-logo.jpg"
+    alt="GameMarket"
+    class="logo-image"
+  />
 </a>
 <div class="nav-links" id="navLinks"></div>
 <div class="nav-right" id="navRight"></div>
@@ -38,16 +39,16 @@
 <button class="devbtn" onclick="loginAndGo('home-user')">🏠 หน้าแรก (User)</button>
 <button class="devbtn" onclick="loginAndGo('listings-user')">🛍️ รายการ (User)</button>
 <button class="devbtn" onclick="loginAndGo('product-user')">📄 สินค้า (User)</button>
-<button class="devbtn" onclick="loginAndGo('profile')">👤 Profile</button>
-<button class="devbtn" onclick="loginAndGo('wallet')">💰 Wallet</button>
-<button class="devbtn" onclick="loginAndGo('history')">📋 History</button>
-<button class="devbtn" onclick="loginAndGo('chat')">💬 Chat</button>
+<button class="devbtn" onclick="loginAndGo('profile')"><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> Profile</button>
+<button class="devbtn" onclick="loginAndGo('wallet')"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> Wallet</button>
+<button class="devbtn" onclick="loginAndGo('history')"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> History</button>
+<button class="devbtn" onclick="loginAndGo('chat')"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> Chat</button>
 <span style="color:var(--border2);margin:0 4px">|</span>
-<button class="devbtn" onclick="loginAndGo('order-confirm')">🛒 Order</button>
+<button class="devbtn" onclick="loginAndGo('order-confirm')"><img class="ui-emoji" src="assets/icons/shop.svg" alt=""> Order</button>
 <button class="devbtn" onclick="loginAndGo('order-otp')">🔐 Order OTP</button>
 <button class="devbtn" onclick="loginAndGo('order-success')">🎉 Order สำเร็จ</button>
-<button class="devbtn" onclick="loginAndGo('order-info')">📋 ข้อมูลสินค้า</button>
-<button class="devbtn" onclick="loginAndGo('review')">⭐ รีวิว</button>
+<button class="devbtn" onclick="loginAndGo('order-info')"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> ข้อมูลสินค้า</button>
+<button class="devbtn" onclick="loginAndGo('review')"><img class="ui-emoji" src="assets/icons/star.svg" alt=""> รีวิว</button>
 <span style="color:var(--border2);margin:0 4px">|</span>
 <button class="devbtn" onclick="loginAndGo('seller-verify')">🪪 Seller Verify</button>
 <button class="devbtn" onclick="loginAndGo('add-listing')">➕ ลงขาย</button>
@@ -57,10 +58,10 @@
 <button class="devbtn" onclick="goAdmin('admin-dashboard')">📊 Admin</button>
 <button class="devbtn" onclick="goAdmin('admin-users')">👥 จัดการผู้ใช้</button>
 <button class="devbtn" onclick="goAdmin('admin-products')">📦 จัดการสินค้า</button>
-<button class="devbtn" onclick="goAdmin('admin-games')">🎮 หมวดหมู่</button>
-<button class="devbtn" onclick="goAdmin('admin-chat-log')">💬 แชทLog</button>
+<button class="devbtn" onclick="goAdmin('admin-games')"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> หมวดหมู่</button>
+<button class="devbtn" onclick="goAdmin('admin-chat-log')"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> แชทLog</button>
 <button class="devbtn" onclick="goAdmin('admin-withdraw')">💸 ถอนเงิน</button>
-<button class="devbtn" onclick="goAdmin('admin-report')">🚨 รายงาน</button>
+<button class="devbtn" onclick="goAdmin('admin-report')"><img class="ui-emoji" src="assets/icons/report.svg" alt=""> รายงาน</button>
 <button class="devbtn" onclick="goAdmin('admin-seller-verifications')">🪪 ตรวจสอบผู้ขาย</button>
 </div>
 <!-- ===================== PAGES ===================== -->
@@ -71,7 +72,7 @@
 <div class="container">
 <div style="display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:start">
 <div>
-<span class="badge badge-blue" style="margin-bottom:16px">🎮 ตลาดซื้อขายไอดีเกมอันดับ 1</span>
+
 <h1 style="font-size:52px;font-weight:900;line-height:1.15;margin:14px 0 20px">
             ซื้อขายไอดีเกมได้ง่าย<br/>
 <span style="color:var(--accent)">ปลอดภัย</span> และครบในที่เดียว
@@ -81,7 +82,7 @@
           </p>
 <div class="flex gap-12" style="margin-bottom:40px">
 <button class="btn btn-primary btn-lg" onclick="goPage('register')">🚀 เริ่มต้นใช้งาน</button>
-<button class="btn btn-secondary btn-lg" onclick="goPage('listings')">📋 ดูรายการขายทั้งหมด</button>
+<button class="btn btn-secondary btn-lg" onclick="goPage('listings')"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> ดูรายการขายทั้งหมด</button>
 </div>
 <div class="grid3" style="gap:12px">
 <div class="card" style="padding:16px 18px">
@@ -104,12 +105,12 @@
 <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">ค้นหาอย่างรวดเร็ว</h3>
 <p style="color:var(--muted);font-size:13px">ค้นหาไอดีเกมที่ต้องการจากคลังสินค้าของเรา</p>
 </div>
-<input class="inp" placeholder="🔍  ค้นหาเกม ชื่อสินค้า หรือคำสำคัญ" style="margin-bottom:12px"/>
+<input class="inp emoji-search-input" placeholder="ค้นหาเกม ชื่อสินค้า หรือคำสำคัญ" style="margin-bottom:12px"/>
 <div class="grid2" style="gap:8px;margin-bottom:12px">
 <select class="inp"><option>เกม: ทุกเกม</option><option>Valorant</option><option>ROV</option><option>PUBG</option><option>Free Fire</option><option>Genshin Impact</option></select>
 <select class="inp"><option>ราคา: ทุกช่วง</option><option>0–500 ฿</option><option>500–1,500 ฿</option><option>1,500+ ฿</option></select>
 </div>
-<button class="btn btn-primary btn-full btn-md" onclick="goPage('listings')">🔍 ค้นหารายการขาย</button>
+<button class="btn btn-primary btn-full btn-md" onclick="goPage('listings')"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""> ค้นหารายการขาย</button>
 <div class="divider"></div>
 <p style="font-size:13px;color:var(--muted);text-align:center">มีบัญชีแล้ว? <a onclick="goPage('login')" style="cursor:pointer">เข้าสู่ระบบ</a></p>
 </div>
@@ -188,12 +189,35 @@
     autocomplete="username">
 </div>
 <div class="inp-group">
-<label class="inp-label">รหัสผ่าน</label>
-<input
-    id="loginPassword"
-    class="inp"
-    placeholder="••••••••"
-    type="password">
+  <label class="inp-label">รหัสผ่าน</label>
+
+  <div class="password-input-wrap">
+
+    <input
+      id="loginPassword"
+      class="inp password-input"
+      placeholder="••••••••"
+      type="password"
+      autocomplete="current-password"
+    >
+
+    <button
+      id="loginPasswordToggle"
+      class="password-toggle-btn"
+      type="button"
+      onclick="
+        togglePasswordVisibility(
+          'loginPassword',
+          'loginPasswordToggle'
+        )
+      "
+      aria-label="แสดงรหัสผ่าน"
+      title="แสดงรหัสผ่าน"
+    >
+      👁️
+    </button>
+
+  </div>
 </div>
 <div class="flex-between" style="margin-bottom:22px">
 <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer">
@@ -336,7 +360,7 @@
 <label class="inp-label">ยืนยันรหัสผ่านใหม่</label>
 <input class="inp" id="resetConfirmPassword" placeholder="กรอกรหัสผ่านอีกครั้ง" type="password"/>
 </div>
-<button class="btn btn-primary btn-full btn-lg" onclick="resetPassword()">🔒 เปลี่ยนรหัสผ่าน</button>
+<button class="btn btn-primary btn-full btn-lg" onclick="resetPassword()"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> เปลี่ยนรหัสผ่าน</button>
 <div class="divider"></div>
 <p style="text-align:center;font-size:13px;color:var(--muted)"><a onclick="goPage('login')" style="cursor:pointer">← กลับไปหน้าเข้าสู่ระบบ</a></p>
 </div>
@@ -353,8 +377,15 @@
 <p style="color:var(--muted);font-size:14px;line-height:1.8;margin-bottom:28px">ระบบบันทึกรหัสผ่านใหม่เรียบร้อยแล้ว คุณสามารถกลับไปเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้ทันที</p>
 <div class="grid3" style="margin-bottom:28px;gap:10px">
 <div class="card" style="padding:14px 8px"><div style="color:var(--muted);font-size:12px">สถานะ</div><div style="font-weight:700;margin-top:4px;color:var(--success)">สำเร็จ</div></div>
-<div class="card" style="padding:14px 8px"><div style="color:var(--muted);font-size:12px">บัญชี</div><div style="font-weight:700;margin-top:4px">GamePro123</div></div>
-<div class="card" style="padding:14px 8px"><div style="color:var(--muted);font-size:12px">เวลาที่เปลี่ยน</div><div style="font-weight:700;margin-top:4px;font-size:12px">09/03/2026 10:45</div></div>
+<div class="card" style="padding:14px 8px">
+  <div style="color:var(--muted);font-size:12px">บัญชี</div>
+  <div id="resetSuccessUsername" style="font-weight:700;margin-top:4px">-</div>
+</div>
+
+<div class="card" style="padding:14px 8px">
+  <div style="color:var(--muted);font-size:12px">เวลาที่เปลี่ยน</div>
+  <div id="resetSuccessTime" style="font-weight:700;margin-top:4px;font-size:12px">-</div>
+</div>
 </div>
 <div class="flex gap-12" style="justify-content:center">
 <button class="btn btn-primary btn-md" onclick="goPage('login')">ไปหน้าเข้าสู่ระบบ</button>
@@ -374,11 +405,11 @@
 <div style="display:grid;grid-template-columns:240px 1fr;gap:24px">
 <div>
 <div class="card" style="margin-bottom:14px">
-<div style="font-weight:700;margin-bottom:12px">🎮 หมวดหมู่เกม</div>
+<div style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> หมวดหมู่เกม</div>
 <div id="guestGameFilter"><div class="filter-item active" onclick="filterGame(this)">ทุกเกม</div></div>
 </div>
 <div class="card">
-<div style="font-weight:700;margin-bottom:12px">💰 ช่วงราคา</div>
+<div style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ช่วงราคา</div>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 0–500 ฿</label>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 500–1,500 ฿</label>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price" style="accent-color:var(--accent)" type="radio"/> 1,500–3,000 ฿</label>
@@ -386,12 +417,31 @@
 </div>
 </div>
 <div>
-<div class="flex-between" style="margin-bottom:16px">
-<span style="color:var(--muted);font-size:14px">พบ 6 รายการ</span>
-<select class="inp" style="width:auto;padding:8px 14px">
-<option>ใหม่ล่าสุด</option><option>ราคาต่ำ-สูง</option><option>ราคาสูง-ต่ำ</option><option>คะแนนสูงสุด</option>
-</select>
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+  <div style="flex:1;min-width:260px;position:relative">
+    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span>
+
+    <input
+      type="text"
+      class="inp marketplace-search"
+      placeholder="ค้นหาชื่อสินค้า ชื่อเกม หรือรายละเอียด..."
+      autocomplete="off"
+      style="width:100%;padding-left:38px"
+    />
+  </div>
+
+  <select class="inp marketplace-sort" style="width:auto;padding:8px 14px">
+    <option value="newest">ใหม่ล่าสุด</option>
+    <option value="price_asc">ราคาต่ำ-สูง</option>
+    <option value="price_desc">ราคาสูง-ต่ำ</option>
+    <option value="rating_desc">คะแนนสูงสุด</option>
+  </select>
 </div>
+
+<div style="margin-bottom:16px">
+  <span id="public-listings-count" style="color:var(--muted);font-size:14px">พบ 0 รายการ</span>
+</div>
+
 <div class="grid3"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div>
 </div>
 </div>
@@ -414,10 +464,10 @@
 <p style="color:var(--muted);margin-top:4px">มีรายการใหม่ที่น่าสนใจรอคุณอยู่</p>
 </div>
 <div class="grid4" style="gap:12px;margin-bottom:28px">
-<div class="card stat-card"><div style="font-size:24px">💰</div><div class="stat-val" style="color:var(--accent)" id="homeUserStatWallet">—</div><div class="stat-label">พ้อยท์คงเหลือ</div></div>
-<div class="card stat-card"><div style="font-size:24px">🛒</div><div class="stat-val" style="color:var(--success)" id="homeUserStatPurchases">—</div><div class="stat-label">รายการที่ซื้อ</div></div>
+<div class="card stat-card"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""></div><div class="stat-val" style="color:var(--accent)" id="homeUserStatWallet">—</div><div class="stat-label">พ้อยท์คงเหลือ</div></div>
+<div class="card stat-card"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/shop.svg" alt=""></div><div class="stat-val" style="color:var(--success)" id="homeUserStatPurchases">—</div><div class="stat-label">รายการที่ซื้อ</div></div>
 <div class="card stat-card"><div style="font-size:24px">📦</div><div class="stat-val" style="color:var(--warn)" id="homeUserStatListings">—</div><div class="stat-label">ประกาศขาย</div></div>
-<div class="card stat-card"><div style="font-size:24px">💬</div><div class="stat-val" style="color:var(--purple)" id="homeUserStatMessages">—</div><div class="stat-label">การสนทนา</div></div>
+<div class="card stat-card"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""></div><div class="stat-val" style="color:var(--purple)" id="homeUserStatMessages">—</div><div class="stat-label">การสนทนา</div></div>
 </div>
 <div class="sec-header"><div class="sec-title">รายการแนะนำสำหรับคุณ</div></div>
 <div class="grid3" id="homeUserRecommendations"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div>
@@ -429,15 +479,15 @@
 <div><div data-user-field="username" style="font-weight:700">GamePro123</div><div data-user-field="email" style="color:var(--muted);font-size:12px;margin-bottom:4px">gamepro@email.com</div><span class="badge badge-blue" data-account-verification>ยังไม่ยืนยันสถานะ</span></div>
 </div>
 <div style="display:flex;flex-direction:column;gap:6px">
-<button class="btn btn-secondary btn-sm" onclick="goPage('profile')" style="justify-content:flex-start">✏️ แก้ไขข้อมูล</button>
-<button class="btn btn-secondary btn-sm" onclick="goPage('wallet')" style="justify-content:flex-start">💰 ฝาก/ถอน พ้อยท์</button>
-<button class="btn btn-secondary btn-sm" onclick="goPage('history')" style="justify-content:flex-start">📋 ประวัติ</button>
-<button class="btn btn-secondary btn-sm" onclick="goPage('seller-verify')" style="justify-content:flex-start">🏷️ ลงขายสินค้า</button>
-<button class="btn btn-secondary btn-sm" onclick="goPage('my-listings')" style="justify-content:flex-start">📦 ประกาศของฉัน</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('user-profile')" style="justify-content:flex-start"><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> โปรไฟล์</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('wallet')" style="justify-content:flex-start"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ฝาก/ถอน พ้อยท์</button>
+<button class="btn btn-secondary btn-sm" onclick="goPage('history')" style="justify-content:flex-start"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> ประวัติ</button>
+<button id="homeUserSellerAction" class="btn btn-secondary btn-sm" onclick="goPage('seller-verify')" style="justify-content:flex-start">🏷️ ลงขายสินค้า</button>
+<button id="homeUserMyListings" class="btn btn-secondary btn-sm" onclick="goPage('my-listings')" style="justify-content:flex-start">📦 ประกาศของฉัน</button>
 </div>
 </div>
 <div class="card">
-<h4 style="font-weight:700;margin-bottom:12px">💬 ข้อความล่าสุด</h4>
+<h4 style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ข้อความล่าสุด</h4>
 <div id="homeUserRecentMessages"><div class="notice info">กำลังโหลดข้อความ...</div></div>
 <button class="btn btn-ghost btn-sm btn-full" onclick="goPage('chat')" style="margin-top:10px">ดูทั้งหมด →</button>
 </div>
@@ -452,20 +502,41 @@
 <div style="display:grid;grid-template-columns:240px 1fr;gap:24px">
 <div>
 <div class="card" style="margin-bottom:14px">
-<div style="font-weight:700;margin-bottom:12px">🎮 หมวดหมู่เกม</div>
+<div style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> หมวดหมู่เกม</div>
 <div id="userGameFilter"><div class="filter-item active" onclick="filterGame(this)">ทุกเกม</div></div>
 </div>
-<div class="card"><div style="font-weight:700;margin-bottom:12px">💰 ช่วงราคา</div>
+<div class="card"><div style="font-weight:700;margin-bottom:12px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ช่วงราคา</div>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 0–500 ฿</label>
 <label style="display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 500–1,500 ฿</label>
 <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);cursor:pointer"><input name="price2" style="accent-color:var(--accent)" type="radio"/> 1,500+ ฿</label>
 </div>
 </div>
 <div>
-<div class="flex-between" style="margin-bottom:16px">
-<span style="color:var(--muted);font-size:14px">พบ 6 รายการ</span>
-<select class="inp" style="width:auto;padding:8px 14px"><option>ใหม่ล่าสุด</option><option>ราคาต่ำ-สูง</option></select>
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+  <div style="flex:1;min-width:260px;position:relative">
+    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span>
+
+    <input
+      type="text"
+      class="inp marketplace-search"
+      placeholder="ค้นหาชื่อสินค้า ชื่อเกม หรือรายละเอียด..."
+      autocomplete="off"
+      style="width:100%;padding-left:38px"
+    />
+  </div>
+
+  <select class="inp marketplace-sort" style="width:auto;padding:8px 14px">
+    <option value="newest">ใหม่ล่าสุด</option>
+    <option value="price_asc">ราคาต่ำ-สูง</option>
+    <option value="price_desc">ราคาสูง-ต่ำ</option>
+    <option value="rating_desc">คะแนนสูงสุด</option>
+  </select>
 </div>
+
+<div style="margin-bottom:16px">
+  <span style="color:var(--muted);font-size:14px">พบ 0 รายการ</span>
+</div>
+
 <div class="grid3"><div class="card" style="padding:28px;text-align:center;color:var(--muted);grid-column:1/-1">กำลังโหลดรายการสินค้าจริง...</div></div>
 </div>
 </div>
@@ -485,10 +556,44 @@
   </div>
 </div>
 
+<!-- ======== PAGE: USER PROFILE ======== -->
+<div class="page" id="pg-user-profile">
+  <div
+    class="container"
+    style="
+      padding-top:36px;
+      padding-bottom:60px;
+      max-width:1000px;
+    "
+  >
+    <div class="sec-header">
+      <div class="sec-title">
+        <img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> โปรไฟล์
+      </div>
+
+      <div class="sec-sub">
+        ภาพรวมบัญชีและกิจกรรมของคุณ
+      </div>
+    </div>
+
+    <div
+      id="userProfileContent"
+      class="card"
+      style="
+        padding:32px;
+        text-align:center;
+        color:var(--muted);
+      "
+    >
+      กำลังโหลดโปรไฟล์...
+    </div>
+  </div>
+</div>
+
 <!-- ======== PAGE: PROFILE ======== -->
 <div class="page" id="pg-profile">
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:820px">
-<div class="sec-header"><div class="sec-title">👤 ข้อมูลบัญชี</div><div class="sec-sub">ข้อมูลโปรไฟล์และการตั้งค่าความปลอดภัย</div></div>
+<div class="sec-header"><div class="sec-title"><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> ข้อมูลบัญชี</div><div class="sec-sub">ข้อมูลโปรไฟล์และการตั้งค่าความปลอดภัย</div></div>
 <div style="display:grid;grid-template-columns:200px 1fr;gap:24px">
 <!-- Avatar card -->
 <div class="card" style="text-align:center;height:fit-content">
@@ -509,40 +614,6 @@
 </div>
 <!-- Right column -->
 <div>
-<!-- Personal info — read-only -->
-<div class="card" style="margin-bottom:16px">
-<h4 style="font-weight:700;margin-bottom:12px">⭐ คะแนนผู้ขาย</h4>
-<div id="profileSellerRating" class="profile-seller-rating">กำลังโหลดคะแนน...</div>
-</div>
-<div class="card" style="margin-bottom:16px">
-<h4 style="font-weight:700;margin-bottom:20px">ข้อมูลส่วนตัว</h4>
-<div class="grid2" style="gap:12px">
-<div class="inp-group" style="margin-bottom:0">
-<label class="inp-label">ชื่อผู้ใช้</label>
-<input class="inp" id="profileUsername" readonly disabled style="opacity:.65;cursor:default"/>
-</div>
-<div class="inp-group" style="margin-bottom:0">
-<label class="inp-label">อีเมล</label>
-<input class="inp" id="profileEmail" type="email" readonly disabled style="opacity:.65;cursor:default"/>
-</div>
-<div class="inp-group" style="margin-bottom:0">
-<label class="inp-label">ชื่อจริง</label>
-<input class="inp" id="profileFirstName" value="ยังไม่ได้ระบุ" readonly disabled style="opacity:.65;cursor:default"/>
-</div>
-<div class="inp-group" style="margin-bottom:0">
-<label class="inp-label">นามสกุล</label>
-<input class="inp" id="profileLastName" value="ยังไม่ได้ระบุ" readonly disabled style="opacity:.65;cursor:default"/>
-</div>
-<div class="inp-group" style="margin-bottom:0">
-<label class="inp-label">เบอร์โทรศัพท์</label>
-<input class="inp" id="profilePhone" value="ยังไม่ได้ระบุ" readonly disabled style="opacity:.65;cursor:default"/>
-</div>
-<div class="inp-group" style="margin-bottom:0">
-<label class="inp-label">วันเกิด</label>
-<input class="inp" id="profileDateOfBirth" value="ยังไม่ได้ระบุ" readonly disabled style="opacity:.65;cursor:default"/>
-</div>
-</div>
-</div>
 <!-- Account verification -->
 <div class="card" style="margin-bottom:16px">
 <h4 style="font-weight:700;margin-bottom:8px">✉️ ยืนยันอีเมล</h4>
@@ -564,14 +635,27 @@
 <div class="verification-success" data-verification-success="phone" style="display:none">✓ ยืนยันเบอร์โทรศัพท์แล้ว</div>
 <div class="flex gap-8" data-verification-pending="phone" style="align-items:end;flex-wrap:wrap">
 <button class="btn btn-secondary btn-sm" id="profilePhoneVerificationSendButton" onclick="sendPhoneVerificationOtp()">ส่งรหัส OTP</button>
-<div class="inp-group" style="margin:0;flex:1;min-width:150px"><label class="inp-label">OTP 6 หลัก</label><input class="inp" id="profilePhoneVerificationOtp" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" placeholder="000000"/></div>
+
+<div class="inp-group" style="margin:0;flex:1;min-width:150px">
+  <label class="inp-label">OTP 6 หลัก</label>
+  <input
+    class="inp"
+    id="profilePhoneVerificationOtp"
+    inputmode="numeric"
+    maxlength="6"
+    pattern="[0-9]{6}"
+    autocomplete="one-time-code"
+    placeholder="000000"
+  />
+</div>
+
 <button class="btn btn-primary btn-sm" id="profilePhoneVerificationVerifyButton" onclick="verifyPhoneVerificationOtp()">ยืนยันเบอร์โทรศัพท์</button>
 </div>
 <div id="profilePhoneVerificationMsg" style="margin-top:10px;font-size:12px;min-height:16px"></div>
 </div>
 <!-- Change password -->
 <div class="card" style="margin-bottom:16px">
-<h4 style="font-weight:700;margin-bottom:16px">🔒 เปลี่ยนรหัสผ่าน</h4>
+<h4 style="font-weight:700;margin-bottom:16px"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> เปลี่ยนรหัสผ่าน</h4>
 <div class="grid3" style="gap:12px">
 <div class="inp-group" style="margin-bottom:0"><label class="inp-label">รหัสผ่านเดิม</label><input class="inp" id="profileCurrentPassword" placeholder="••••••••" type="password" autocomplete="current-password"/></div>
 <div class="inp-group" style="margin-bottom:0"><label class="inp-label">รหัสผ่านใหม่</label><input class="inp" id="profileNewPassword" placeholder="••••••••" type="password" autocomplete="new-password"/></div>
@@ -579,7 +663,7 @@
 </div>
 <div id="profilePasswordMsg" style="margin-top:12px;font-size:13px;min-height:18px"></div>
 <div class="flex gap-12" style="margin-top:16px">
-<button class="btn btn-primary btn-md" onclick="changePasswordFromProfile()">🔒 เปลี่ยนรหัสผ่าน</button>
+<button class="btn btn-primary btn-md" onclick="changePasswordFromProfile()"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> เปลี่ยนรหัสผ่าน</button>
 </div>
 </div>
 </div>
@@ -590,10 +674,10 @@
 <!-- ======== PAGE: WALLET ======== -->
 <div class="page" id="pg-wallet">
 <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:900px">
-<div class="sec-header"><div class="sec-title">💰 ฝาก / ถอน พ้อยท์</div><div class="sec-sub">จัดการยอดพ้อยท์ในบัญชีของคุณ</div></div>
+<div class="sec-header"><div class="sec-title"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> ฝาก / ถอน พ้อยท์</div><div class="sec-sub">จัดการยอดพ้อยท์ในบัญชีของคุณ</div></div>
 <div class="grid3" style="margin-bottom:28px">
-<div class="card stat-card"><div style="font-size:24px">💰</div><div id="walletBalance" class="stat-val" style="color:var(--accent)">0</div><div class="stat-label">พ้อยท์ที่ใช้ได้</div></div>
-<div id="walletPendingWithdrawalCard" class="card stat-card" style="display:none"><div style="font-size:24px">🔒</div><div id="walletPendingWithdrawalAmount" class="stat-val" style="color:#8b94a7">0</div><div class="stat-label">กำลังถอน</div><div style="font-size:12px;color:var(--muted);margin-top:4px">รอ Admin ตรวจสอบ</div></div>
+<div class="card stat-card"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""></div><div id="walletBalance" class="stat-val" style="color:var(--accent)">0</div><div class="stat-label">พ้อยท์ที่ใช้ได้</div></div>
+<div id="walletPendingWithdrawalCard" class="card stat-card" style="display:none"><div style="font-size:24px"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""></div><div id="walletPendingWithdrawalAmount" class="stat-val" style="color:#8b94a7">0</div><div class="stat-label">กำลังถอน</div><div style="font-size:12px;color:var(--muted);margin-top:4px">รอ Admin ตรวจสอบ</div></div>
 <div class="card stat-card"><div style="font-size:24px">📥</div><div id="walletTotalTopup" class="stat-val" style="color:var(--success)">0</div><div class="stat-label">ฝากทั้งหมด</div></div>
 <div class="card stat-card"><div style="font-size:24px">📤</div><div id="walletTotalWithdrawal" class="stat-val" style="color:var(--warn)">0</div><div class="stat-label">ถอนทั้งหมด</div></div>
 </div>
@@ -604,12 +688,10 @@
 </div>
 <div id="wallet-deposit">
 <div style="max-width:480px">
-<h4 style="font-weight:700;margin-bottom:16px">เลือกช่องทางชำระเงิน</h4>
+<h4 style="font-weight:700;margin-bottom:16px">เลือกช่องทางโอนเงิน</h4>
 <div class="grid2" style="gap:10px;margin-bottom:18px">
-<div class="card" data-wallet-payment-method style="padding:14px;cursor:pointer;text-align:center;font-size:14px;border:1px solid var(--accent)" onclick="selectWalletPaymentMethod('CARD',this)">💳 บัตรเครดิต/เดบิต</div>
 <div class="card" data-wallet-payment-method style="padding:14px;cursor:pointer;text-align:center;font-size:14px" onclick="selectWalletPaymentMethod('BANK',this)">🏦 โอนผ่านธนาคาร</div>
-<div class="card" data-wallet-payment-method style="padding:14px;cursor:pointer;text-align:center;font-size:14px" onclick="selectWalletPaymentMethod('PROMPTPAY',this)">📱 พร้อมเพย์</div>
-<div class="card" data-wallet-payment-method style="padding:14px;cursor:pointer;text-align:center;font-size:14px" onclick="selectWalletPaymentMethod('TRUEMONEY',this)">💰 TrueMoney</div>
+<div class="card" data-wallet-payment-method style="padding:14px;cursor:pointer;text-align:center;font-size:14px" onclick="selectWalletPaymentMethod('PROMPTPAY',this)"><img src="https://www.wondd.com/game/img/pp_icon.png" alt="PromptPay" style="width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px">พร้อมเพย์</div>
 </div>
 <div class="inp-group"><label class="inp-label">จำนวนพ้อยท์ที่ต้องการฝาก</label><input id="walletTopupAmount" class="inp" type="number" min="10" placeholder="กรอกจำนวน (ขั้นต่ำ 10)"/></div>
 <div class="flex gap-8" style="margin-bottom:18px">
@@ -619,16 +701,382 @@
 <button class="btn btn-secondary btn-sm" onclick="setWalletTopupAmount(1000)">1,000</button>
 <button class="btn btn-secondary btn-sm" onclick="setWalletTopupAmount(2000)">2,000</button>
 </div>
-<div id="walletTopupMessage" style="margin-bottom:12px"></div>
+<div class="notice info" style="margin:0 0 14px">หลังโอนเงินแล้ว ให้อัปโหลดสลิป ระบบจะตรวจสอบด้วย SlipOK อัตโนมัติ</div><div id="walletTopupMessage" style="margin-bottom:12px"></div>
 <button class="btn btn-primary btn-md btn-full" onclick="createWalletTopupRequest()">➕ สร้างคำขอเติมพ้อยท์</button>
 </div>
 </div>
-<div id="wallet-withdraw" style="display:none"><div style="max-width:480px"><h4 style="font-weight:700;margin-bottom:8px">ถอนพ้อยท์</h4><div style="font-size:12px;color:var(--muted);margin-bottom:16px">ถอนขั้นต่ำ 100 พ้อยท์ • คำขอจะถูกตรวจสอบโดย Admin</div><div class="inp-group"><label class="inp-label">ช่องทางรับเงิน</label><select id="withdrawPaymentMethod" class="inp"><option value="BANK">🏦 บัญชีธนาคาร</option><option value="PROMPTPAY">📱 พร้อมเพย์</option><option value="TRUEMONEY">💰 TrueMoney</option></select></div><div class="inp-group"><label class="inp-label">ชื่อเจ้าของบัญชี</label><input id="withdrawAccountName" class="inp" placeholder="กรอกชื่อ-นามสกุล"/></div><div class="inp-group"><label class="inp-label">เลขบัญชี / หมายเลขรับเงิน</label><input id="withdrawAccountNumber" class="inp" inputmode="numeric" placeholder="กรอกข้อมูลสำหรับรับเงิน"/></div><div class="inp-group"><label class="inp-label">จำนวนพ้อยท์ที่ต้องการถอน</label><input id="withdrawAmount" class="inp" type="number" min="100" placeholder="ขั้นต่ำ 100 พ้อยท์"/></div><div class="flex gap-8" style="margin-bottom:16px"><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount(100)">100</button><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount(500)">500</button><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount(1000)">1,000</button><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount('max')">สูงสุด</button></div><div id="withdrawMessage" style="margin-bottom:12px"></div><div class="notice warn" style="margin-bottom:16px">⚠️ หลังส่งคำขอ พ้อยท์จะถูกหักจากยอดคงเหลือทันที และรอการตรวจสอบจาก Admin</div><button class="btn btn-primary btn-md btn-full" onclick="createWithdrawalRequest()">📤 ส่งคำขอถอนพ้อยท์</button></div></div></div>
+<div id="wallet-withdraw" style="display:none"><div style="max-width:480px"><h4 style="font-weight:700;margin-bottom:8px">ถอนพ้อยท์</h4><div style="font-size:12px;color:var(--muted);margin-bottom:16px">ถอนขั้นต่ำ 100 พ้อยท์ • คำขอจะถูกตรวจสอบโดย Admin</div><div class="inp-group"><label id="withdrawPaymentMethodLabel" class="inp-label">ช่องทางรับเงิน</label><span id="withdrawPaymentMethodDropdown" style="position:relative;display:block"><select id="withdrawPaymentMethod" class="visually-hidden" tabindex="-1" aria-hidden="true"><option value="BANK">บัญชีธนาคาร</option><option value="PROMPTPAY">พร้อมเพย์</option></select><div id="withdrawPaymentMethodControl" class="inp" role="combobox" aria-labelledby="withdrawPaymentMethodLabel" aria-haspopup="listbox" aria-controls="withdrawPaymentMethodOptions" aria-expanded="false" tabindex="0" style="box-sizing:border-box;display:flex;align-items:center;gap:8px;min-height:42px;padding:0 38px 0 12px;position:relative;cursor:pointer"><span id="withdrawPaymentMethodSelectedIcon" aria-hidden="true" style="width:28px;height:28px;flex:0 0 28px;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1">🏦</span><span id="withdrawPaymentMethodSelectedLabel">บัญชีธนาคาร</span><span aria-hidden="true" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12px">▼</span></div><div id="withdrawPaymentMethodOptions" role="listbox" aria-labelledby="withdrawPaymentMethodLabel" style="display:none;position:absolute;z-index:20;top:calc(100% + 4px);left:0;width:100%;box-sizing:border-box;background:var(--card2);border:1px solid var(--border2);border-radius:9px;overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.35)"><button type="button" id="withdrawPaymentMethodOptionBank" role="option" aria-selected="true" data-withdraw-method="BANK" style="width:100%;height:42px;padding:0 12px;display:flex;align-items:center;gap:8px;border:0;border-bottom:1px solid var(--border);background:transparent;color:var(--text);font:14px 'Sarabun',sans-serif;text-align:left;cursor:pointer"><span aria-hidden="true" style="width:28px;height:28px;flex:0 0 28px;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1">🏦</span><span>บัญชีธนาคาร</span></button><button type="button" id="withdrawPaymentMethodOptionPromptPay" role="option" aria-selected="false" data-withdraw-method="PROMPTPAY" style="width:100%;height:42px;padding:0 12px;display:flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--text);font:14px 'Sarabun',sans-serif;text-align:left;cursor:pointer"><img src="assets/images/promptpay-circle.png" alt="" aria-hidden="true" style="width:28px;height:28px;flex:0 0 28px;object-fit:contain"><span>พร้อมเพย์</span></button></div></span></div>
+<div
+  id="withdrawBankGroup"
+  class="inp-group"
+>
+  <label class="inp-label">
+    ธนาคาร
+  </label>
+
+  <select
+    id="withdrawBankCode"
+    class="inp"
+  >
+    <option value="">
+      เลือกธนาคาร
+    </option>
+
+    <option value="KBANK">
+      กสิกรไทย
+    </option>
+
+    <option value="KTB">
+      กรุงไทย
+    </option>
+
+    <option value="GSB">
+      ออมสิน
+    </option>
+
+    <option value="BBL">
+      กรุงเทพ
+    </option>
+
+    <option value="SCB">
+      ไทยพาณิชย์
+    </option>
+
+    <option value="BAY">
+      กรุงศรีอยุธยา
+    </option>
+
+    <option value="TTB">
+      ทีเอ็มบีธนชาต
+    </option>
+  </select>
+</div>
+<div class="inp-group">
+  <label class="inp-label">ชื่อเจ้าของบัญชี</label>
+  <input id="withdrawAccountName" class="inp" placeholder="กรอกชื่อ-นามสกุล"/>
+</div>
+<div class="inp-group"><label class="inp-label">เลขบัญชี / หมายเลขรับเงิน</label><input id="withdrawAccountNumber" class="inp" inputmode="numeric" placeholder="กรอกข้อมูลสำหรับรับเงิน"/></div><div class="inp-group"><label class="inp-label">จำนวนพ้อยท์ที่ต้องการถอน</label><input id="withdrawAmount" class="inp" type="number" min="100" placeholder="ขั้นต่ำ 100 พ้อยท์"/></div><div class="flex gap-8" style="margin-bottom:16px"><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount(100)">100</button><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount(500)">500</button><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount(1000)">1,000</button><button class="btn btn-secondary btn-sm" onclick="setWithdrawalAmount('max')">สูงสุด</button></div><div id="withdrawMessage" style="margin-bottom:12px"></div><div class="notice warn" style="margin-bottom:16px">⚠️ หลังส่งคำขอ พ้อยท์จะถูกหักจากยอดคงเหลือทันที และรอการตรวจสอบจาก Admin</div><button class="btn btn-primary btn-md btn-full" onclick="startWithdrawalOtpFlow()">➡️ ดำเนินการต่อ</button></div></div></div>
 </div></div>
+
+<!-- ======== PAGE: WITHDRAW OTP ======== -->
+<div class="page" id="pg-withdraw-otp">
+  <div class="container" style="padding-top:36px;padding-bottom:60px;max-width:620px">
+
+    <div class="sec-header">
+      <div class="sec-title">🔐 ยืนยันการถอนพ้อยท์</div>
+      <div class="sec-sub">ยืนยันตัวตนก่อนดำเนินการถอนเงิน</div>
+    </div>
+
+    <div class="card" style="padding:28px">
+
+      <!-- Withdrawal summary -->
+      <div class="notice info" style="margin-bottom:20px">
+        <div style="font-weight:700;margin-bottom:6px">รายละเอียดการถอน</div>
+        <div style="font-size:13px">
+          จำนวน: <strong id="withdrawOtpAmount">0</strong> พ้อยท์
+        </div>
+        <div style="font-size:13px">
+          ช่องทาง: <strong id="withdrawOtpPaymentMethod">-</strong>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="steps" style="margin-bottom:28px">
+        <div class="step">
+          <div class="step-circle" style="background:var(--accent);color:#fff">1</div>
+          <div class="step-line"></div>
+        </div>
+
+        <div class="step">
+          <div class="step-circle" style="background:var(--border);color:var(--muted)">2</div>
+          <div class="step-line"></div>
+        </div>
+
+        <div class="step">
+          <div class="step-circle" style="background:var(--border);color:var(--muted)">3</div>
+        </div>
+      </div>
+
+      <!-- Email OTP -->
+      <div id="withdrawEmailOtpSection" style="margin-bottom:28px">
+
+        <h4 style="font-weight:700;margin-bottom:8px">
+          📧 ขั้นตอนที่ 1: ยืนยัน Email
+        </h4>
+
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px">
+          ระบบจะส่งรหัส OTP ไปยังอีเมลที่ผูกกับบัญชี
+        </div>
+
+        <div style="text-align:center">
+
+          <label class="inp-label" style="margin-bottom:12px">
+            OTP 6 หลัก
+          </label>
+
+          <div class="otp-wrap" id="withdrawEmailOtpWrap">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              autocomplete="one-time-code"
+              aria-label="OTP หลักที่ 1"
+              oninput="otpNext(this, 0)"
+              onkeydown="handleOtpKeydown(event, 0)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 2"
+              oninput="otpNext(this, 1)"
+              onkeydown="handleOtpKeydown(event, 1)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 3"
+              oninput="otpNext(this, 2)"
+              onkeydown="handleOtpKeydown(event, 2)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 4"
+              oninput="otpNext(this, 3)"
+              onkeydown="handleOtpKeydown(event, 3)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 5"
+              oninput="otpNext(this, 4)"
+              onkeydown="handleOtpKeydown(event, 4)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 6"
+              oninput="otpNext(this, 5)"
+              onkeydown="handleOtpKeydown(event, 5)"
+              onpaste="handleOtpPaste(event)">
+
+          </div>
+
+          <div class="flex gap-8" style="justify-content:center;margin-top:16px">
+
+            <button
+              class="btn btn-secondary btn-md"
+              id="withdrawEmailOtpSendButton"
+              type="button"
+              onclick="sendWithdrawalEmailOtp()">
+              ส่งรหัส OTP
+            </button>
+
+            <button
+              class="btn btn-primary btn-md"
+              id="withdrawEmailOtpVerifyButton"
+              type="button"
+              onclick="verifyWithdrawalEmailOtp()">
+              ยืนยัน Email
+            </button>
+
+          </div>
+
+          <div
+            id="withdrawEmailOtpMessage"
+            style="margin-top:12px;font-size:12px;min-height:16px">
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Phone OTP -->
+      <div id="withdrawPhoneOtpSection" style="display:none">
+
+        <h4 style="font-weight:700;margin-bottom:8px">
+          📱 ขั้นตอนที่ 2: ยืนยันเบอร์โทรศัพท์
+        </h4>
+
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px">
+          ระบบจะส่งรหัส OTP ไปยังเบอร์โทรศัพท์ที่ยืนยันไว้
+        </div>
+
+        <div style="text-align:center">
+
+          <label class="inp-label" style="margin-bottom:12px">
+            OTP 6 หลัก
+          </label>
+
+          <div class="otp-wrap" id="withdrawPhoneOtpWrap">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              autocomplete="one-time-code"
+              aria-label="OTP หลักที่ 1"
+              oninput="otpNext(this, 0)"
+              onkeydown="handleOtpKeydown(event, 0)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 2"
+              oninput="otpNext(this, 1)"
+              onkeydown="handleOtpKeydown(event, 1)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 3"
+              oninput="otpNext(this, 2)"
+              onkeydown="handleOtpKeydown(event, 2)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 4"
+              oninput="otpNext(this, 3)"
+              onkeydown="handleOtpKeydown(event, 3)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 5"
+              oninput="otpNext(this, 4)"
+              onkeydown="handleOtpKeydown(event, 4)"
+              onpaste="handleOtpPaste(event)">
+
+            <input
+              class="otp-box"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="OTP หลักที่ 6"
+              oninput="otpNext(this, 5)"
+              onkeydown="handleOtpKeydown(event, 5)"
+              onpaste="handleOtpPaste(event)">
+
+          </div>
+
+          <div class="flex gap-8" style="justify-content:center;margin-top:16px">
+
+            <button
+              class="btn btn-secondary btn-md"
+              id="withdrawPhoneOtpSendButton"
+              type="button"
+              onclick="sendWithdrawalPhoneOtp()">
+              ส่งรหัส OTP
+            </button>
+
+            <button
+              class="btn btn-primary btn-md"
+              id="withdrawPhoneOtpVerifyButton"
+              type="button"
+              onclick="verifyWithdrawalPhoneOtp()">
+              ยืนยันเบอร์โทรศัพท์
+            </button>
+
+          </div>
+
+          <div
+            id="withdrawPhoneOtpMessage"
+            style="margin-top:12px;font-size:12px;min-height:16px">
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div id="withdrawSummarySection" style="display:none">
+
+        <h4 style="font-weight:700;margin-bottom:16px">
+          ✅ ตรวจสอบข้อมูลก่อนยืนยัน
+        </h4>
+
+        <div class="notice" style="margin-bottom:18px">
+          <div style="font-size:13px;margin-bottom:8px">
+            จำนวนถอน: <strong id="withdrawSummaryAmount">0</strong> พ้อยท์
+          </div>
+
+          <div style="font-size:13px;margin-bottom:8px">
+            ช่องทางรับเงิน: <strong id="withdrawSummaryMethod">-</strong>
+          </div>
+
+          <div
+            id="withdrawSummaryBankRow"
+            style="font-size:13px;margin-bottom:8px;display:none"
+          >
+            ธนาคาร: <strong id="withdrawSummaryBank">-</strong>
+          </div>
+
+          <div style="font-size:13px">
+            บัญชีรับเงิน: <strong id="withdrawSummaryAccount">-</strong>
+          </div>
+        </div>
+
+        <div class="notice warn" style="margin-bottom:16px">
+          ⚠️ กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนยืนยันการถอน
+        </div>
+
+        <button
+          class="btn btn-primary btn-full btn-lg"
+          id="withdrawFinalConfirmButton"
+          type="button"
+          onclick="completeWithdrawalAttempt()">
+          ✅ ยืนยันการถอน
+        </button>
+
+      </div>
+
+      <!-- Back -->
+      <div style="margin-top:18px;text-align:center">
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          onclick="goPage('wallet')">
+          ← กลับไปหน้ากระเป๋าเงิน
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- ======== PAGE: HISTORY ======== -->
 <div class="page" id="pg-history">
-<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:900px">
-<div class="sec-header"><div class="sec-title">📋 ประวัติการทำธุรกรรม</div><div class="sec-sub">ดูประวัติการซื้อขายและธุรกรรมทั้งหมดของคุณ</div></div>
+<div class="container" style="padding-top:36px;padding-bottom:60px;max-width:1200px">
+<div class="sec-header"><div class="sec-title"><img class="ui-emoji" src="assets/icons/history.svg" alt=""> ประวัติการทำธุรกรรม</div><div class="sec-sub">ดูประวัติการซื้อขายและธุรกรรมทั้งหมดของคุณ</div></div>
 <div class="card">
 <div class="tabs">
 <button class="tab-btn active" onclick="switchTab(this,'hist-trade')">📊 ประวัติซื้อ/ขาย</button>
@@ -647,7 +1095,7 @@
 <!-- ======== PAGE: CHAT ======== -->
 <div class="page" id="pg-chat">
 <div class="container" style="padding-top:36px;padding-bottom:60px">
-<div class="sec-header"><div class="sec-title">💬 แชทข้อความ</div><div class="sec-sub">ติดต่อสื่อสารกับผู้ซื้อและผู้ขาย</div></div>
+<div class="sec-header"><div class="sec-title"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> แชทข้อความ</div><div class="sec-sub">ติดต่อสื่อสารกับผู้ซื้อและผู้ขาย</div></div>
 <div id="chatApp" style="display:grid;grid-template-columns:280px 1fr;border:1px solid var(--border);border-radius:14px;overflow:hidden;height:560px">
 <div class="card" style="padding:28px;text-align:center;color:var(--muted)">กำลังโหลดการสนทนา...</div>
 </div>
@@ -685,7 +1133,7 @@
 <div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">3️⃣</span><span style="font-size:14px;color:var(--muted)">ส่งคำขอสมัครเป็นผู้ขาย</span></div>
 <div class="card" style="padding:14px;display:flex;gap:12px;align-items:center"><span style="font-size:20px">4️⃣</span><span style="font-size:14px;color:var(--muted)">Admin อนุมัติ → ได้รับสิทธิ์ SELLER และลงขายสินค้าได้</span></div>
 </div>
-<div class="notice info" style="margin-top:16px">🔒 สิทธิ์ SELLER จะถูกเพิ่มโดยระบบหลังจาก Admin อนุมัติคำขอเท่านั้น</div>
+<div class="notice info" style="margin-top:16px"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> สิทธิ์ SELLER จะถูกเพิ่มโดยระบบหลังจาก Admin อนุมัติคำขอเท่านั้น</div>
 </div>
 <div class="card">
 <h4 style="font-weight:700;margin-bottom:12px">สถานะการสมัครผู้ขาย</h4>
@@ -709,15 +1157,50 @@
 <div class="card" style="padding:30px">
 <div id="create-product-feedback" class="notice" style="display:none;margin-bottom:16px"></div>
 <div class="grid2" style="gap:14px;margin-bottom:4px">
-<div class="inp-group"><label class="inp-label">เกม</label><select class="inp" id="create-product-game" onchange="loadCreateProductAttributes()"><option value="">กำลังโหลดเกม...</option></select></div>
+<div class="inp-group">
+  <label class="inp-label">เกม</label>
+  <select
+    class="inp"
+    id="create-product-game"
+  >
+    <option value="">กำลังโหลดเกม...</option>
+  </select>
+</div>
 <div class="inp-group"><label class="inp-label">ชื่อประกาศ</label><input class="inp" id="create-product-title" placeholder="เช่น บัญชี Valorant Immortal สกินครบ"/></div>
 <div class="inp-group" style="grid-column:1/-1"><label class="inp-label">รายละเอียดเพิ่มเติม</label><textarea class="inp" id="create-product-description" placeholder="อธิบายรายละเอียดสินค้า สกินพิเศษ สิ่งที่มีในบัญชี ฯลฯ" rows="4" style="resize:none"></textarea></div>
-<div class="inp-group"><label class="inp-label">ราคา (บาท)</label><input class="inp" id="create-product-price" placeholder="กรอกราคา" type="number" min="0" step="0.01"/></div>
+<div class="inp-group">
+  <label class="inp-label">
+    ราคา (pts)
+  </label>
+
+  <input
+    class="inp"
+    id="create-product-price"
+    placeholder="กรอกราคา"
+    type="number"
+    min="0"
+    step="0.01"
+    oninput="window.updateCreateProductVatPreview?.()"
+  />
+
+  <div
+    id="create-product-vat-preview"
+    style="
+      margin-top:10px;
+      padding:10px 12px;
+      border:1px solid rgba(59,130,246,0.25);
+      border-radius:10px;
+      background:var(--accentDim);
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.7
+    "
+  >
+    กรอกราคาสินค้าเพื่อดูยอดที่คุณจะได้รับ
+  </div>
 </div>
-<div class="card" style="padding:18px;margin:8px 0 18px">
-<div style="font-weight:700;margin-bottom:4px">🎮 รายละเอียดเฉพาะเกม</div>
-<div id="create-product-attributes" style="display:flex;flex-direction:column;gap:12px;color:var(--muted);font-size:13px">เลือกเกมเพื่อโหลดรายละเอียด</div>
 </div>
+
 <div class="inp-group">
 <label class="inp-label">ข้อมูลบัญชีสำหรับส่งให้ผู้ซื้อ (จะแสดงหลังการขาย)</label>
 <div class="card" style="padding:16px">
@@ -729,6 +1212,115 @@
 </div>
 </div>
 </div>
+
+<div
+  id="create-product-valorant-verification"
+  class="create-product-valorant-verification"
+  hidden
+>
+  <div class="create-product-valorant-verification-head">
+
+    <div>
+      <div class="create-product-valorant-verification-title">
+        ✓ ตรวจสอบบัญชี Valorant
+      </div>
+
+      <div class="create-product-valorant-verification-subtitle">
+        ไม่บังคับ — ตรวจสอบว่าบัญชี Riot ID นี้มีอยู่จริง
+      </div>
+    </div>
+
+    <span class="badge badge-gray">
+      Optional
+    </span>
+
+  </div>
+
+  <div class="grid2 create-product-valorant-fields">
+
+    <div class="inp-group">
+      <label class="inp-label">
+        Riot ID
+      </label>
+
+      <input
+        id="create-product-riot-game-name"
+        class="inp"
+        type="text"
+        maxlength="100"
+        placeholder="เช่น Peter"
+        autocomplete="off"
+        oninput="
+          window.pendingValorantVerification = null;
+
+          const feedback =
+            document.getElementById(
+              'create-product-valorant-verification-feedback'
+            );
+
+          feedback.textContent = '';
+
+          feedback.classList.remove(
+            'is-success',
+            'is-error'
+          );
+
+          window.updateValorantVerifyButtonState?.();
+        "
+      />
+    </div>
+
+    <div class="inp-group">
+      <label class="inp-label">
+        Tag
+      </label>
+
+      <input
+        id="create-product-riot-tag-line"
+        class="inp"
+        type="text"
+        maxlength="20"
+        placeholder="เช่น TH1"
+        autocomplete="off"
+        oninput="
+          window.pendingValorantVerification = null;
+
+          const feedback =
+            document.getElementById(
+              'create-product-valorant-verification-feedback'
+            );
+
+          feedback.textContent = '';
+
+          feedback.classList.remove(
+            'is-success',
+            'is-error'
+          );
+
+          window.updateValorantVerifyButtonState?.();
+        "
+      />
+    </div>
+
+  </div>
+
+  <button
+    id="create-product-valorant-verify-button"
+    type="button"
+    class="btn btn-secondary btn-md"
+    onclick="verifyCreateProductValorantAccount()"
+    disabled
+  >
+    <img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""> ตรวจสอบบัญชี Valorant
+  </button>
+
+  <div
+    id="create-product-valorant-verification-feedback"
+    class="create-product-valorant-verification-feedback"
+  ></div>
+
+</div>
+
 <div class="inp-group">
 <label class="inp-label">รูปภาพสินค้า <span id="product-image-count" style="float:right;color:var(--muted);font-weight:400">0/10 รูป</span></label>
 <input id="product-image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onchange="handleProductImageSelection(this.files)">
@@ -738,7 +1330,7 @@
 <div id="product-image-feedback" style="margin-top:8px;font-size:12px;min-height:16px"></div>
 </div>
 <div class="flex gap-12">
-<button class="btn btn-primary btn-lg" id="create-product-save-button" onclick="createProductFromForm('DRAFT')">💾 บันทึกร่าง</button>
+<button class="btn btn-primary btn-lg" id="create-product-save-button" onclick="createProductFromForm('DRAFT')">💾 บันทึก</button>
 <button class="btn btn-secondary btn-md" onclick="cancelCreateProductEditor()">ยกเลิก</button>
 </div>
 </div>
@@ -774,64 +1366,878 @@
 <!-- ======== ADMIN PAGES ======== -->
 <!-- Admin Dashboard -->
 <div class="page" id="pg-admin-dashboard">
-<div class="admin-layout">
-<div class="admin-sidebar" id="adminSidebar"></div>
-<div class="admin-content">
-<div class="sec-header"><div class="sec-title">📊 แดชบอร์ดผู้ดูแลระบบ</div><div class="sec-sub">ภาพรวมเฉพาะโมดูลที่เชื่อมต่อ Backend แล้ว</div></div>
-<div class="card" style="margin-bottom:20px;padding:18px 20px"><strong>สถานะระบบ Admin</strong><div style="color:var(--muted);font-size:13px;margin-top:6px">Dashboard, Game Management, Transaction Report, Seller Verification, Topup และ Withdrawal เชื่อม Backend แล้ว ส่วน Chat Log และ Suspend Users ยังรอ Admin API เฉพาะโมดูล</div></div>
-<div class="grid4" style="margin-bottom:28px">
-<div class="card stat-card"><div style="font-size:24px">👥</div><div id="adminDashboardUserCount" class="stat-val" style="color:var(--accent)">—</div><div class="stat-label">สมาชิกทั้งหมด</div><div style="font-size:12px;color:var(--muted);margin-top:4px">จาก Database</div></div>
-<div class="card stat-card"><div style="font-size:24px">📦</div><div id="adminDashboardProductCount" class="stat-val" style="color:var(--success)">—</div><div class="stat-label">รายการสินค้า</div><div style="font-size:12px;color:var(--muted);margin-top:4px">ACTIVE + SOLD</div></div>
-<div class="card stat-card"><div style="font-size:24px">💰</div><div id="adminDashboardMonthlySales" class="stat-val" style="color:var(--warn)">—</div><div class="stat-label">ยอดขายเดือนนี้</div><div style="font-size:12px;color:var(--muted);margin-top:4px">PAID + COMPLETED</div></div>
-<div class="card stat-card"><div style="font-size:24px">🚨</div><div id="adminDashboardReportCount" class="stat-val" style="color:var(--danger)">—</div><div class="stat-label">รายงานที่ยังเปิดอยู่</div><div style="font-size:12px;color:var(--muted);margin-top:4px">จาก Transaction Report</div></div>
-</div>
-<div class="grid2">
-<div class="card">
-<h4 style="font-weight:700;margin-bottom:10px">📈 ธุรกรรมล่าสุด</h4>
-<div id="adminDashboardRecentTransactions" class="report-list"></div>
-</div>
-<div class="card">
-<h4 style="font-weight:700;margin-bottom:10px">🎮 เกมยอดนิยม</h4>
-<div id="adminDashboardPopularGames" class="report-list"></div>
-</div>
-</div>
-</div>
-</div>
+  <div class="admin-layout">
+
+    <div class="admin-sidebar" id="adminSidebar"></div>
+
+    <div class="admin-content admin-dashboard-page">
+
+      <!-- Header -->
+      <div class="admin-dashboard-heading">
+        <div class="admin-dashboard-heading-icon">📊</div>
+
+        <div>
+          <div class="sec-title">แดชบอร์ดผู้ดูแลระบบ</div>
+          <div class="sec-sub">
+            ภาพรวมสถานะของแพลตฟอร์ม GameMarket แบบเรียลไทม์
+          </div>
+        </div>
+      </div>
+
+      <!-- Top statistics -->
+      <div class="admin-dashboard-stats">
+
+        <!-- Users -->
+        <div class="admin-dashboard-stat-card">
+          <div class="admin-dashboard-stat-icon stat-users">👥</div>
+
+          <div class="admin-dashboard-stat-body">
+            <div
+              id="adminDashboardUserCount"
+              class="admin-dashboard-stat-number stat-blue"
+            >
+              —
+            </div>
+
+            <div class="admin-dashboard-stat-title">
+              สมาชิกทั้งหมด
+            </div>
+
+            <div class="admin-dashboard-stat-sub">
+              จาก Database
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Products -->
+        <div class="admin-dashboard-stat-card">
+          <div class="admin-dashboard-stat-icon stat-products">📦</div>
+
+          <div class="admin-dashboard-stat-body">
+            <div
+              id="adminDashboardProductCount"
+              class="admin-dashboard-stat-number stat-blue"
+            >
+              —
+            </div>
+
+            <div class="admin-dashboard-stat-title">
+              รายการสินค้า
+            </div>
+
+            <div class="admin-dashboard-stat-sub">
+              ACTIVE ในร้านค้า
+            </div>
+          </div>
+        </div>
+
+        <!-- Net Profit / Net Cash Flow -->
+        <div class="admin-dashboard-stat-card">
+          <div class="admin-dashboard-stat-icon stat-profit"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""></div>
+
+          <div class="admin-dashboard-stat-body">
+            <div class="admin-dashboard-stat-title">
+              ยอดเงินสุทธิในระบบ
+            </div>
+
+            <div
+              id="adminDashboardNetProfit"
+              class="admin-dashboard-stat-number stat-green"
+            >
+              —
+            </div>
+
+            <div class="admin-dashboard-stat-sub">
+              ยอดฝากสำเร็จ - ยอดถอนสำเร็จ
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed Orders -->
+        <div class="admin-dashboard-stat-card">
+          <div class="admin-dashboard-stat-icon stat-orders">
+            <svg
+              viewBox="0 0 24 24"
+              width="32"
+              height="32"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="9" cy="20" r="1"></circle>
+              <circle cx="18" cy="20" r="1"></circle>
+              <path d="M3 4h2l2.4 10.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6"></path>
+            </svg>
+          </div>
+
+          <div class="admin-dashboard-stat-body">
+            <div class="admin-dashboard-stat-title">
+              คำสั่งซื้อทั้งหมด
+            </div>
+
+            <div
+              id="adminDashboardCompletedOrderCount"
+              class="admin-dashboard-stat-number stat-green"
+            >
+              —
+            </div>
+
+            <div class="admin-dashboard-stat-sub">
+              เฉพาะคำสั่งซื้อที่สำเร็จ
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action queue -->
+      <section class="admin-dashboard-action-section">
+
+        <div class="admin-dashboard-section-heading">
+          <div>
+            <h3>☑️ งานที่ต้องดำเนินการ</h3>
+            <p>รายการที่ต้องตรวจสอบและดำเนินการจากผู้ใช้ในระบบ</p>
+          </div>
+        </div>
+
+        <div class="admin-dashboard-action-grid">
+
+          <button
+            class="admin-dashboard-action-card"
+            type="button"
+            onclick="goAdmin('admin-seller-verifications')"
+          >
+            <div class="admin-dashboard-action-icon action-blue"><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""></div>
+
+            <div>
+              <strong>ตรวจสอบผู้ขาย</strong>
+
+              <div
+                id="adminDashboardSellerPending"
+                class="admin-dashboard-action-value value-blue"
+              >
+                —
+              </div>
+
+              <span>คำขอรอการตรวจสอบ</span>
+            </div>
+
+            <div class="admin-dashboard-action-arrow">›</div>
+          </button>
+
+          <button
+            class="admin-dashboard-action-card"
+            type="button"
+            onclick="goAdmin('admin-withdraw')"
+          >
+            <div class="admin-dashboard-action-icon action-yellow">👛</div>
+
+            <div>
+              <strong>คำขอถอนเงิน</strong>
+
+              <div
+                id="adminDashboardWithdrawalPending"
+                class="admin-dashboard-action-value value-yellow"
+              >
+                —
+              </div>
+
+              <span>รอการอนุมัติ</span>
+            </div>
+
+            <div class="admin-dashboard-action-arrow">›</div>
+          </button>
+
+          <button
+            class="admin-dashboard-action-card"
+            type="button"
+            onclick="goAdmin('admin-report')"
+          >
+            <div class="admin-dashboard-action-icon action-red">📄</div>
+
+            <div>
+              <strong>รายงานผู้ใช้</strong>
+
+              <div
+                id="adminDashboardTransactionReportPending"
+                class="admin-dashboard-action-value value-red"
+              >
+                —
+              </div>
+
+              <span>รายการที่ต้องตรวจสอบ</span>
+            </div>
+
+            <div class="admin-dashboard-action-arrow">›</div>
+          </button>
+
+          <button
+            class="admin-dashboard-action-card"
+            type="button"
+            onclick="goAdmin('admin-report')"
+          >
+            <div class="admin-dashboard-action-icon action-purple"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""></div>
+
+            <div>
+              <strong>รายงานรีวิว</strong>
+
+              <div
+                id="adminDashboardReviewReportPending"
+                class="admin-dashboard-action-value value-purple"
+              >
+                —
+              </div>
+
+              <span>รีวิวที่ถูกรายงาน</span>
+            </div>
+
+            <div class="admin-dashboard-action-arrow">›</div>
+          </button>
+
+        </div>
+
+      </section>
+
+      <!-- Bottom -->
+      <div class="admin-dashboard-bottom-grid">
+
+        <section class="admin-dashboard-panel">
+
+          <div class="admin-dashboard-panel-heading">
+            <h3>📑 ธุรกรรมล่าสุด</h3>
+            <span>5 รายการล่าสุด</span>
+          </div>
+
+          <div id="adminDashboardRecentTransactions"></div>
+
+        </section>
+
+        <section class="admin-dashboard-panel">
+
+          <div class="admin-dashboard-panel-heading">
+            <h3><img class="ui-emoji" src="assets/icons/game.svg" alt=""> เกมยอดนิยม</h3>
+
+            <button
+              type="button"
+              class="admin-dashboard-text-link"
+              onclick="goAdmin('admin-games')"
+            >
+              ดูทั้งหมด →
+            </button>
+          </div>
+
+          <div id="adminDashboardPopularGames"></div>
+
+        </section>
+
+      </div>
+
+    </div>
+  </div>
 </div>
 <!-- Admin User Management -->
 <div class="page" id="pg-admin-users">
-<div class="admin-layout"><div class="admin-sidebar" id="adminSidebar9"></div><div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">👥 จัดการผู้ใช้</div><div class="sec-sub">ดูสมาชิกและจัดการสถานะบัญชีจาก Database จริง</div></div><button class="btn btn-secondary btn-sm" onclick="adminLoadUsers()">↻ รีเฟรช</button></div>
-<div class="grid4" style="margin-bottom:20px"><div class="card stat-card"><div style="font-size:22px">👥</div><div id="adminUserTotal" class="stat-val">0</div><div class="stat-label">สมาชิกทั้งหมด</div></div><div class="card stat-card"><div style="font-size:22px">🟢</div><div id="adminUserActive" class="stat-val">0</div><div class="stat-label">ใช้งาน</div></div><div class="card stat-card"><div style="font-size:22px">⏸</div><div id="adminUserSuspended" class="stat-val">0</div><div class="stat-label">ระงับ</div></div><div class="card stat-card"><div style="font-size:22px">🚫</div><div id="adminUserBanned" class="stat-val">0</div><div class="stat-label">แบน</div></div></div>
-<div class="card" style="padding:18px"><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminUserSearch" oninput="adminFilterUsers()" placeholder="ค้นหา Username / Email / ชื่อ"></div><div class="report-field"><select id="adminUserRole" onchange="adminFilterUsers()"><option value="ALL">ทุกบทบาท</option><option value="USER">USER</option><option value="SELLER">SELLER</option><option value="ADMIN">ADMIN</option></select></div><div class="report-field"><select id="adminUserStatus" onchange="adminFilterUsers()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">ใช้งาน</option><option value="SUSPENDED">ระงับ</option><option value="BANNED">แบน</option></select></div></div><div id="adminUserList" class="report-list"></div></div>
-</div></div></div>
-<div class="modal-backdrop" id="adminUserModal" hidden onclick="if(event.target===this)closeAdminUserModal()"><div class="modal-dialog" role="dialog" aria-modal="true" style="max-width:680px"><div class="sec-header"><div class="sec-title">👤 รายละเอียดผู้ใช้</div><button class="btn btn-ghost btn-sm" onclick="closeAdminUserModal()">✕</button></div><div id="adminUserModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminUserModal()">ปิด</button></div></div></div>
-<div class="page" id="pg-admin-products">
-<div class="admin-layout"><div class="admin-sidebar" id="adminSidebar10"></div><div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">📦 จัดการสินค้า</div><div class="sec-sub">ตรวจสอบและจัดการรายการสินค้าจากผู้ขาย</div></div><button class="btn btn-secondary btn-sm" onclick="adminLoadProducts()">↻ รีเฟรช</button></div>
-<div class="grid4" style="margin-bottom:20px"><div class="card stat-card"><div>📦</div><div id="adminProductTotal" class="stat-val">0</div><div class="stat-label">สินค้าทั้งหมด</div></div><div class="card stat-card"><div>🟢</div><div id="adminProductActive" class="stat-val">0</div><div class="stat-label">กำลังขาย</div></div><div class="card stat-card"><div>⏸</div><div id="adminProductPaused" class="stat-val">0</div><div class="stat-label">ซ่อน</div></div><div class="card stat-card"><div>✅</div><div id="adminProductSold" class="stat-val">0</div><div class="stat-label">ขายแล้ว</div></div></div>
-<div class="card" style="padding:18px"><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminProductSearch" oninput="adminFilterProducts()" placeholder="ค้นหาชื่อสินค้า / ผู้ขาย"></div><div class="report-field"><select id="adminProductGame" onchange="adminFilterProducts()"><option value="ALL">ทุกเกม</option></select></div><div class="report-field"><select id="adminProductStatus" onchange="adminFilterProducts()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">กำลังขาย</option><option value="PAUSED">ซ่อน</option><option value="SOLD">ขายแล้ว</option><option value="DRAFT">ฉบับร่าง</option><option value="CANCELLED">ยกเลิก</option></select></div></div><div id="adminProductList" class="report-list"></div></div>
-</div></div></div>
-<div class="modal-backdrop" id="adminProductModal" hidden onclick="if(event.target===this)closeAdminProductModal()"><div class="modal-dialog" role="dialog" aria-modal="true" style="max-width:720px"><div class="sec-header"><div class="sec-title">📦 รายละเอียดสินค้า</div><button class="btn btn-ghost btn-sm" onclick="closeAdminProductModal()">✕</button></div><div id="adminProductModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminProductModal()">ปิด</button></div></div></div>
+
+  <div class="admin-layout">
+
+    <div
+      class="admin-sidebar"
+      id="adminSidebar9"
+    ></div>
+
+    <div class="admin-content">
+
+      <div class="admin-users-page">
+
+        <!-- Header -->
+        <div class="admin-users-header">
+
+          <div>
+            <div class="admin-users-title">
+              <span class="admin-users-title-icon">👥</span>
+
+              <div>
+                <h2>จัดการผู้ใช้</h2>
+                <p>
+                  ดูแลและจัดการสถานะผู้ใช้จาก Database จริง
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm admin-users-refresh"
+              onclick="adminLoadUsers()"
+            >
+              ↻ รีเฟรช
+            </button>
+          </div>
+
+        </div>
+
+
+        <!-- Stats -->
+        <div class="admin-users-stats">
+
+          <div class="admin-users-stat-card stat-users-total">
+
+            <div class="admin-users-stat-icon">
+              👥
+            </div>
+
+            <div class="admin-users-stat-content">
+
+              <div
+                id="adminUserTotal"
+                class="admin-users-stat-number"
+              >
+                0
+              </div>
+
+              <div class="admin-users-stat-title">
+                สมาชิกทั้งหมด
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-users-stat-card stat-users-active">
+
+            <div class="admin-users-stat-icon">
+              ●
+            </div>
+
+            <div class="admin-users-stat-content">
+
+              <div
+                id="adminUserActive"
+                class="admin-users-stat-number"
+              >
+                0
+              </div>
+
+              <div class="admin-users-stat-title">
+                ผู้ใช้งาน
+              </div>
+
+              <div class="admin-users-stat-sub">
+                รวมผู้ใช้ที่สามารถเข้าสู่ระบบได้
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-users-stat-card stat-users-seller">
+
+            <div class="admin-users-stat-icon">
+              🏪
+            </div>
+
+            <div class="admin-users-stat-content">
+
+              <div
+                id="adminUserSeller"
+                class="admin-users-stat-number"
+              >
+                0
+              </div>
+
+              <div class="admin-users-stat-title">
+                ผู้ขาย
+              </div>
+
+              <div class="admin-users-stat-sub">
+                ผู้ใช้ที่ผ่านการยืนยันเป็นผู้ขายแล้ว
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-users-stat-card stat-users-banned">
+
+            <div class="admin-users-stat-icon">
+              🚫
+            </div>
+
+            <div class="admin-users-stat-content">
+
+              <div
+                id="adminUserBanned"
+                class="admin-users-stat-number"
+              >
+                0
+              </div>
+              
+              <div class="admin-users-stat-title">
+                แบนถาวร
+              </div>
+
+              <div class="admin-users-stat-sub">
+                บัญชีที่ถูกแบนถาวร
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- User panel -->
+        <div
+          id="adminUsersWorkspace"
+          class="admin-users-workspace"
+        >
+        
+        <section class="admin-users-panel admin-users-list-panel">
+
+          <!-- Tabs -->
+          <div class="admin-users-tabs">
+
+            <div class="admin-users-tab-list">
+
+              <button
+                type="button"
+                class="admin-users-tab active"
+                data-admin-user-view="ALL"
+                onclick="adminSetUserView('ALL')"
+              >
+                <span>👥</span>
+                ผู้ใช้ทั้งหมด
+              </button>
+
+              <button
+                type="button"
+                class="admin-users-tab"
+                data-admin-user-view="USER"
+                onclick="adminSetUserView('USER')"
+              >
+                <span class="admin-user-tab-active-dot"></span>
+                ผู้ใช้งาน
+              </button>
+
+              <button
+                type="button"
+                class="admin-users-tab"
+                data-admin-user-view="SELLER"
+                onclick="adminSetUserView('SELLER')"
+              >
+                <span>🏪</span>
+                ผู้ขาย
+              </button>
+
+              <button
+                type="button"
+                class="admin-users-tab"
+                data-admin-user-view="BANNED"
+                onclick="adminSetUserView('BANNED')"
+              >
+                <span>🚫</span>
+                บัญชีที่ถูกแบน
+              </button>
+
+            </div>
+
+            <div
+              id="adminUserResultCount"
+              class="admin-users-result-count"
+            >
+              ทั้งหมด 0 รายการ
+            </div>
+
+          </div>
+
+
+          <!-- Filters -->
+          <div class="admin-users-toolbar">
+
+            <div class="admin-users-search">
+
+              <span>⌕</span>
+
+              <input
+                id="adminUserSearch"
+                type="text"
+                placeholder="ค้นหา Username / Email / ชื่อ / เบอร์โทร..."
+                oninput="adminFilterUsers()"
+              >
+
+            </div>
+
+
+            <select
+              id="adminUserRole"
+              class="admin-users-select"
+              onchange="adminFilterUsers()"
+            >
+              <option value="ALL">
+                ทุกบทบาท
+              </option>
+
+              <option value="USER">
+                USER
+              </option>
+
+              <option value="SELLER">
+                SELLER
+              </option>
+
+              <option value="ADMIN">
+                ADMIN
+              </option>
+            </select>
+
+
+            <select
+              id="adminUserStatus"
+              class="admin-users-select"
+              onchange="adminFilterUsers()"
+            >
+              <option value="ALL">
+                ทุกสถานะ
+              </option>
+
+              <option value="ACTIVE">
+                ใช้งาน
+              </option>
+
+              <option value="BANNED">
+                บัญชีที่ถูกแบนถาวร
+              </option>
+            </select>
+
+
+            <select
+              id="adminUserSort"
+              class="admin-users-select"
+              onchange="adminFilterUsers()"
+            >
+              <option value="NEWEST">
+                เรียงล่าสุด
+              </option>
+
+              <option value="OLDEST">
+                เก่าสุด
+              </option>
+
+              <option value="USERNAME_ASC">
+                Username A-Z
+              </option>
+
+              <option value="WALLET_DESC">
+                Wallet มากสุด
+              </option>
+            </select>
+
+          </div>
+
+
+          <!-- Database user rows -->
+          <div
+            id="adminUserList"
+            class="admin-users-list"
+          ></div>
+
+        </section>
+
+        <!-- User detail panel -->
+        <section
+          id="adminUserDetailPanel"
+          class="admin-user-detail-panel"
+          hidden
+        >
+
+          <div
+            id="adminUserDetailEmpty"
+            class="admin-user-detail-empty"
+          >
+            <div class="admin-user-detail-empty-icon">
+              <img class="ui-emoji" src="assets/icons/profileUser.svg" alt="">
+            </div>
+
+            <h3>
+              เลือกผู้ใช้เพื่อดูรายละเอียด
+            </h3>
+
+            <p>
+              คลิกที่รายการผู้ใช้ทางด้านซ้าย
+            </p>
+          </div>
+
+
+          <div
+            id="adminUserDetailContent"
+            class="admin-user-detail-content"
+            hidden
+          >
+
+            <!-- Profile header -->
+            <div class="admin-user-detail-header">
+
+              <div class="admin-user-detail-profile">
+
+                <div
+                  id="adminUserDetailAvatar"
+                  class="admin-user-detail-avatar"
+                >
+                  U
+                </div>
+
+                <div class="admin-user-detail-profile-text">
+
+                  <div class="admin-user-detail-name-row">
+
+                    <h2 id="adminUserDetailUsername">
+                      Username
+                    </h2>
+
+                    <span
+                      id="adminUserDetailStatus"
+                      class="admin-user-status-badge"
+                    >
+                    </span>
+
+                    <span
+                      id="adminUserDetailRole"
+                      class="admin-user-role-badge"
+                    >
+                    </span>
+
+                  </div>
+
+                  <div
+                    id="adminUserDetailEmail"
+                    class="admin-user-detail-email"
+                  >
+                  </div>
+
+                  <div
+                    id="adminUserDetailJoined"
+                    class="admin-user-detail-joined"
+                  >
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="admin-user-detail-close"
+                onclick="closeAdminUserDetail()"
+                aria-label="ปิดรายละเอียด"
+              >
+                ✕
+              </button>
+
+            </div>
+
+
+            <!-- Moderation actions -->
+            <div
+              id="adminUserDetailActions"
+              class="admin-user-detail-actions"
+            ></div>
+
+
+            <!-- Tabs -->
+            <div class="admin-user-detail-tabs">
+
+              <button
+                type="button"
+                class="admin-user-detail-tab active"
+                data-admin-user-detail-tab="GENERAL"
+                onclick="adminSetUserDetailTab('GENERAL')"
+              >
+                <img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""> ข้อมูลทั่วไป
+              </button>
+
+              <button
+                type="button"
+                class="admin-user-detail-tab"
+                data-admin-user-detail-tab="PRODUCTS"
+                onclick="adminSetUserDetailTab('PRODUCTS')"
+              >
+                <img class="ui-emoji" src="assets/icons/shop.svg" alt=""> รายการสินค้า
+              </button>
+
+              <button
+                type="button"
+                class="admin-user-detail-tab"
+                data-admin-user-detail-tab="PURCHASES"
+                onclick="adminSetUserDetailTab('PURCHASES')"
+              >
+                🛍 รายการที่ซื้อ
+              </button>
+
+              <button
+                type="button"
+                class="admin-user-detail-tab"
+                data-admin-user-detail-tab="REVIEWS"
+                onclick="adminSetUserDetailTab('REVIEWS')"
+              >
+                ☆ รีวิว
+              </button>
+
+            </div>
+
+
+            <!-- Dynamic real DB content -->
+            <div
+              id="adminUserDetailBody"
+              class="admin-user-detail-body"
+            ></div>
+
+          </div>
+
+        </section>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+<div
+  class="modal-backdrop"
+  id="adminProductModal"
+  hidden
+  onclick="
+    if(event.target === this){
+      closeAdminProductModal();
+    }
+  "
+>
+  <div
+    class="modal-dialog admin-user-product-detail-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="adminProductModalTitle"
+  >
+
+    <div class="admin-user-product-detail-head">
+
+      <div>
+        <div
+          id="adminProductModalTitle"
+          class="admin-user-product-detail-title"
+        >
+          📦 รายละเอียดสินค้า
+        </div>
+
+        <div class="admin-user-product-detail-subtitle">
+          ข้อมูลสินค้าสำหรับผู้ดูแลระบบ
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="admin-user-product-detail-close"
+        onclick="closeAdminProductModal()"
+        aria-label="ปิดรายละเอียดสินค้า"
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <div
+      id="adminProductModalBody"
+      class="admin-user-product-detail-body"
+    ></div>
+
+  </div>
+</div>
 <!-- Admin Games -->
 <div class="page" id="pg-admin-games">
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar2"></div>
 <div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">🎮 จัดการหมวดหมู่เกม</div><div class="sec-sub">จัดการข้อมูลเกมจาก Database โดยตรง</div></div><button class="btn btn-primary btn-md" onclick="adminOpenGameEditor()">+ เพิ่มเกม</button></div>
+<div class="sec-header"><div><div class="sec-title"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> จัดการหมวดหมู่เกม</div><div class="sec-sub">จัดการข้อมูลเกมจาก Database โดยตรง</div></div><button class="btn btn-primary btn-md" onclick="adminOpenGameEditor()">+ เพิ่มเกม</button></div>
 <div id="adminGameMessage" class="notice" style="display:none;margin-bottom:16px"></div>
 <div id="adminGameEditor" class="card" style="display:none;padding:20px;margin-bottom:18px"></div>
 <div class="card" style="padding:18px">
-<div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminGameSearch" oninput="adminFilterGames()" placeholder="ค้นหาชื่อเกมหรือ slug"/></div><div class="report-field"><span class="icon">📌</span><select id="adminGameStatusFilter" onchange="adminFilterGames()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">เปิดใช้งาน</option><option value="INACTIVE">ปิดใช้งาน</option></select></div><button class="btn btn-secondary btn-sm" onclick="adminLoadGames()">↻ รีเฟรช</button></div>
+<div class="report-toolbar"><div class="report-field"><span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span><input id="adminGameSearch" oninput="adminFilterGames()" placeholder="ค้นหาชื่อเกมหรือ slug"/></div><div class="report-field"><span class="icon">📌</span><select id="adminGameStatusFilter" onchange="adminFilterGames()"><option value="ALL">ทุกสถานะ</option><option value="ACTIVE">เปิดใช้งาน</option><option value="INACTIVE">ปิดใช้งาน</option></select></div><button class="btn btn-secondary btn-sm" onclick="adminLoadGames()">↻ รีเฟรช</button></div>
 <div id="adminGameList" class="grid2"></div>
 </div>
-<div class="card" style="padding:24px;display:none">
-<div class="report-summary-box">
-<div class="report-summary-item"><div class="label">สถานะ</div><strong>ยังไม่เชื่อม Backend</strong><div class="sub">ข้อมูลเกมปัจจุบันถูกใช้งานผ่าน Public Game API</div></div>
-<div class="report-summary-item"><div class="label">การดำเนินการ</div><strong>เพิ่ม • แก้ไข • ลบ ถูกปิดไว้</strong><div class="sub">เพื่อป้องกันปุ่ม Mockup ทำให้ข้อมูลระบบจริงสับสน</div></div>
+<div
+  id="adminGameProductsPanel"
+  class="modal-backdrop"
+  hidden
+  onclick="
+    if(event.target === this){
+      adminCloseGameProducts();
+    }
+  "
+>
+  <div
+    class="modal-dialog admin-user-product-detail-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="adminGameProductsTitle"
+    style="
+      width:min(1100px,94vw);
+      max-height:88vh;
+    "
+  >
+
+    <div class="admin-user-product-detail-head">
+
+      <div>
+        <div
+          id="adminGameProductsTitle"
+          class="admin-user-product-detail-title"
+        >
+          📦 รายการสินค้า
+        </div>
+
+        <div
+          id="adminGameProductsSubtitle"
+          class="admin-user-product-detail-subtitle"
+        >
+          เลือกหมวดหมู่เกมเพื่อดูสินค้า
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="admin-user-product-detail-close"
+        onclick="adminCloseGameProducts()"
+        aria-label="ปิดรายการสินค้า"
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <div
+      id="adminGameProductsList"
+      style="
+        padding:20px;
+        overflow-y:auto;
+        display:grid;
+        grid-template-columns:
+          repeat(auto-fill,minmax(240px,1fr));
+        gap:12px;
+      "
+    ></div>
+
+  </div>
 </div>
-<div class="report-empty">ยังไม่สามารถจัดการเกมจากหน้า Admin ได้ จนกว่าจะมี Game Management API สำหรับ Admin โดยเฉพาะ</div>
-</div>
+
 </div>
 </div>
 </div>
@@ -840,9 +2246,9 @@
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar3"></div>
 <div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">💬 ประวัติแชทระบบ</div><div class="sec-sub">ตรวจสอบข้อความจากระบบแชทจริง</div></div><button class="btn btn-secondary btn-sm" onclick="window.loadAdminChatLog?.()">↻ รีเฟรช</button></div>
+<div class="sec-header"><div><div class="sec-title"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ประวัติแชทระบบ</div><div class="sec-sub">ตรวจสอบข้อความจากระบบแชทจริง</div></div><button class="btn btn-secondary btn-sm" onclick="window.loadAdminChatLog?.()">↻ รีเฟรช</button></div>
 <div class="card" style="padding:18px">
-<div class="report-toolbar" style="margin-bottom:16px"><div class="report-field"><span class="icon">🔍</span><input id="adminChatLogSearch" placeholder="ค้นหาผู้ใช้ สินค้า หรือข้อความ" oninput="window.filterAdminChatLog?.()"></div></div>
+<div class="report-toolbar" style="margin-bottom:16px"><div class="report-field"><span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span><input id="adminChatLogSearch" placeholder="ค้นหาผู้ใช้ สินค้า หรือข้อความ" oninput="window.filterAdminChatLog?.()"></div></div>
 <div id="adminChatLogMessage" style="margin-bottom:10px;color:var(--muted);font-size:13px"></div>
 <div id="adminChatLogList" class="report-list"></div>
 </div>
@@ -879,78 +2285,340 @@
 <div class="page" id="pg-admin-seller-verifications">
 <div class="admin-layout"><div class="admin-sidebar" id="adminSidebar7"></div><div class="admin-content">
 <div class="sec-header"><div><div class="sec-title">🪪 ตรวจสอบผู้ขาย</div><div class="sec-sub">ตรวจสอบข้อมูล เอกสาร และประวัติการอนุมัติผู้ขาย</div></div><button class="btn btn-secondary btn-sm" onclick="loadAdminSellerVerificationRequests()">↻ รีเฟรช</button></div>
-<div class="grid3" style="margin-bottom:20px"><div class="card stat-card"><div style="font-size:22px">⏳</div><div id="adminSellerPendingCount" class="stat-val">0</div><div class="stat-label">รอตรวจสอบ</div></div><div class="card stat-card"><div style="font-size:22px">✅</div><div id="adminSellerApprovedCount" class="stat-val">0</div><div class="stat-label">อนุมัติแล้ว</div></div><div class="card stat-card"><div style="font-size:22px">❌</div><div id="adminSellerRejectedCount" class="stat-val">0</div><div class="stat-label">ปฏิเสธ</div></div></div>
-<div class="card" style="padding:18px"><div class="report-toolbar" style="grid-template-columns:1.3fr .8fr auto"><div class="report-field"><span class="icon">🔍</span><input id="adminSellerVerificationSearch" oninput="filterAdminSellerVerification()" placeholder="ค้นหา Username / Email / ชื่อ"></div><div class="report-field"><select id="adminSellerVerificationStatus" onchange="filterAdminSellerVerification()"><option value="ALL">ทุกสถานะ</option><option value="PENDING">รอตรวจสอบ</option><option value="APPROVED">อนุมัติแล้ว</option><option value="REJECTED">ปฏิเสธ</option></select></div><button class="btn btn-secondary btn-sm" onclick="loadAdminSellerVerificationRequests()">โหลดข้อมูล</button></div><div id="adminSellerVerificationList" class="report-list"></div></div>
+<div class="grid3" style="margin-bottom:20px"><div class="card stat-card"><div style="font-size:22px">⏳</div><div id="adminSellerPendingCount" class="stat-val">0</div><div class="stat-label">รอตรวจสอบ</div></div><div class="card stat-card"><div style="font-size:22px">✅</div><div id="adminSellerApprovedCount" class="stat-val">0</div><div class="stat-label">อนุมัติแล้ว</div></div><div class="card stat-card"><div style="font-size:22px"><img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""></div><div id="adminSellerRejectedCount" class="stat-val">0</div><div class="stat-label">ปฏิเสธ</div></div></div>
+<div class="card" style="padding:18px"><div class="report-toolbar" style="grid-template-columns:1.3fr .8fr auto"><div class="report-field"><span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span><input id="adminSellerVerificationSearch" oninput="filterAdminSellerVerification()" placeholder="ค้นหา Username / Email / ชื่อ"></div><div class="report-field"><select id="adminSellerVerificationStatus" onchange="filterAdminSellerVerification()"><option value="ALL">ทุกสถานะ</option><option value="PENDING">รอตรวจสอบ</option><option value="APPROVED">อนุมัติแล้ว</option><option value="REJECTED">ปฏิเสธ</option></select></div><button class="btn btn-secondary btn-sm" onclick="loadAdminSellerVerificationRequests()">โหลดข้อมูล</button></div><div id="adminSellerVerificationList" class="report-list"></div></div>
 </div></div>
 </div>
 <div class="modal-backdrop" id="adminSellerVerificationModal" hidden onclick="if(event.target===this)closeAdminSellerVerificationModal()"><div class="modal-dialog admin-seller-verification-modal" role="dialog" aria-modal="true"><div class="sec-header"><div><div class="sec-title">🪪 รายละเอียดการตรวจสอบ</div><div class="sec-sub">ตรวจสอบข้อมูลและเอกสารของผู้สมัคร</div></div><button class="btn btn-ghost btn-sm" onclick="closeAdminSellerVerificationModal()">✕</button></div><div id="adminSellerVerificationModalBody"></div><div style="text-align:right;margin-top:18px"><button class="btn btn-secondary btn-sm" onclick="closeAdminSellerVerificationModal()">ปิด</button></div></div></div>
 <!-- Admin Report -->
+<!-- Admin Report -->
 <div class="page" id="pg-admin-report">
-<div class="admin-layout">
-<div class="admin-sidebar" id="adminSidebar5"></div>
-<div class="admin-content">
-<div class="sec-header"><div class="sec-title">🚨 รายงาน</div><div class="sec-sub">จัดการรายงานจากผู้ใช้และปัญหาของระบบ</div></div>
-<div class="card">
-<div class="report-panel">
-  <div class="report-summary-grid">
-    <div class="report-stat danger"><div class="label">รายงานทั้งหมด</div><div id="adminReportStatTotal" class="value">0</div><div id="adminReportUpdatedAt" class="sub">กำลังโหลดข้อมูล...</div></div>
-    <div class="report-stat warn"><div class="label">กำลังตรวจสอบ</div><div id="adminReportStatPending" class="value">0</div><div class="sub">รอตรวจสอบ + กำลังตรวจสอบ</div></div>
-    <div class="report-stat success"><div class="label">ปิดเคสแล้ว</div><div id="adminReportStatClosed" class="value">0</div><div class="sub">ไม่พบปัญหา + ดำเนินการแล้ว</div></div>
-    <div class="report-stat info"><div class="label">บัคระบบ</div><div class="value">—</div><div class="sub">อยู่ในหมวดรายงานบัค</div></div>
-  </div>
+  <div class="admin-layout">
 
-  <div class="tabs" style="margin-bottom:18px">
-    <button class="tab-btn active" onclick="switchTab(this,'rpt-user')">🚨 รายงานผู้ใช้</button>
-    <button class="tab-btn" onclick="switchTab(this,'rpt-transaction')">🧾 รายงานการทำรายการ</button>
-    <button class="tab-btn" onclick="switchTab(this,'rpt-bug')">🐛 รายงานบัค</button>
-  </div>
+    <div
+      class="admin-sidebar"
+      id="adminSidebar5"
+    ></div>
 
-  <div id="rpt-transaction" style="display:none">
-    <div class="report-summary-box">
-      <div class="report-summary-item"><div class="label">สถานะการตรวจ</div><strong>ข้อมูลจาก Transaction Report จริง</strong><div class="sub">แสดงทั้งเคสที่เปิดอยู่และเคสที่ปิดแล้ว</div></div>
-      <div class="report-summary-item"><div class="label">การจัดการ</div><strong>รับเคส • ไม่พบปัญหา • ดำเนินการแล้ว</strong><div class="sub">การเปลี่ยนสถานะยังตรวจสิทธิ์ Admin + CSRF</div></div>
-    </div>
-    <div class="report-toolbar">
-      <div class="report-field"><span class="icon">🔍</span><input id="adminReportSearch" oninput="applyAdminReportFilter()" placeholder="ค้นหา User, Order ID, สินค้า หรือเหตุผล"/></div>
-      <div class="report-field"><span class="icon">📌</span><select id="adminReportStatusFilter" onchange="applyAdminReportFilter()"><option value="ALL">ทุกสถานะ</option><option value="PENDING">รอตรวจสอบ</option><option value="REVIEWED">กำลังตรวจสอบ</option><option value="DISMISSED">ปิดรายงาน</option><option value="RESOLVED">ดำเนินการแล้ว</option></select></div>
-      <div class="report-field"><span class="icon">🗂️</span><select id="adminReportReasonFilter" onchange="applyAdminReportFilter()"><option value="ALL">ทุกประเภท</option><option value="SCAM">หลอกลวง</option><option value="ITEM_NOT_AS_DESCRIBED">สินค้าไม่ตรงรายละเอียด</option><option value="NO_DELIVERY">ไม่ได้รับสินค้า</option><option value="HARASSMENT">คุกคาม</option><option value="CHAT_ABUSE">พฤติกรรมไม่เหมาะสม</option><option value="OTHER">อื่น ๆ</option></select></div>
-      <div class="report-field"><span class="icon">🕒</span><select id="adminReportRangeFilter" onchange="applyAdminReportFilter()"><option value="LATEST">ทั้งหมด</option><option value="TODAY">วันนี้</option><option value="7D">7 วันที่ผ่านมา</option><option value="30D">30 วันที่ผ่านมา</option></select></div>
-      <button class="btn btn-secondary btn-sm" onclick="resetAdminReportFilters()">รีเซ็ต</button>
-    </div>
-    <div id="adminTransactionReportList" class="report-list"></div>
-  </div>
+    <div class="admin-content">
 
-  <div id="rpt-user">
-    <div class="report-summary-box">
-      <div class="report-summary-item"><div class="label">สถานะ</div><strong>ยังไม่เชื่อมกับข้อมูลจริง</strong><div class="sub">ส่วนนี้จะเปิดใช้งานเมื่อ User Report API ถูกพัฒนาแยกจาก Transaction Report</div></div>
-      <div class="report-summary-item"><div class="label">หมายเหตุ</div><strong>ไม่มีข้อมูลตัวอย่างแสดงในระบบ</strong><div class="sub">เพื่อไม่ให้ข้อมูล Mockup ถูกเข้าใจว่าเป็นข้อมูลจาก Database</div></div>
-    </div>
-    <div class="report-empty">ระบบยังไม่มี User Report API สำหรับส่วนนี้ จึงไม่แสดงข้อมูลตัวอย่าง</div>
+      <div class="sec-header">
+        <div>
+          <div class="sec-title">
+            <img class="ui-emoji" src="assets/icons/report.svg" alt=""> รายงาน
+          </div>
 
+          <div class="sec-sub">
+            ตรวจสอบและจัดการรายงานการซื้อขายจากผู้ใช้งาน
+          </div>
+        </div>
+      </div>
 
+      <!-- Report Type Tabs -->
+      <div class="admin-users-tabs" style="margin-bottom:16px">
+        <div class="admin-users-tab-list">
 
-  <div id="rpt-bug" style="display:none">
-    <div class="report-summary-box">
-      <div class="report-summary-item"><div class="label">สถานะ</div><strong>ยังไม่เชื่อมกับ Bug Tracker</strong><div class="sub">หน้านี้ยังไม่มี Backend สำหรับดึงรายการบัคจากระบบจริง</div></div>
-      <div class="report-summary-item"><div class="label">หมายเหตุ</div><strong>ไม่มีข้อมูลตัวอย่างแสดงในระบบ</strong><div class="sub">จะเพิ่มการเชื่อมต่อเมื่อมีโมดูล Bug Report โดยเฉพาะ</div></div>
-    </div>
-    <div class="report-empty">ระบบยังไม่มี Bug Report API สำหรับส่วนนี้ จึงไม่แสดงข้อมูล Mockup</div>
-  </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Admin Suspended Users -->
+          <button
+            type="button"
+            class="admin-users-tab active"
+            data-admin-report-view="USER"
+            onclick="adminSetReportView('USER')"
+          >
+            <span><img class="ui-emoji" src="assets/icons/profileUser.svg" alt=""></span>
+            รายงานผู้ใช้
+          </button>
+
+          <button
+            type="button"
+            class="admin-users-tab"
+            data-admin-report-view="REVIEW"
+            onclick="adminSetReportView('REVIEW')"
+          >
+            <span><img class="ui-emoji" src="assets/icons/star.svg" alt=""></span>
+            รายงานรีวิว
+          </button>
+
+        </div>
+      </div>
+
+      <div id="adminUserReportView">
+
+      <div class="card">
+        <div class="report-panel">
+
+          <!-- Summary -->
+          <div class="report-summary-grid">
+
+            <div class="report-stat warn">
+              <div class="label">
+                ⏳ รอการตรวจสอบ
+              </div>
+
+              <div
+                id="adminReportStatPending"
+                class="value"
+              >
+                0
+              </div>
+
+              <div class="sub">
+                รายงานที่ยังรอ Admin ตรวจสอบ
+              </div>
+            </div>
+
+            <div class="report-stat success">
+              <div class="label">
+                ✅ ดำเนินการแล้ว
+              </div>
+
+              <div
+                id="adminReportStatResolved"
+                class="value"
+              >
+                0
+              </div>
+
+              <div class="sub">
+                รายงานที่ตรวจสอบเสร็จเรียบร้อยแล้ว
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Filters -->
+          <div class="report-toolbar">
+
+            <div class="report-field">
+              <span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span>
+
+              <input
+                id="adminReportSearch"
+                oninput="applyAdminReportFilter()"
+                placeholder="ค้นหา Report ID, ผู้ใช้, Order หรือสินค้า"
+              />
+            </div>
+
+            <div class="report-field">
+              <span class="icon">📌</span>
+
+              <select
+                id="adminReportStatusFilter"
+                onchange="applyAdminReportFilter()"
+              >
+                <option value="ALL">
+                  ทุกสถานะ
+                </option>
+
+                <option value="PENDING">
+                  รอการตรวจสอบ
+                </option>
+
+                <option value="RESOLVED">
+                  ดำเนินการแล้ว
+                </option>
+              </select>
+            </div>
+
+            <div class="report-field">
+              <span class="icon">🗂️</span>
+
+              <select
+                id="adminReportReasonFilter"
+                onchange="applyAdminReportFilter()"
+              >
+                <option value="ALL">
+                  ทุกเหตุผล
+                </option>
+
+                <option value="SCAM">
+                  หลอกลวง / พยายามโกง
+                </option>
+
+                <option value="ITEM_NOT_AS_DESCRIBED">
+                  สินค้าไม่ตรงรายละเอียด
+                </option>
+
+                <option value="NO_DELIVERY">
+                  ไม่ได้รับสินค้า / ไม่ส่งข้อมูล
+                </option>
+
+                <option value="HARASSMENT">
+                  คำหยาบ / การคุกคาม
+                </option>
+
+                <option value="CHAT_ABUSE">
+                  พฤติกรรมไม่เหมาะสมในการพูดคุย
+                </option>
+
+                <option value="OTHER">
+                  อื่น ๆ
+                </option>
+              </select>
+            </div>
+
+            <div class="report-field">
+              <span class="icon">🕒</span>
+
+              <select
+                id="adminReportRangeFilter"
+                onchange="applyAdminReportFilter()"
+              >
+                <option value="LATEST">
+                  ทุกช่วงเวลา
+                </option>
+
+                <option value="TODAY">
+                  วันนี้
+                </option>
+
+                <option value="7D">
+                  7 วันที่ผ่านมา
+                </option>
+
+                <option value="30D">
+                  30 วันที่ผ่านมา
+                </option>
+              </select>
+            </div>
+
+          </div>
+
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              margin:4px 0 14px;
+              gap:12px;
+            "
+          >
+            <div>
+              <div style="font-weight:700">
+                รายการรายงาน
+              </div>
+
+              <div
+                id="adminReportUpdatedAt"
+                style="
+                  font-size:12px;
+                  color:var(--muted);
+                  margin-top:3px;
+                "
+              >
+                กำลังโหลดข้อมูล...
+              </div>
+            </div>
+
+            <button
+              class="btn btn-secondary btn-sm"
+              onclick="resetAdminReportFilters()"
+            >
+              ↻ รีเซ็ตตัวกรอง
+            </button>
+          </div>
+
+          <!-- Real transaction reports -->
+          <div
+            id="adminTransactionReportList"
+            class="report-list"
+          >
+            <div class="report-empty">
+              กำลังโหลดรายงาน...
+            </div>
+          </div>
+
+                </div>
+              </div>
+
+              <!-- User Reports View -->
+              </div>
+
+              <!-- Review Reports View -->
+              <div
+                id="adminReviewReportView"
+                hidden
+              ></div>
+
+            </div>
+          </div>
+        </div>
+        <!-- Admin Suspended Users -->
 <div class="page" id="pg-admin-suspended-users">
 <div class="admin-layout">
 <div class="admin-sidebar" id="adminSidebar6"></div>
 <div class="admin-content">
-<div class="sec-header"><div><div class="sec-title">🚫 รายชื่อผู้ใช้ที่ถูกระงับ</div><div class="sec-sub">จัดการสถานะบัญชีจาก Database จริง</div></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">↻ รีเฟรช</button></div>
-<div class="card" style="padding:18px"><div class="report-summary-box"><div class="report-summary-item"><div class="label">รอโหลด</div><strong id="adminSuspendedCount">—</strong><div class="sub">บัญชี SUSPENDED / BANNED</div></div><div class="report-summary-item"><div class="label">ความปลอดภัย</div><strong>Session ถูกยกเลิก</strong><div class="sub">ทุกการเปลี่ยนสถานะจะเพิ่ม token version</div></div></div><div class="report-toolbar"><div class="report-field"><span class="icon">🔍</span><input id="adminSuspendedSearch" oninput="adminFilterSuspendedUsers()" placeholder="ค้นหา username หรือ email"></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">โหลดข้อมูล</button></div><div id="adminSuspendedList" class="report-list"></div></div>
+<div class="sec-header">
+  <div>
+    <div class="sec-title">
+      🚫 รายชื่อผู้ใช้ที่ถูกแบน
+    </div>
+
+    <div class="sec-sub">
+      บัญชีที่ถูกแบนถาวรจากระบบ
+    </div>
+  </div>
+
+  <button
+    class="btn btn-secondary btn-sm"
+    onclick="adminLoadSuspendedUsers()"
+  >
+    ↻ รีเฟรช
+  </button>
+</div>
+<div class="card" style="padding:18px"><div class="report-summary-box"><div class="report-summary-item"><div class="label">บัญชีที่ถูกแบน</div>
+<strong id="adminSuspendedCount">—</strong>
+<div class="sub">บัญชี BANNED ทั้งหมด</div></div><div class="report-summary-item"><div class="label">ความปลอดภัย</div><strong>Session ถูกยกเลิก</strong><div class="sub">ทุกการเปลี่ยนสถานะจะเพิ่ม token version</div></div></div><div class="report-toolbar"><div class="report-field"><span class="icon"><img class="ui-emoji" src="assets/icons/magnifyingGlass.svg" alt=""></span><input id="adminSuspendedSearch" oninput="adminFilterSuspendedUsers()" placeholder="ค้นหา username หรือ email"></div><button class="btn btn-secondary btn-sm" onclick="adminLoadSuspendedUsers()">โหลดข้อมูล</button></div><div id="adminSuspendedList" class="report-list"></div></div>
 </div>
 </div>
+</div>
+<!-- Admin Support Inbox -->
+<div
+  class="page"
+  id="pg-admin-support"
+>
+  <div class="admin-layout">
+
+    <div
+      class="admin-sidebar"
+      id="adminSidebar10"
+    ></div>
+
+    <div class="admin-content">
+
+      <div class="sec-header">
+        <div>
+          <div class="sec-title">
+            <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ข้อความจากผู้ใช้
+          </div>
+
+          <div class="sec-sub">
+            ตอบคำถามและช่วยเหลือสมาชิก GameMarket
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="adminSupportApp"
+        class="card"
+        style="
+          padding:0;
+          width:100%;
+          max-width:1350px;
+          margin:0 auto;
+          min-height:620px;
+          overflow:hidden;
+        "
+      >
+        <div
+          class="report-empty"
+          style="margin:24px"
+        >
+          เลือกข้อความจากผู้ใช้เพื่อเริ่มการสนทนา
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 <div class="page" id="pg-notifications">
 <div class="page-wrap" style="max-width:920px;margin:0 auto;padding:32px 20px">
@@ -996,12 +2664,11 @@
     <div id="seller-profile-content"></div>
   </div>
 </div>
-
 <script src="assets/js/product-detail-functions.js"></script>
 <script src="assets/js/order-flow-ui.js"></script>
 <script src="assets/js/product-review-ui.js"></script>
 <script src="assets/js/public-seller-profile-ui.js"></script>
-<script src="assets/js/seller-rating-ui.js"></script>
+<script src="assets/js/user-profile-ui.js"></script>
 <script src="assets/js/history-trade-ui.js"></script>
 <script src="assets/js/review-ui.js"></script>
 <script src="assets/js/user-report-page-ui.js"></script>
@@ -1012,12 +2679,14 @@
 <script src="assets/js/admin-topup-ui.js"></script>
 <script src="assets/js/admin-withdraw-ui.js"></script>
 <script src="assets/js/admin-transaction-reports-ui.js"></script>
+<script src="assets/js/admin-review-reports-ui.js"></script>
 <script src="assets/js/admin-games-ui.js"></script>
 <script src="assets/js/admin-user-ui.js"></script>
 <script src="assets/js/admin-product-ui.js"></script>
 <script src="assets/js/admin-moderation-ui.js"></script>
 <script src="assets/js/chat-ui.js"></script>
 <script src="assets/js/admin-chat-log-ui.js"></script>
+<script src="assets/js/admin-support-ui.js"></script>
 <script src='assets/js/admin-transaction-report-detail-ui.js'></script>
 <script src="assets/js/transaction-report-ui.js"></script>
 <script src="assets/js/notification-ui.js"></script>

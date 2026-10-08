@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const { rolesFromAccountMode } = require('../utils/account-roles');
 
 function mapUser(row) {
   if (!row) return null;
@@ -17,7 +18,7 @@ function mapUser(row) {
     accountMode: row.account_mode,
     status: row.status,
     tokenVersion: row.token_version,
-    roles: row.role_codes ? row.role_codes.split(',') : [],
+    roles: rolesFromAccountMode(row.account_mode),
     createdAt: row.created_at,
   };
 }
@@ -26,11 +27,8 @@ const authSelect = `
   SELECT u.id, u.email, u.username, u.first_name, u.last_name, u.phone,
          u.date_of_birth, u.avatar_url, u.email_verified_at, u.phone_verified_at,
          u.password_hash, u.account_mode, u.status,
-         u.token_version, u.created_at,
-         GROUP_CONCAT(DISTINCT r.code ORDER BY r.id SEPARATOR ',') AS role_codes
+         u.token_version, u.created_at
   FROM users u
-  LEFT JOIN user_roles ur ON ur.user_id = u.id
-  LEFT JOIN roles r ON r.id = ur.role_id
 `;
 
 async function findByLogin(login) {
@@ -53,13 +51,12 @@ async function create(executor, { email, username, firstName, lastName, phone, d
     'INSERT INTO users (email, username, first_name, last_name, phone, date_of_birth, password_hash, account_mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
     [email, username, firstName, lastName, phone, dateOfBirth, passwordHash, accountMode],
   );
+  await executor.execute(`UPDATE users SET
+    admin_role_assigned_at=IF(account_mode='ADMIN',UTC_TIMESTAMP(3),NULL),
+    seller_role_assigned_at=IF(account_mode IN ('UNIFIED','SELLER_ONLY'),UTC_TIMESTAMP(3),NULL),
+    customer_role_assigned_at=IF(account_mode IN ('UNIFIED','CUSTOMER_ONLY'),UTC_TIMESTAMP(3),NULL),
+    updated_at=updated_at WHERE id=?`, [result.insertId]);
   return result.insertId;
-}
-
-async function assignRoles(executor, userId, roleIds) {
-  const values = roleIds.map(() => '(?, ?)').join(', ');
-  const params = roleIds.flatMap((roleId) => [userId, roleId]);
-  await executor.execute(`INSERT INTO user_roles (user_id, role_id) VALUES ${values}`, params);
 }
 
 async function updatePassword(executor, userId, passwordHash) {
@@ -71,7 +68,11 @@ async function incrementTokenVersion(executor, userId) {
 }
 
 async function updateAccountMode(executor, userId, accountMode) {
-  await executor.execute('UPDATE users SET account_mode = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?', [accountMode, userId]);
+  await executor.execute(`UPDATE users SET account_mode=?,
+    admin_role_assigned_at=IF(account_mode='ADMIN',COALESCE(admin_role_assigned_at,UTC_TIMESTAMP(3)),admin_role_assigned_at),
+    seller_role_assigned_at=IF(account_mode IN ('UNIFIED','SELLER_ONLY'),COALESCE(seller_role_assigned_at,UTC_TIMESTAMP(3)),seller_role_assigned_at),
+    customer_role_assigned_at=IF(account_mode IN ('UNIFIED','CUSTOMER_ONLY'),COALESCE(customer_role_assigned_at,UTC_TIMESTAMP(3)),customer_role_assigned_at),
+    updated_at=UTC_TIMESTAMP(3) WHERE id=?`, [accountMode, userId]);
 }
 
 async function findByUsername(username) {
@@ -109,7 +110,20 @@ async function markPhoneVerified(executor, userId) {
 }
 
 async function listAdminSuspended() {
-  const [rows] = await pool.execute(`SELECT id,username,email,account_mode,status,suspension_reason,suspended_until,updated_at FROM users WHERE status IN ('SUSPENDED','BANNED') ORDER BY updated_at DESC`);
+  const [rows] = await pool.execute(`
+    SELECT
+      id,
+      username,
+      email,
+      account_mode,
+      status,
+      suspension_reason,
+      suspended_until,
+      updated_at
+    FROM users
+    WHERE status = 'BANNED'
+    ORDER BY updated_at DESC
+  `);
   return rows.map((row) => ({ id:row.id,username:row.username,email:row.email,accountMode:row.account_mode,status:row.status,suspensionReason:row.suspension_reason,suspendedUntil:row.suspended_until,updatedAt:row.updated_at }));
 }
 async function adminSetStatus(executor,userId,status,reason=null,suspendedUntil=null) {
@@ -117,4 +131,4 @@ async function adminSetStatus(executor,userId,status,reason=null,suspendedUntil=
   return findAuthUserById(userId,executor);
 }
 
-module.exports = { findByLogin, findByEmail, findAuthUserById, findAuthUserByUsername, create, assignRoles, updatePassword, incrementTokenVersion, updateAccountMode, findByUsername, updateUsername, updateEmail, updatePhone, updateAvatarUrl, markEmailVerified, markPhoneVerified, listAdminSuspended, adminSetStatus };
+module.exports = { findByLogin, findByEmail, findAuthUserById, findAuthUserByUsername, create, updatePassword, incrementTokenVersion, updateAccountMode, findByUsername, updateUsername, updateEmail, updatePhone, updateAvatarUrl, markEmailVerified, markPhoneVerified, listAdminSuspended, adminSetStatus };

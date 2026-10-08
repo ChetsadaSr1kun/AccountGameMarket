@@ -30,7 +30,21 @@ async function replyToReview(sellerId,reviewId,reply){
   if(!review)throw new AppError('Review not found.',404,'REVIEW_NOT_FOUND');
   if(Number(review.seller_id)!==Number(sellerId))throw new AppError('You can only reply to reviews for your own seller account.',403,'REVIEW_REPLY_FORBIDDEN');
   if(review.seller_reply)throw new AppError('This review already has a seller reply.',409,'REPLY_ALREADY_EXISTS');
-  const updated=mapReview(await reviewRepository.setSellerReply(id,sellerId,text));
+  const updated = mapReview(
+  await reviewRepository.setSellerReply(
+    id,
+    sellerId,
+    text
+  )
+);
+
+if (!updated) {
+  throw new AppError(
+    'This review already has a seller reply.',
+    409,
+    'REPLY_ALREADY_EXISTS'
+  );
+}
   try{await notificationService.create({userId:Number(review.buyer_id),type:'NEW_REVIEW',title:'ผู้ขายตอบกลับรีวิวของคุณ',message:'ผู้ขายตอบกลับรีวิวของคุณแล้ว',referenceType:'REVIEW',referenceId:updated.id});}catch(error){console.error('notification create failed after seller reply:',error.message);}
   return updated;
 }

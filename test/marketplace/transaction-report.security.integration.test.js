@@ -5,7 +5,6 @@ const request = require('supertest');
 const { pool } = require('../../backend/src/config/database');
 const { hashPassword } = require('../../backend/src/utils/password');
 const userRepository = require('../../backend/src/repositories/user.repository');
-const roleRepository = require('../../backend/src/repositories/role.repository');
 const app = require('../../backend/src/app');
 const {
   cleanupTestUsers,
@@ -13,7 +12,7 @@ const {
   prepareTestDatabase,
 } = require('../helpers/test-database');
 
-if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== 'gamemarket_test') {
+if (process.env.NODE_ENV !== 'test' || process.env.DB_NAME !== require('../helpers/database-name')) {
   throw new Error('Run transaction report security tests with the test database guard active.');
 }
 
@@ -52,9 +51,7 @@ async function createAdmin() {
     passwordHash,
     accountMode: 'ADMIN',
   });
-  const [adminRoleId] = await roleRepository.findIdsByCodes(pool, ['ADMIN']);
-  assert.ok(adminRoleId);
-  await userRepository.assignRoles(pool, adminId, [adminRoleId]);
+  assert.deepEqual((await userRepository.findAuthUserById(adminId)).roles, ['ADMIN']);
 }
 
 before(async () => {
@@ -113,6 +110,65 @@ test('rejects customer access to report detail', async () => {
   assert.equal(response.body.error.code, 'FORBIDDEN');
 });
 
+test('rejects unauthenticated access to report chat', async () => {
+  const response = await api
+    .get(
+      '/api/v1/transaction-reports/999999/chat'
+    );
+
+  assert.equal(
+    response.status,
+    401
+  );
+
+  assert.equal(
+    response.body.error.code,
+    'UNAUTHENTICATED'
+  );
+});
+
+test('rejects customer access to report chat', async () => {
+  const response = await api
+    .get(
+      '/api/v1/transaction-reports/999999/chat'
+    )
+    .set(
+      'Cookie',
+      cookieHeader(customerAuth)
+    );
+
+  assert.equal(
+    response.status,
+    403
+  );
+
+  assert.equal(
+    response.body.error.code,
+    'FORBIDDEN'
+  );
+});
+
+test('allows an admin to reach report chat lookup but rejects a missing report cleanly', async () => {
+  const response = await api
+    .get(
+      '/api/v1/transaction-reports/999999/chat'
+    )
+    .set(
+      'Cookie',
+      cookieHeader(adminAuth)
+    );
+
+  assert.equal(
+    response.status,
+    404
+  );
+
+  assert.equal(
+    response.body.error.code,
+    'REPORT_NOT_FOUND'
+  );
+});
+
 test('rejects customer report status changes before CSRF validation', async () => {
   const response = await api
     .patch('/api/v1/transaction-reports/999999')
@@ -162,7 +218,10 @@ test('allows an admin to reach report update authorization after valid CSRF', as
     .patch('/api/v1/transaction-reports/999999')
     .set('Cookie', cookieHeader(adminAuth))
     .set('X-CSRF-Token', cookieValue(adminAuth, 'gm_csrf'))
-    .send({ status: 'RESOLVED' });
+    .send({
+      status: 'RESOLVED',
+      outcome: 'ACTION_TAKEN',
+    });
   assert.equal(response.status, 404);
   assert.equal(response.body.error.code, 'REPORT_NOT_FOUND');
 });

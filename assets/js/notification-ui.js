@@ -3,7 +3,7 @@
   let notifications = [];
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const csrf = () => window.csrfToken || (typeof getCookieValue === 'function' ? getCookieValue('gm_csrf') : null) || '';
-  const icon = (type) => ({ORDER_PURCHASE:'🛒',ORDER_SOLD:'💰',ORDER_CANCELLED:'❌',WALLET_TOPUP:'💳',WALLET_WITHDRAW_APPROVED:'✅',WALLET_WITHDRAW_REJECTED:'⚠️',SELLER_VERIFICATION_SUBMITTED:'🪪',SELLER_VERIFICATION_APPROVED:'✅',SELLER_VERIFICATION_REJECTED:'❌',NEW_MESSAGE:'💬',NEW_REVIEW:'⭐',PRODUCT_REPORTED:'🚨',PRODUCT_HIDDEN:'⏸',PRODUCT_RESTORED:'▶'}[type] || '🔔');
+  const icon = (type) => ({ORDER_PURCHASE:'<img class="ui-emoji" src="assets/icons/shop.svg" alt="">',ORDER_SOLD:'<img class="ui-emoji" src="assets/icons/wallet.svg" alt="">',ORDER_CANCELLED:'<img class="ui-emoji" src="assets/icons/crossmark.svg" alt="">',WALLET_TOPUP:'💳',WALLET_WITHDRAW_APPROVED:'✅',WALLET_WITHDRAW_REJECTED:'⚠️',SELLER_VERIFICATION_SUBMITTED:'🪪',SELLER_VERIFICATION_APPROVED:'✅',SELLER_VERIFICATION_REJECTED:'<img class="ui-emoji" src="assets/icons/crossmark.svg" alt="">',NEW_MESSAGE:'<img class="ui-emoji" src="assets/icons/chat.svg" alt="">',NEW_REVIEW:'<img class="ui-emoji" src="assets/icons/star.svg" alt="">',PRODUCT_REPORTED:'<img class="ui-emoji" src="assets/icons/report.svg" alt="">',PRODUCT_HIDDEN:'⏸',PRODUCT_RESTORED:'▶'}[type] || '🔔');
   const time = (v) => v ? new Date(v).toLocaleString('th-TH') : '-';
   function referenceAction(n) {
     const type = n.referenceType, id = Number(n.referenceId);

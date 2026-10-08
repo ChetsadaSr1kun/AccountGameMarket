@@ -1,15 +1,15 @@
 const path = require('path');
 const dotenv = require('dotenv');
 
-const testDatabaseName = 'gamemarket_test';
+const testDatabaseName = require('./database-name');
 
 dotenv.config({
   path: path.resolve(process.cwd(), '.env.test'),
   quiet: true,
 });
 
-if (process.env.DB_NAME && process.env.DB_NAME !== testDatabaseName) {
-  throw new Error('Automated tests may run only with DB_NAME=gamemarket_test.');
+if (process.env.DB_NAME && !['gamemarket_test', testDatabaseName].includes(process.env.DB_NAME)) {
+  throw new Error('Automated tests may run only with an isolated test database.');
 }
 
 process.env.NODE_ENV = 'test';

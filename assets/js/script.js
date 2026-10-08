@@ -14,9 +14,21 @@ const otpCooldowns = {
 
 const managedAvatarUrlPattern = /^\/uploads\/avatars\/avatar-[a-f0-9-]{36}\.(jpg|png|webp)$/;
 
-const adminPages = ['admin-dashboard','admin-users','admin-products','admin-games','admin-seller-verifications','admin-chat-log','admin-withdraw','admin-topup','admin-report','admin-suspended-users'];
-const userPages = ['home-user','listings-user','product-user','profile','wallet','history','chat','notifications',
-  'order-confirm','order-otp','order-success','order-info','order-detail','review','user-report',
+const adminPages = [
+  'admin-dashboard',
+  'admin-users',
+  'admin-products',
+  'admin-games',
+  'admin-seller-verifications',
+  'admin-chat-log',
+  'admin-withdraw',
+  'admin-topup',
+  'admin-report',
+  'admin-suspended-users',
+  'admin-support',
+];
+const userPages = ['home-user','listings-user','product-user','profile','user-profile','wallet','history','chat','notifications',
+  'order-confirm','order-otp','order-success','withdraw-otp','order-info','order-detail','review','user-report',
   'seller-verify','add-listing','edit-listing','my-listings','seller-profile'];
 const guestPages = ['home','login','register','forgot','otp-reset','reset-success','listings','product','product-detail'];
 
@@ -60,13 +72,14 @@ function goPage(pageId) {
   renderAdminSidebars();
   if (pageId === 'seller-verify') window.loadSellerVerificationStatus?.();
   if (pageId === 'add-listing') {
-    if (!window.editingProductId) window.resetCreateProductEditorMode?.();
+    if (!window.editingProductId) {
+      window.resetCreateProductEditorMode?.();
+    }
+
     window.loadCreateProductGames?.();
-    const attributes = document.getElementById('create-product-attributes');
-    if (attributes && !window.editingProductId) attributes.innerHTML = 'เลือกเกมเพื่อโหลดรายละเอียด';
   }
   if (pageId === 'my-listings') window.loadMyProducts?.();
-  if (pageId === 'profile') window.loadProfileSellerRating?.();
+  if (pageId === 'user-profile') window.loadUserProfile?.();
   if (pageId === 'review') window.loadReviewPage?.();
   if (pageId === 'user-report') window.loadUserReportPage?.();
   if (pageId === 'wallet' || pageId === 'history') {
@@ -78,14 +91,29 @@ function goPage(pageId) {
   if (pageId === 'admin-topup') window.loadAdminTopupRequests?.();
   if (pageId === 'admin-withdraw') window.loadAdminWithdrawalRequests?.();
   if (pageId === 'admin-report') window.loadAdminTransactionReports?.();
-  if (pageId === 'admin-dashboard') window.loadAdminDashboardSummary?.();
+  if (adminPages.includes(pageId)) {
+  window.loadAdminDashboardSummary?.();
+
+  if (pageId !== 'admin-support') {
+    window
+      .loadAdminSupportSidebarCount?.();
+  }
+}
   if (pageId === 'admin-games') window.adminInitGames?.();
   if (pageId === 'admin-users') window.adminLoadUsers?.();
   if (pageId === 'admin-products') window.adminLoadProducts?.();
   if (pageId === 'admin-suspended-users') window.adminLoadSuspendedUsers?.();
   if (pageId === 'notifications') window.loadNotifications?.();
   if (pageId === 'admin-chat-log') window.loadAdminChatLog?.();
-  if (pageId === 'chat') window.loadChatPage?.();
+  if (pageId === 'admin-support') {
+    window.loadAdminSupport?.();
+  }
+  if (pageId === 'chat') {
+    window.loadChatPage?.();
+    window.startUserSupportPolling?.();
+  } else {
+    window.stopUserSupportPolling?.();
+  }
   if (pageId === 'order-confirm') window.loadOrderConfirmPage?.();
   if (pageId === 'order-otp') window.showOrderOtpPage?.();
   if (pageId === 'order-success') window.loadOrderSuccessPage?.();
@@ -140,7 +168,9 @@ function updateOtpControls(channel) {
   const secondsRemaining = Math.max(0, Math.ceil((state.endsAt - Date.now()) / 1000));
   if (sendButton) {
     sendButton.disabled = isVerified || secondsRemaining > 0;
-    sendButton.textContent = secondsRemaining > 0 ? `ส่งใหม่ได้ใน ${secondsRemaining} วินาที` : 'ส่งรหัส OTP';
+    sendButton.textContent = secondsRemaining > 0
+      ? `ส่งใหม่ได้ใน\n${secondsRemaining} วินาที`
+      : 'ส่งรหัส OTP';
   }
   if (verifyButton) verifyButton.disabled = isVerified;
   if (otpInput) otpInput.disabled = isVerified;
@@ -187,20 +217,48 @@ function updateVerificationStatus() {
   });
 }
 
+function updateHomeUserSidebar() {
+  const sellerAction =
+    document.getElementById(
+      'homeUserSellerAction'
+    );
+
+  const myListings =
+    document.getElementById(
+      'homeUserMyListings'
+    );
+
+  if (!sellerAction || !myListings) {
+    return;
+  }
+
+  const roles =
+    Array.isArray(currentUser?.roles)
+      ? currentUser.roles
+      : [];
+
+  const isSeller =
+    roles.includes('SELLER');
+
+  sellerAction.textContent =
+    isSeller
+      ? '🏷️ ลงขายสินค้า'
+      : '🏪 สมัครเป็นผู้ขาย';
+
+  sellerAction.onclick = () =>
+    goPage('seller-verify');
+
+  myListings.style.display =
+    isSeller ? '' : 'none';
+}
+
 function updateNav() {
   const linksEl = document.getElementById('navLinks');
   const rightEl = document.getElementById('navRight');
   const username = currentUser?.username || 'User';
+  updateHomeUserSidebar();
   if (isAdmin) {
-    linksEl.innerHTML = `
-      <button class="nav-btn ${currentPage==='admin-dashboard'?'active':''}" onclick="goAdmin('admin-dashboard')">📊 Dashboard</button>
-      <button class="nav-btn ${currentPage==='admin-games'?'active':''}" onclick="goAdmin('admin-games')">🎮 หมวดหมู่</button>
-      <button class="nav-btn ${currentPage==='admin-seller-verifications'?'active':''}" onclick="goAdmin('admin-seller-verifications')">🪪 ตรวจสอบผู้ขาย</button>
-      <button class="nav-btn ${currentPage==='admin-chat-log'?'active':''}" onclick="goAdmin('admin-chat-log')">💬 ประวัติแชท</button>
-      <button class="nav-btn ${currentPage==='admin-withdraw'?'active':''}" onclick="goAdmin('admin-withdraw')">💸 ถอนเงิน</button>
-      <button class="nav-btn ${currentPage==='admin-report'?'active':''}" onclick="goAdmin('admin-report')">🚨 รายงาน</button>
-      <button class="nav-btn ${currentPage==='admin-suspended-users'?'active':''}" onclick="goAdmin('admin-suspended-users')">⛔ ผู้ใช้ถูกระงับ</button>
-    `;
+    linksEl.innerHTML = '';
     rightEl.innerHTML = `<span style="color:var(--muted);font-size:13px">Admin Panel</span><button class="btn btn-secondary btn-sm" onclick="logout()">ออกจากระบบ</button>`;
     const adminPage = document.getElementById('pg-' + currentPage);
     if (adminPage && adminPages.includes(currentPage)) {
@@ -213,25 +271,36 @@ function updateNav() {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='home-user'?'active':''}" onclick="loginAndGo('home-user')">หน้าแรก</button>
       <button class="nav-btn ${currentPage==='listings-user'?'active':''}" onclick="loginAndGo('listings-user')">รายการสินค้า</button>
-      <button class="nav-btn ${currentPage==='chat'?'active':''}" onclick="loginAndGo('chat')">💬 แชท</button>
+      <button
+  class="nav-btn ${currentPage==='chat'?'active':''}"
+    onclick="loginAndGo('chat')"
+  >
+    <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> แชท
+
+    <span
+      id="chatNavUnread"
+      class="chat-support-unread"
+      hidden
+      style="margin-left:5px"
+    >
+      0
+    </span>
+  </button>
       <button class="nav-btn ${currentPage==='history'?'active':''}" onclick="loginAndGo('history')">ประวัติ</button>
-      <button class="nav-btn ${currentPage==='wallet'?'active':''}" onclick="loginAndGo('wallet')">💰 กระเป๋าตัง</button>
+      <button class="nav-btn ${currentPage==='wallet'?'active':''}" onclick="loginAndGo('wallet')"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> กระเป๋าตัง</button>
     `;
     rightEl.innerHTML = `
-      <span id="walletNavBalance" style="color:var(--muted);font-size:13px">💰 0 pts</span>
+      <span id="walletNavBalance" style="color:var(--muted);font-size:13px"><img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> 0 pts</span>
       <div class="dropdown">
         <div class="avatar" style="width:38px;height:38px;background:var(--accent);font-size:18px;cursor:pointer;overflow:hidden" onclick="toggleDropdown()">${avatarContent(username, currentUser?.avatarUrl)}</div>
         <div class="dropdown-menu" id="userDropdown">
           <button class="dropdown-item" onclick="closeDropdown();loginAndGo('profile')">✏️ แก้ไขข้อมูล</button>
-          <button class="dropdown-item" onclick="closeDropdown();loginAndGo('wallet')">💰 ฝาก/ถอน</button>
-          <button class="dropdown-item" onclick="closeDropdown();loginAndGo('history')">📋 ประวัติ</button>
-          <button class="dropdown-item" onclick="closeDropdown();loginAndGo('seller-verify')">🏷️ ลงขายสินค้า</button>
-          <button class="dropdown-item" onclick="closeDropdown();loginAndGo('my-listings')">📦 ประกาศของฉัน</button>
           <button class="dropdown-item danger" onclick="closeDropdown();logout()">🚪 ออกจากระบบ</button>
         </div>
       </div>
     `;
     window.refreshWalletNavBalance?.();
+    window.refreshChatNavBadge?.();
   } else {
     linksEl.innerHTML = `
       <button class="nav-btn ${currentPage==='home'?'active':''}" onclick="goPage('home')">หน้าแรก</button>
@@ -242,6 +311,16 @@ function updateNav() {
       <button class="btn btn-primary btn-sm" onclick="goPage('register')">สมัครสมาชิก</button>
     `;
   }
+
+  if (
+    isLoggedIn &&
+    !isAdmin
+  ) {
+    window.startChatNavBadgePolling?.();
+  } else {
+    window.stopChatNavBadgePolling?.();
+  }
+
 }
 
 function getCookieValue(name) {
@@ -310,16 +389,30 @@ function applyCurrentUser(user) {
 
   updateNav();
 
+  if (isAdmin) {
+    window.startAdminSupportPolling?.();
+  } else {
+    window.stopAdminSupportPolling?.();
+  }
+
   // Restore the correct SPA page after authentication is recovered.
   const isAdminPage = adminPages.includes(currentPage);
+
   if (isAdmin && !isAdminPage) {
     goPage('admin-dashboard');
-  } else if (!isAdmin && isLoggedIn && isAdminPage) {
+  } else if (
+    !isAdmin &&
+    isLoggedIn &&
+    (isAdminPage || currentPage === 'home')
+  ) {
     goPage('home-user');
   }
 }
 
 function clearClientAuthState() {
+  window.stopAdminSupportPolling?.();
+  window.stopUserSupportPolling?.();
+
   currentUser = null;
   csrfToken = null;
   isLoggedIn = false;
@@ -350,6 +443,12 @@ async function refreshSession() {
 }
 
 async function restoreSession() {
+  // ถ้ายังไม่เคย login ไม่ต้องยิง /me และ /refresh
+  if (!getCookieValue('gm_csrf')) {
+    clearClientAuthState();
+    return;
+  }
+
   try {
     let session = await getCurrentSession();
 
@@ -360,6 +459,7 @@ async function restoreSession() {
 
     if (session.response.status === 401 && await refreshSession()) {
       session = await getCurrentSession();
+
       if (session.response.ok) {
         applyCurrentUser(session.data.data?.user || null);
         return;
@@ -423,28 +523,138 @@ document.addEventListener('click', function(e) { if (!e.target.closest('.dropdow
 
 // ===================== ADMIN SIDEBAR =====================
 const adminNavItems = [
-  ['admin-dashboard','📊','Dashboard'],
-  ['admin-users','👥','จัดการผู้ใช้'],
-  ['admin-products','📦','จัดการสินค้า'],
-  ['admin-games','🎮','หมวดหมู่เกม'],
-  ['admin-chat-log','💬','ประวัติแชท'],
-  ['admin-withdraw','💸','อนุมัติถอนเงิน'],
-  ['admin-topup','➕','อนุมัติเติมพ้อยท์'],
-  ['admin-seller-verifications','🪪','ตรวจสอบผู้ขาย'],
-  ['admin-report','🚨','รายงาน'],
-  ['admin-suspended-users','⛔','รายชื่อผู้ใช้ที่ถูกระงับ'],
+  [
+    'admin-dashboard',
+    '📊',
+    'Dashboard',
+    null,
+  ],
+  [
+    'admin-users',
+    '👥',
+    'จัดการผู้ใช้',
+    null,
+  ],
+  [
+    'admin-games',
+    '<img class="ui-emoji" src="assets/icons/game.svg" alt="">',
+    'หมวดหมู่เกม',
+    null,
+  ],
+  [
+    'admin-seller-verifications',
+    '🪪',
+    'ตรวจสอบผู้ขาย',
+    'seller',
+  ],
+  [
+    'admin-withdraw',
+    '💸',
+    'อนุมัติถอนเงิน',
+    'withdrawal',
+  ],
+  [
+    'admin-report',
+    '<img class="ui-emoji" src="assets/icons/report.svg" alt="">',
+    'รายงาน',
+    'report',
+  ],
+  [
+    'admin-support',
+    '<img class="ui-emoji" src="assets/icons/chat.svg" alt="">',
+    'ข้อความผู้ใช้',
+    'support',
+  ],
 ];
+
+function updateAdminSidebarCounts(
+  actionCounts = {}
+) {
+  const counts = {
+    seller: Number(
+      actionCounts
+        .sellerVerificationPending || 0
+    ),
+
+    withdrawal: Number(
+      actionCounts
+        .withdrawalPending || 0
+    ),
+
+    report:
+      Number(
+        actionCounts
+          .transactionReportsOpen || 0
+      ) +
+      Number(
+        actionCounts
+          .reviewReportsPending || 0
+      ),
+  };
+
+  Object.entries(counts)
+    .forEach(([key, count]) => {
+      document
+        .querySelectorAll(
+          `[data-admin-nav-badge="${key}"]`
+        )
+        .forEach((badge) => {
+          badge.textContent =
+            count > 99
+              ? '99+'
+              : count.toLocaleString(
+                  'th-TH'
+                );
+
+          badge.hidden =
+            count <= 0;
+        });
+    });
+}
+
+window.updateAdminSidebarCounts =
+  updateAdminSidebarCounts;
+
 function renderAdminSidebars() {
   ['','2','3','4','5','6','7','8','9','10'].forEach(sfx => {
     const el = document.getElementById('adminSidebar'+sfx);
     if (!el) return;
     el.innerHTML = `
       <div style="padding:16px 20px;font-size:12px;color:var(--dim);font-weight:600;letter-spacing:.5px">ADMIN PANEL</div>
-      ${adminNavItems.map(([id,icon,label]) => `
-        <div class="admin-nav-item ${currentPage===id?'active':''}" onclick="goAdmin('${id}')">${icon} ${label}</div>
-      `).join('')}
-      <div class="divider" style="margin:16px 0"></div>
-      <div class="admin-nav-item" onclick="logout()">🚪 ออกจากระบบ</div>
+      ${adminNavItems.map(
+        ([id, icon, label, badgeKey]) => `
+          <div
+            class="admin-nav-item ${
+              currentPage === id
+                ? 'active'
+                : ''
+            }"
+            onclick="goAdmin('${id}')"
+          >
+            <span>
+              ${icon}
+            </span>
+
+            <span>
+              ${label}
+            </span>
+
+            ${
+              badgeKey
+                ? `
+                  <span
+                    class="admin-nav-count"
+                    data-admin-nav-badge="${badgeKey}"
+                    hidden
+                  >
+                    0
+                  </span>
+                `
+                : ''
+            }
+          </div>
+        `
+      ).join('')}
     `;
   });
 }
@@ -490,11 +700,91 @@ function switchTab(btn, contentId) {
 
 // ===================== OTP =====================
 function otpNext(input, idx) {
-  if (input.value) {
-    input.classList.add('filled');
-    const boxes = input.closest('.otp-wrap').querySelectorAll('.otp-box');
-    if (idx < boxes.length - 1) boxes[idx+1].focus();
-  } else { input.classList.remove('filled'); }
+  const wrap = input.closest('.otp-wrap');
+  if (!wrap) return;
+
+  input.value = input.value.replace(/\D/g, '').slice(-1);
+  input.classList.toggle('filled', Boolean(input.value));
+
+  const boxes = [...wrap.querySelectorAll('.otp-box')];
+  const hiddenInput = document.getElementById(
+    wrap.id === 'profilePhoneVerificationOtpWrap'
+      ? 'profilePhoneVerificationOtp'
+      : ''
+  );
+
+  if (hiddenInput) {
+    hiddenInput.value = boxes.map((box) => box.value).join('');
+  }
+
+  if (input.value && idx < boxes.length - 1) {
+    boxes[idx + 1].focus();
+  }
+}
+
+function clearOtpBoxes(wrapId, hiddenId) {
+  const wrap = document.getElementById(wrapId);
+  const hiddenInput = document.getElementById(hiddenId);
+
+  if (wrap) {
+    wrap.querySelectorAll('.otp-box').forEach((box) => {
+      box.value = '';
+      box.classList.remove('filled');
+    });
+  }
+
+  if (hiddenInput) {
+    hiddenInput.value = '';
+  }
+}
+
+function handleOtpKeydown(event, idx) {
+  const input = event.currentTarget;
+  const wrap = input.closest('.otp-wrap');
+  if (!wrap) return;
+
+  const boxes = [...wrap.querySelectorAll('.otp-box')];
+
+  if (event.key === 'Backspace' && !input.value && idx > 0) {
+    boxes[idx - 1].focus();
+  }
+
+  if (event.key === 'ArrowLeft' && idx > 0) {
+    event.preventDefault();
+    boxes[idx - 1].focus();
+  }
+
+  if (event.key === 'ArrowRight' && idx < boxes.length - 1) {
+    event.preventDefault();
+    boxes[idx + 1].focus();
+  }
+}
+
+function handleOtpPaste(event) {
+  event.preventDefault();
+
+  const pasted = (event.clipboardData?.getData('text') || '')
+    .replace(/\D/g, '')
+    .slice(0, 6);
+
+  if (!pasted) return;
+
+  const wrap = event.currentTarget.closest('.otp-wrap');
+  if (!wrap) return;
+
+  const boxes = [...wrap.querySelectorAll('.otp-box')];
+  const hiddenInput = document.getElementById('profilePhoneVerificationOtp');
+
+  boxes.forEach((box, index) => {
+    box.value = pasted[index] || '';
+    box.classList.toggle('filled', Boolean(box.value));
+  });
+
+  if (hiddenInput) {
+    hiddenInput.value = boxes.map((box) => box.value).join('');
+  }
+
+  boxes[Math.min(pasted.length, boxes.length) - 1]?.focus();
 }
 
 // ===================== FILTER GAME =====================
@@ -537,6 +827,52 @@ function setProductImage(mainImageId, thumbEl, imageSrc) {
 // Legacy mock editing removed. Real editing uses create-product-functions.js and my-products-functions.js.
 function openEditListing(productId){return window.openMyProductEditor?.(Number(productId));}
 function saveEditedListing(){return window.createProductFromForm?.();}
+
+function togglePasswordVisibility(
+  inputId,
+  buttonId
+) {
+  const input =
+    document.getElementById(inputId);
+
+  const button =
+    document.getElementById(buttonId);
+
+  if (!input || !button) {
+    return;
+  }
+
+  const isHidden =
+    input.type === 'password';
+
+  input.type =
+    isHidden
+      ? 'text'
+      : 'password';
+
+  button.textContent =
+    isHidden
+      ? '🙈'
+      : '👁️';
+
+  const label =
+    isHidden
+      ? 'ซ่อนรหัสผ่าน'
+      : 'แสดงรหัสผ่าน';
+
+  button.setAttribute(
+    'aria-label',
+    label
+  );
+
+  button.setAttribute(
+    'title',
+    label
+  );
+
+  input.focus();
+}
+
 async function login() {
 
     const username = document
@@ -765,27 +1101,95 @@ async function confirmAvatarChangeFromProfile() {
 }
 
 async function sendEmailVerificationOtp() {
-    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    const button = document.getElementById(
+        'profileEmailVerificationSendButton'
+    );
+
+    const activeCsrfToken =
+        csrfToken || getCookieValue('gm_csrf');
+
     if (!activeCsrfToken) {
-        setProfileMsg('profileEmailVerificationMsg', 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        setProfileMsg(
+            'profileEmailVerificationMsg',
+            'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่',
+            true
+        );
         return;
     }
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'กำลังส่ง...';
+    }
+
     try {
-        const response = await fetch('/api/v1/user/verification/email/send', {
-            method: 'POST', credentials: 'include', headers: { 'X-CSRF-Token': activeCsrfToken },
-        });
+        const response = await fetch(
+            '/api/v1/user/verification/email/send',
+            {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'X-CSRF-Token': activeCsrfToken
+                },
+            }
+        );
+
         if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            if (data.error?.code === 'OTP_RESEND_COOLDOWN' && data.error?.retryAfterSeconds) startOtpCooldown('email', data.error.retryAfterSeconds);
-            setProfileMsg('profileEmailVerificationMsg', data.error?.message || 'ส่งรหัสยืนยันไม่สำเร็จ', true);
+            const data =
+                await response.json().catch(() => ({}));
+
+            if (
+                data.error?.code === 'OTP_RESEND_COOLDOWN' &&
+                data.error?.retryAfterSeconds
+            ) {
+                startOtpCooldown(
+                    'email',
+                    data.error.retryAfterSeconds
+                );
+            }
+
+            setProfileMsg(
+                'profileEmailVerificationMsg',
+                data.error?.message ||
+                    'ส่งรหัสยืนยันไม่สำเร็จ',
+                true
+            );
+
             return;
         }
-        const otpInput = document.getElementById('profileEmailVerificationOtp');
-        if (otpInput) otpInput.value = '';
+
+        const otpInput =
+            document.getElementById(
+                'profileEmailVerificationOtp'
+            );
+
+        if (otpInput) {
+            otpInput.value = '';
+        }
+
         startOtpCooldown('email');
-        setProfileMsg('profileEmailVerificationMsg', 'ส่งรหัสยืนยันไปยังอีเมลของคุณแล้ว', false);
+
+        setProfileMsg(
+            'profileEmailVerificationMsg',
+            'ส่งรหัสยืนยันไปยังอีเมลของคุณแล้ว',
+            false
+        );
+
     } catch (error) {
-        setProfileMsg('profileEmailVerificationMsg', 'ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่', true);
+        setProfileMsg(
+            'profileEmailVerificationMsg',
+            'ไม่สามารถส่งรหัสยืนยันได้ กรุณาลองใหม่',
+            true
+        );
+
+    } finally {
+        const cooldownActive =
+            otpCooldowns.email.endsAt > Date.now();
+
+        if (button && !cooldownActive) {
+            button.disabled = false;
+            button.textContent = 'ส่งรหัส OTP';
+        }
     }
 }
 
@@ -821,27 +1225,91 @@ async function verifyEmailVerificationOtp() {
 }
 
 async function sendPhoneVerificationOtp() {
-    const activeCsrfToken = csrfToken || getCookieValue('gm_csrf');
+    const button = document.getElementById(
+        'profilePhoneVerificationSendButton'
+    );
+
+    const activeCsrfToken =
+        csrfToken || getCookieValue('gm_csrf');
+
     if (!activeCsrfToken) {
-        setProfileMsg('profilePhoneVerificationMsg', 'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่', true);
+        setProfileMsg(
+            'profilePhoneVerificationMsg',
+            'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่',
+            true
+        );
         return;
     }
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = 'กำลังส่ง...';
+    }
+
     try {
-        const response = await fetch('/api/v1/user/verification/phone/send', {
-            method: 'POST', credentials: 'include', headers: { 'X-CSRF-Token': activeCsrfToken },
-        });
+        const response = await fetch(
+            '/api/v1/user/verification/phone/send',
+            {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'X-CSRF-Token': activeCsrfToken
+                },
+            }
+        );
+
         if (!response.ok) {
-            const data = await response.json().catch(() => ({}));
-            if (data.error?.code === 'OTP_RESEND_COOLDOWN' && data.error?.retryAfterSeconds) startOtpCooldown('phone', data.error.retryAfterSeconds);
-            setProfileMsg('profilePhoneVerificationMsg', data.error?.message || 'ส่งรหัสยืนยันทาง SMS ไม่สำเร็จ', true);
+            const data =
+                await response.json().catch(() => ({}));
+
+            if (
+                data.error?.code === 'OTP_RESEND_COOLDOWN' &&
+                data.error?.retryAfterSeconds
+            ) {
+                startOtpCooldown(
+                    'phone',
+                    data.error.retryAfterSeconds
+                );
+            }
+
+            setProfileMsg(
+                'profilePhoneVerificationMsg',
+                data.error?.message ||
+                    'ส่งรหัสยืนยันทาง SMS ไม่สำเร็จ',
+                true
+            );
+
             return;
         }
-        const otpInput = document.getElementById('profilePhoneVerificationOtp');
-        if (otpInput) otpInput.value = '';
+
+        clearOtpBoxes(
+            'profilePhoneVerificationOtpWrap',
+            'profilePhoneVerificationOtp'
+        );
+
         startOtpCooldown('phone');
-        setProfileMsg('profilePhoneVerificationMsg', 'ส่งรหัสยืนยันทาง SMS แล้ว', false);
+
+        setProfileMsg(
+            'profilePhoneVerificationMsg',
+            'ส่งรหัสยืนยันทาง SMS แล้ว',
+            false
+        );
+
     } catch (error) {
-        setProfileMsg('profilePhoneVerificationMsg', 'ไม่สามารถส่งรหัสยืนยันทาง SMS ได้ กรุณาลองใหม่', true);
+        setProfileMsg(
+            'profilePhoneVerificationMsg',
+            'ไม่สามารถส่งรหัสยืนยันทาง SMS ได้ กรุณาลองใหม่',
+            true
+        );
+
+    } finally {
+        const cooldownActive =
+            otpCooldowns.phone.endsAt > Date.now();
+
+        if (button && !cooldownActive) {
+            button.disabled = false;
+            button.textContent = 'ส่งรหัส OTP';
+        }
     }
 }
 
@@ -869,7 +1337,10 @@ async function verifyPhoneVerificationOtp() {
         }
         clearOtpCooldown('phone');
         applyCurrentUser(data.data?.user || currentUser);
-        document.getElementById('profilePhoneVerificationOtp').value = '';
+        clearOtpBoxes(
+          'profilePhoneVerificationOtpWrap',
+          'profilePhoneVerificationOtp'
+        );
         setProfileMsg('profilePhoneVerificationMsg', 'ยืนยันเบอร์โทรศัพท์สำเร็จ', false);
     } catch (error) {
         setProfileMsg('profilePhoneVerificationMsg', 'ไม่สามารถยืนยันเบอร์โทรศัพท์ได้ กรุณาลองใหม่', true);
@@ -1101,10 +1572,33 @@ async function resetPassword() {
 
         if (response.status === 200) {
             resetToken = null;
+
             const newPwEl = document.getElementById('resetNewPassword');
             const confirmPwEl = document.getElementById('resetConfirmPassword');
+
             if (newPwEl) newPwEl.value = '';
             if (confirmPwEl) confirmPwEl.value = '';
+
+            const usernameEl = document.getElementById('resetSuccessUsername');
+            const timeEl = document.getElementById('resetSuccessTime');
+
+            const result = data.data || {};
+
+            if (usernameEl) {
+                usernameEl.textContent = result.username || '-';
+            }
+
+            if (timeEl) {
+                const resetDate = result.resetAt ? new Date(result.resetAt) : new Date();
+
+                timeEl.textContent = Number.isNaN(resetDate.getTime())
+                    ? '-'
+                    : resetDate.toLocaleString('th-TH', {
+                        dateStyle: 'short',
+                        timeStyle: 'short',
+                    });
+            }
+
             goPage('reset-success');
             return;
         }
@@ -1159,9 +1653,32 @@ function publicListingEscape(value) {
 function publicListingCard(product) {
   const image = product.primaryImageUrl
     ? `<img src="${publicListingEscape(product.primaryImageUrl)}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px"/>`
-    : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">🎮</div>`;
+    : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center"><img class="ui-emoji" src="assets/icons/game.svg" alt=""></div>`;
+  const verificationBadge =
+    product.valorantVerification?.verified
+      ? `
+        <span class="product-verified-badge">
+          ✓ ตรวจสอบแล้ว
+        </span>
+      `
+      : '';
   return `<div class="card card-hover" onclick="openProductDetail(${Number(product.id)})" style="cursor:pointer">
-    ${image}<span class="badge badge-gray" style="margin-bottom:8px">${publicListingEscape(product.game?.name || '-')}</span>
+    ${image}
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          gap:6px;
+          flex-wrap:wrap;
+          margin-bottom:8px;
+        "
+      >
+        <span class="badge badge-gray">
+          ${publicListingEscape(product.game?.name || '-')}
+        </span>
+
+        ${verificationBadge}
+      </div>
     <div style="font-weight:600;font-size:14px;margin-bottom:4px">${publicListingEscape(product.title)}</div>
     <div style="color:var(--muted);font-size:12px;margin-bottom:10px">ผู้ขาย: ${publicListingEscape(product.seller?.username || '-')}</div>
     <div class="flex-between"><span class="kanit" style="font-size:18px;font-weight:800;color:var(--accent)">${Number(product.price || 0).toLocaleString('th-TH')} ฿</span><span style="font-size:12px;color:var(--muted)">ดูรายละเอียด →</span></div>
@@ -1203,7 +1720,7 @@ function renderMarketplaceGameFilters(games) {
       const active = Number(selected) === Number(game.id);
       const iconHtml = icon
         ? '<img alt="" src="' + publicListingEscape(icon) + '" style="width:28px;height:28px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:10px">'
-        : '<span style="display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;margin-right:10px">🎮</span>';
+        : '<span style="display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;margin-right:10px"><img class="ui-emoji" src="assets/icons/game.svg" alt=""></span>';
       items.push('<div class="filter-item ' + (active ? 'active' : '') + '" data-game-id="' + Number(game.id) + '" onclick="selectMarketplaceGame(\'' + pageId + '\',' + Number(game.id) + ',this)">' + iconHtml + publicListingEscape(game.name) + '</div>');
     });
     container.innerHTML = items.join('');

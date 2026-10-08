@@ -7,6 +7,10 @@ router.use(authenticate);
 router.get('/',c.list);
 router.post('/',requireCsrf,c.open);
 router.get('/admin/logs',authorize('ADMIN'),c.adminList);
+router.get(
+  '/unread-count',
+  c.unreadCount
+);
 router.get('/:id',c.detail);
 router.post('/:id/messages',requireCsrf,c.send);
 module.exports=router;

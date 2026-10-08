@@ -1,27 +1,199 @@
 (() => {
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const csrf = () => window.csrfToken || document.cookie.match(/(?:^|; )gm_csrf=([^;]+)/)?.[1];
-  const methodLabel = (m) => ({ BANK:'🏦 ธนาคาร', PROMPTPAY:'📱 พร้อมเพย์', TRUEMONEY:'💰 TrueMoney' }[m] || m);
+  const methodLabel = (m) => ({ BANK:'🏦 ธนาคาร', PROMPTPAY:'📱 พร้อมเพย์', TRUEMONEY:'<img class="ui-emoji" src="assets/icons/wallet.svg" alt=""> TrueMoney' }[m] || esc(m));
+  const bankLabel = (code) => ({
+  KBANK: 'กสิกรไทย',
+  KTB: 'กรุงไทย',
+  GSB: 'ออมสิน',
+  BBL: 'กรุงเทพ',
+  SCB: 'ไทยพาณิชย์',
+  BAY: 'กรุงศรีอยุธยา',
+  TTB: 'ทีเอ็มบีธนชาต',
+}[code] || code || '-');
   const formatDate = (v) => v ? new Date(v).toLocaleString('th-TH') : '-';
+  let withdrawalView = 'PENDING';
+  let withdrawalHistory = [];
+
+  const withdrawalViewMeta = {
+    PENDING: {
+      title: 'คำขอรอตรวจสอบ',
+      empty: 'ไม่มีคำขอถอนพ้อยท์ที่รอตรวจสอบ',
+    },
+    APPROVED: {
+      title: 'รายการที่อนุมัติแล้ว',
+      empty: 'ยังไม่มีรายการถอนพ้อยท์ที่อนุมัติ',
+    },
+    REJECTED: {
+      title: 'รายการที่ปฏิเสธ',
+      empty: 'ยังไม่มีรายการถอนพ้อยท์ที่ปฏิเสธ',
+    },
+  };
 
   function ensureAdminWithdrawShell() {
     const page = document.getElementById('pg-admin-withdraw');
     const content = page?.querySelector('.admin-content');
     if (!content) return null;
     content.innerHTML = `
-      <div class="sec-header"><div class="sec-title">💸 อนุมัติการถอนเงิน</div><div class="sec-sub">ตรวจสอบและจัดการคำขอถอนพ้อยท์จากผู้ขาย</div></div>
-      <div class="grid3" style="margin-bottom:24px">
-        <div class="card stat-card"><div style="font-size:24px">⏳</div><div id="adminWithdrawalPendingCount" class="stat-val" style="color:var(--warn)">0</div><div class="stat-label">รอตรวจสอบ</div></div>
-        <div class="card stat-card"><div style="font-size:24px">✅</div><div class="stat-val" style="color:var(--success)">—</div><div class="stat-label">การอนุมัติ</div></div>
-        <div class="card stat-card"><div style="font-size:24px">🔎</div><div class="stat-val" style="color:var(--accent)">—</div><div class="stat-label">ตรวจสอบล่าสุด</div></div>
-      </div>
-      <div class="card" style="margin-bottom:18px;padding:16px 18px">
-        <div class="flex-between" style="align-items:center;gap:12px;flex-wrap:wrap">
-          <div><div style="font-weight:700">คำขอรอดำเนินการ</div><div id="adminWithdrawalMessage" style="font-size:13px;color:var(--muted);margin-top:4px"></div></div>
-          <button class="btn btn-secondary btn-sm" onclick="loadAdminWithdrawalRequests()">↻ รีเฟรช</button>
+      <div class="sec-header">
+        <div class="sec-title">
+          💸 อนุมัติการถอนเงิน
+        </div>
+
+        <div class="sec-sub">
+          ตรวจสอบและจัดการคำขอถอนพ้อยท์จากผู้ขาย
         </div>
       </div>
-      <div id="adminWithdrawalList" style="display:flex;flex-direction:column;gap:12px"></div>`;
+
+      <div
+        class="grid3"
+        style="margin-bottom:24px"
+      >
+        <div class="card stat-card">
+          <div style="font-size:24px">⏳</div>
+
+          <div
+            id="adminWithdrawalPendingCount"
+            class="stat-val"
+            style="color:var(--warn)"
+          >
+            0
+          </div>
+
+          <div class="stat-label">
+            รอตรวจสอบ
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div style="font-size:24px">✅</div>
+
+          <div
+            id="adminWithdrawalApprovedCount"
+            class="stat-val"
+            style="color:var(--success)"
+          >
+            0
+          </div>
+
+          <div class="stat-label">
+            การอนุมัติ
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div style="font-size:24px"><img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""></div>
+
+          <div
+            id="adminWithdrawalRejectedCount"
+            class="stat-val"
+            style="color:var(--danger)"
+          >
+            0
+          </div>
+
+          <div class="stat-label">
+            ปฏิเสธ
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="card"
+        style="
+          padding:0;
+          margin-bottom:18px;
+          overflow:hidden;
+        "
+      >
+        <div
+          class="admin-users-tabs"
+          style="justify-content:flex-start"
+        >
+          <div class="admin-users-tab-list">
+
+            <button
+              type="button"
+              class="admin-users-tab active"
+              data-withdrawal-view="PENDING"
+              onclick="adminSetWithdrawalView('PENDING')"
+            >
+              <span>⏳</span>
+              รอตรวจสอบ
+            </button>
+
+            <button
+              type="button"
+              class="admin-users-tab"
+              data-withdrawal-view="APPROVED"
+              onclick="adminSetWithdrawalView('APPROVED')"
+            >
+              <span>✅</span>
+              การอนุมัติ
+            </button>
+
+            <button
+              type="button"
+              class="admin-users-tab"
+              data-withdrawal-view="REJECTED"
+              onclick="adminSetWithdrawalView('REJECTED')"
+            >
+              <span><img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""></span>
+              ปฏิเสธ
+            </button>
+
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="card"
+        style="margin-bottom:18px;padding:16px 18px"
+      >
+        <div
+          class="flex-between"
+          style="
+            align-items:center;
+            gap:12px;
+            flex-wrap:wrap;
+          "
+        >
+          <div>
+            <div
+              id="adminWithdrawalListTitle"
+              style="font-weight:700"
+            >
+              คำขอรอตรวจสอบ
+            </div>
+
+            <div
+              id="adminWithdrawalMessage"
+              style="
+                font-size:13px;
+                color:var(--muted);
+                margin-top:4px;
+              "
+            ></div>
+          </div>
+
+          <button
+            class="btn btn-secondary btn-sm"
+            onclick="loadAdminWithdrawalRequests()"
+          >
+            ↻ รีเฟรช
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="adminWithdrawalList"
+        style="
+          display:flex;
+          flex-direction:column;
+          gap:12px;
+        "
+      ></div>
+    `;
     return content;
   }
 
@@ -46,9 +218,21 @@
   async function openDecisionModal(id, type, request) {
     const modal = ensureConfirmModal();
     const isReject = type === 'reject';
-    modal.querySelector('#adminWithdrawalModalIcon').textContent = isReject ? '❌' : '✅';
+    modal.querySelector('#adminWithdrawalModalIcon').innerHTML = isReject ? '<img class="ui-emoji" src="assets/icons/crossmark.svg" alt="">' : '✅';
     modal.querySelector('#adminWithdrawalModalTitle').textContent = isReject ? 'ไม่อนุมัติการถอนเงิน' : 'ยืนยันการอนุมัติถอนเงิน';
-    modal.querySelector('#adminWithdrawalModalBody').innerHTML = `ผู้ใช้ <strong>${esc(request.username)}</strong> ขอถอน <strong>${Number(request.amount).toLocaleString('th-TH')} pts</strong><br>ช่องทาง: ${esc(methodLabel(request.paymentMethod))}<br>${esc(request.accountName)} • ${esc(request.accountNumber)}`;
+    modal.querySelector('#adminWithdrawalModalBody').innerHTML = `
+      ผู้ใช้ <strong>${esc(request.username)}</strong>
+      ขอถอน <strong>${Number(request.amount).toLocaleString('th-TH')} pts</strong>
+      <br>
+      ช่องทาง: ${methodLabel(request.paymentMethod)}
+      ${
+        request.paymentMethod === 'BANK'
+          ? `<br>ธนาคาร: <strong>${esc(bankLabel(request.bankCode))}</strong>`
+          : ''
+      }
+      <br>
+      ${esc(request.accountName)} • ${esc(request.accountNumber)}
+    `;
     modal.querySelector('#adminWithdrawalRejectWrap').style.display = isReject ? 'block' : 'none';
     const reasonInput = modal.querySelector('#adminWithdrawalRejectReason');
     reasonInput.value = '';
@@ -64,49 +248,459 @@
         await action(id, type, isReject ? { reason } : {});
         modal.style.display = 'none';
         await window.loadAdminWithdrawalRequests();
+        await window
+        .loadAdminDashboardSummary?.();
       } catch (error) {
         alert(error.message || 'ดำเนินการไม่สำเร็จ');
       } finally { submit.disabled = false; }
     };
   }
 
+  function updateWithdrawalViewUi() {
+    document
+      .querySelectorAll('[data-withdrawal-view]')
+      .forEach((button) => {
+        button.classList.toggle(
+          'active',
+          button.dataset.withdrawalView === withdrawalView
+        );
+      });
+
+    const title = document.getElementById(
+      'adminWithdrawalListTitle'
+    );
+
+    if (title) {
+      title.textContent =
+        withdrawalViewMeta[withdrawalView]?.title ||
+        'รายการถอนพ้อยท์';
+    }
+  }
+
+  function renderWithdrawalView() {
+    const list = document.getElementById(
+      'adminWithdrawalList'
+    );
+
+    const message = document.getElementById(
+      'adminWithdrawalMessage'
+    );
+
+    if (!list) return;
+
+    const requests = withdrawalHistory.filter(
+      (item) => item.status === withdrawalView
+    );
+
+    if (message) {
+      message.textContent =
+        `พบ ${requests.length} รายการ`;
+    }
+
+    if (!requests.length) {
+      list.innerHTML = `
+        <div
+          class="card"
+          style="
+            padding:40px;
+            text-align:center;
+            color:var(--muted);
+          "
+        >
+          ${esc(
+            withdrawalViewMeta[withdrawalView]?.empty ||
+            'ไม่มีรายการ'
+          )}
+        </div>
+      `;
+
+      return;
+    }
+
+    list.innerHTML =
+      requests.map(renderRequest).join('');
+  }
+
+  window.adminSetWithdrawalView = (view) => {
+    if (
+      !['PENDING', 'APPROVED', 'REJECTED']
+        .includes(view)
+    ) {
+      return;
+    }
+
+    withdrawalView = view;
+
+    updateWithdrawalViewUi();
+    renderWithdrawalView();
+  };
+
   window.loadAdminWithdrawalRequests = async () => {
     const content = ensureAdminWithdrawShell();
+
     if (!content) return;
-    const list = document.getElementById('adminWithdrawalList');
-    const message = document.getElementById('adminWithdrawalMessage');
-    list.innerHTML = '<div class="card" style="padding:28px;text-align:center;color:var(--muted)">กำลังโหลดคำขอถอน...</div>';
+
+    const list = document.getElementById(
+      'adminWithdrawalList'
+    );
+
+    list.innerHTML = `
+      <div
+        class="card"
+        style="
+          padding:28px;
+          text-align:center;
+          color:var(--muted);
+        "
+      >
+        กำลังโหลดรายการถอน...
+      </div>
+    `;
+
     try {
-      const res = await fetch('/api/v1/admin/wallet/withdrawal/pending', { credentials:'include' });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error?.message || 'โหลดคำขอถอนไม่สำเร็จ');
-      const requests = body.data?.requests || [];
-      window.__adminWithdrawalRequests = requests;
-      document.getElementById('adminWithdrawalPendingCount').textContent = requests.length;
-      if (message) message.textContent = `พบ ${requests.length} รายการที่รอตรวจสอบ`;
-      if (!requests.length) { list.innerHTML = '<div class="card" style="padding:40px;text-align:center;color:var(--muted)">✓ ไม่มีคำขอถอนพ้อยท์ที่รอตรวจสอบ</div>'; return; }
-      list.innerHTML = requests.map(renderRequest).join('');
+      const res = await fetch(
+        '/api/v1/admin/wallet/withdrawal/history',
+        {
+          credentials: 'include',
+        }
+      );
+
+      const body =
+        await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          body.error?.message ||
+          'โหลดรายการถอนไม่สำเร็จ'
+        );
+      }
+
+      withdrawalHistory =
+        body.data?.history || [];
+
+      const summary =
+        body.data?.summary || {};
+
+      window.__adminWithdrawalRequests =
+        withdrawalHistory.filter(
+          (item) => item.status === 'PENDING'
+        );
+
+      document.getElementById(
+        'adminWithdrawalPendingCount'
+      ).textContent =
+        Number(summary.pendingCount || 0);
+
+      document.getElementById(
+        'adminWithdrawalApprovedCount'
+      ).textContent =
+        Number(summary.approvedCount || 0);
+
+      document.getElementById(
+        'adminWithdrawalRejectedCount'
+      ).textContent =
+        Number(summary.rejectedCount || 0);
+
+      updateWithdrawalViewUi();
+      renderWithdrawalView();
+
     } catch (error) {
-      if (message) message.textContent = error.message;
-      list.innerHTML = '<div class="notice danger">ไม่สามารถโหลดรายการคำขอถอนพ้อยท์ได้</div>';
+      const message = document.getElementById(
+        'adminWithdrawalMessage'
+      );
+
+      if (message) {
+        message.textContent = error.message;
+      }
+
+      list.innerHTML = `
+        <div class="notice danger">
+          ไม่สามารถโหลดรายการถอนพ้อยท์ได้
+        </div>
+      `;
     }
   };
+
   function renderRequest(r) {
-    const initial = esc(String(r.username || '?').charAt(0).toUpperCase());
-    return `<div class="card" style="padding:20px 22px"><div class="flex gap-16" style="align-items:flex-start;flex-wrap:wrap">
-      <div class="avatar" style="width:46px;height:46px;background:var(--accent);font-size:20px;flex:0 0 46px">${initial}</div>
-      <div style="flex:1;min-width:260px">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><div style="font-weight:700;font-size:16px">${esc(r.username)}</div><span class="badge badge-yellow">⏳ รอตรวจสอบ</span></div>
-        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px">
-          <div><div style="font-size:11px;color:var(--muted)">จำนวนถอน</div><div class="kanit" style="font-size:22px;font-weight:800;color:var(--danger)">-${Number(r.amount).toLocaleString('th-TH')} pts</div></div>
-          <div><div style="font-size:11px;color:var(--muted)">ช่องทางรับเงิน</div><div style="font-weight:600">${esc(methodLabel(r.paymentMethod))}</div></div>
-          <div><div style="font-size:11px;color:var(--muted)">ชื่อบัญชี</div><div style="font-weight:600;word-break:break-word">${esc(r.accountName)}</div></div>
-          <div><div style="font-size:11px;color:var(--muted)">เลขบัญชี / หมายเลขรับเงิน</div><div style="font-weight:600;word-break:break-word">${esc(r.accountNumber)}</div></div>
+    const initial = esc(
+      String(r.username || '?')
+        .charAt(0)
+        .toUpperCase()
+    );
+
+    const avatarHtml = r.avatarUrl
+      ? `
+        <img
+          src="${esc(r.avatarUrl)}"
+          alt="${esc(r.username || 'User')}"
+          style="
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            border-radius:50%;
+          "
+        >
+      `
+      : initial;
+
+    const statusBadge = {
+      PENDING:
+        '<span class="badge badge-yellow">⏳ รอตรวจสอบ</span>',
+
+      APPROVED:
+        '<span class="badge badge-green">✅ อนุมัติแล้ว</span>',
+
+      REJECTED:
+        '<span class="badge badge-red"><img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""> ปฏิเสธแล้ว</span>',
+    }[r.status] || '';
+
+    const actionButtons =
+      r.status === 'PENDING'
+        ? `
+          <div
+            class="flex gap-8"
+            style="
+              align-self:center;
+              margin-left:auto;
+            "
+          >
+            <button
+              class="btn btn-success btn-sm"
+              onclick="adminApproveWithdrawal(${Number(r.id)})"
+            >
+              ✓ อนุมัติ
+            </button>
+
+            <button
+              class="btn btn-danger btn-sm"
+              onclick="adminRejectWithdrawal(${Number(r.id)})"
+            >
+              ✗ ไม่อนุมัติ
+            </button>
+          </div>
+        `
+        : '';
+
+    const reviewInfo =
+      r.status === 'APPROVED'
+        ? `
+          <div
+            style="
+              font-size:12px;
+              color:var(--success);
+              margin-top:8px;
+            "
+          >
+            ✅ อนุมัติเมื่อ ${formatDate(r.reviewedAt)}
+          </div>
+        `
+        : r.status === 'REJECTED'
+          ? `
+            <div
+              style="
+                font-size:12px;
+                color:var(--danger);
+                margin-top:8px;
+              "
+            >
+              <img class="ui-emoji" src="assets/icons/crossmark.svg" alt=""> ปฏิเสธเมื่อ ${formatDate(r.reviewedAt)}
+            </div>
+
+            ${
+              r.rejectionReason
+                ? `
+                  <div
+                    style="
+                      font-size:12px;
+                      color:var(--muted);
+                      margin-top:4px;
+                    "
+                  >
+                    เหตุผล: ${esc(r.rejectionReason)}
+                  </div>
+                `
+                : ''
+            }
+          `
+          : '';
+
+    return `
+      <div
+        class="card"
+        style="padding:20px 22px"
+      >
+        <div
+          class="flex gap-16"
+          style="
+            align-items:flex-start;
+            flex-wrap:wrap;
+          "
+        >
+          <div
+            class="avatar"
+            style="
+              width:46px;
+              height:46px;
+              background:var(--accent);
+              font-size:20px;
+              flex:0 0 46px;
+              overflow:hidden;
+            "
+          >
+            ${avatarHtml}
+          </div>
+
+          <div
+            style="
+              flex:1;
+              min-width:260px;
+            "
+          >
+            <div
+              style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+                flex-wrap:wrap;
+              "
+            >
+              <div
+                style="
+                  font-weight:700;
+                  font-size:16px;
+                "
+              >
+                ${esc(r.username)}
+              </div>
+
+              ${statusBadge}
+            </div>
+
+            <div
+              style="
+                display:grid;
+                grid-template-columns:
+                  repeat(2,minmax(0,1fr));
+                gap:10px;
+                margin-top:14px;
+              "
+            >
+              <div>
+                <div
+                  style="
+                    font-size:11px;
+                    color:var(--muted);
+                  "
+                >
+                  จำนวนถอน
+                </div>
+
+                <div
+                  class="kanit"
+                  style="
+                    font-size:22px;
+                    font-weight:800;
+                    color:var(--danger);
+                  "
+                >
+                  -${Number(r.amount).toLocaleString('th-TH')} pts
+                </div>
+              </div>
+
+              <div>
+                <div
+                  style="
+                    font-size:11px;
+                    color:var(--muted);
+                  "
+                >
+                  ช่องทางรับเงิน
+                </div>
+
+                <div style="font-weight:600">
+                  ${methodLabel(r.paymentMethod)}
+                </div>
+              </div>
+
+              ${
+                r.paymentMethod === 'BANK'
+                  ? `
+                    <div>
+                      <div
+                        style="
+                          font-size:11px;
+                          color:var(--muted);
+                        "
+                      >
+                        ธนาคาร
+                      </div>
+
+                      <div style="font-weight:600">
+                        ${esc(bankLabel(r.bankCode))}
+                      </div>
+                    </div>
+                  `
+                  : ''
+              }
+
+              <div>
+                <div
+                  style="
+                    font-size:11px;
+                    color:var(--muted);
+                  "
+                >
+                  ชื่อบัญชี
+                </div>
+
+                <div
+                  style="
+                    font-weight:600;
+                    word-break:break-word;
+                  "
+                >
+                  ${esc(r.accountName)}
+                </div>
+              </div>
+
+              <div>
+                <div
+                  style="
+                    font-size:11px;
+                    color:var(--muted);
+                  "
+                >
+                  เลขบัญชี / หมายเลขรับเงิน
+                </div>
+
+                <div
+                  style="
+                    font-weight:600;
+                    word-break:break-word;
+                  "
+                >
+                  ${esc(r.accountNumber)}
+                </div>
+              </div>
+            </div>
+
+            <div
+              style="
+                font-size:12px;
+                color:var(--dim);
+                margin-top:12px;
+              "
+            >
+              ส่งคำขอเมื่อ ${formatDate(r.createdAt)}
+            </div>
+
+            ${reviewInfo}
+          </div>
+
+          ${actionButtons}
         </div>
-        <div style="font-size:12px;color:var(--dim);margin-top:12px">ส่งคำขอเมื่อ ${formatDate(r.createdAt)}</div>
       </div>
-      <div class="flex gap-8" style="align-self:center;margin-left:auto"><button class="btn btn-success btn-sm" onclick="adminApproveWithdrawal(${Number(r.id)})">✓ อนุมัติ</button><button class="btn btn-danger btn-sm" onclick="adminRejectWithdrawal(${Number(r.id)})">✗ ไม่อนุมัติ</button></div>
-    </div></div>`;
+    `;
   }
 
   async function action(id, type, body = {}) {

@@ -3,7 +3,7 @@ function listingEscape(value) {
 }
 
 function listingCard(product) {
-  const image = product.primaryImageUrl ? `<img src="${listingEscape(product.primaryImageUrl)}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px"/>` : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center">🎮</div>`;
+  const image = product.primaryImageUrl ? `<img src="${listingEscape(product.primaryImageUrl)}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px"/>` : `<div class="game-img" style="height:180px;margin-bottom:12px;display:flex;align-items:center;justify-content:center"><img class="ui-emoji" src="assets/icons/game.svg" alt=""></div>`;
   return `<div class="card card-hover" onclick="openProductDetail(${Number(product.id)})" style="cursor:pointer">
     ${image}<span class="badge badge-gray" style="margin-bottom:8px">${listingEscape(product.game?.name || '-')}</span>
     <div style="font-weight:600;font-size:14px;margin-bottom:4px">${listingEscape(product.title)}</div>

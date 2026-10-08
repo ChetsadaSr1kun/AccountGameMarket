@@ -5,12 +5,22 @@ const { uploadProductImages } = require('../middleware/product-image-upload.midd
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 const { requireCsrf } = require('../middleware/csrf.middleware');
 const { validate } = require('../middleware/validate.middleware');
-const { createProductSchema, updateProductSchema } = require('../validators/product.validator');
+const {
+  createProductSchema,
+  updateProductSchema,
+  valorantVerificationSchema,
+} = require('../validators/product.validator');
 
 const router = express.Router();
 
 router.use(authenticate, authorize('SELLER'));
 router.get('/', productController.listMyProducts);
+router.post(
+  '/valorant/verify',
+  requireCsrf,
+  validate(valorantVerificationSchema),
+  productController.verifyValorantAccount
+);
 router.get('/:id/images', productImageController.listMyProductImages);
 router.post('/:id/images', requireCsrf, uploadProductImages, productImageController.uploadMyProductImages);
 router.delete('/:id/images/:imageId', requireCsrf, productImageController.deleteMyProductImage);

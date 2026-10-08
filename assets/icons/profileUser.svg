@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	 viewBox="0 0 512 512" xml:space="preserve">
+<rect y="61.217" style="fill:#BDDBFF;" width="512" height="389.565"/>
+<rect x="256" y="61.217" style="fill:#9BC9FF;" width="256" height="389.565"/>
+<path d="M0,61.217v389.565h512V61.217H0z M478.609,417.391H33.391V94.609h445.217V417.391z"/>
+<g>
+	<rect x="300.522" y="150.261" style="fill:#004FAC;" width="133.565" height="33.391"/>
+	<rect x="300.522" y="328.348" style="fill:#004FAC;" width="133.565" height="33.391"/>
+	<rect x="300.522" y="239.304" style="fill:#004FAC;" width="133.565" height="33.391"/>
+	<polygon style="fill:#004FAC;" points="256,161.391 222.609,161.391 222.609,128 111.304,128 111.304,161.391 77.913,161.391 
+		77.913,272.696 111.304,272.696 111.304,306.087 144.696,306.087 144.696,339.478 100.174,339.478 100.174,384 233.739,384 
+		233.739,339.478 189.217,339.478 189.217,306.087 222.609,306.087 222.609,272.696 256,272.696 	"/>
+</g>
+</svg>

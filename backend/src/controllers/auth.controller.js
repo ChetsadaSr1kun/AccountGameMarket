@@ -50,8 +50,13 @@ const forgotPassword = asyncHandler(async (req, res) => {
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
-  await authService.resetPassword(req.validatedBody);
-  return success(res, 200, { message: 'Password has been reset. Please sign in again.' });
+  const result = await authService.resetPassword(req.validatedBody);
+
+  return success(res, 200, {
+    message: 'Password has been reset. Please sign in again.',
+    username: result.username,
+    resetAt: result.resetAt,
+  });
 });
 
 const changePassword = asyncHandler(async (req, res) => {

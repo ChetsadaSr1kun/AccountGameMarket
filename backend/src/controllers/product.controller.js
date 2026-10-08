@@ -1,4 +1,6 @@
 const productService = require('../services/product.service');
+const valorantVerificationService =
+  require('../services/valorant-verification.service');
 const asyncHandler = require('../utils/async-handler');
 
 const listMyProducts = asyncHandler(async (req, res) => {
@@ -26,4 +28,25 @@ const deleteMyProduct = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
-module.exports = { listMyProducts, getMyProduct, createMyProduct, updateMyProduct, deleteMyProduct };
+const verifyValorantAccount =
+  asyncHandler(async (req, res) => {
+    const result =
+      await valorantVerificationService
+        .lookupValorantAccount(
+          req.validatedBody.gameName,
+          req.validatedBody.tagLine
+        );
+
+    res.status(200).json({
+      data: result,
+    });
+  });
+
+module.exports = {
+  listMyProducts,
+  getMyProduct,
+  createMyProduct,
+  updateMyProduct,
+  deleteMyProduct,
+  verifyValorantAccount,
+};

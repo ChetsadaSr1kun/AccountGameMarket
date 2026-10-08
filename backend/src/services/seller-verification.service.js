@@ -1,7 +1,6 @@
 const fs = require('fs/promises');
 const sellerVerificationRepository = require('../repositories/seller-verification.repository');
 const userRepository = require('../repositories/user.repository');
-const roleRepository = require('../repositories/role.repository');
 const refreshTokenRepository = require('../repositories/refresh-token.repository');
 const { saveSellerDocument } = require('../utils/seller-document');
 const { withTransaction } = require('../utils/transaction');
@@ -57,9 +56,6 @@ async function approve(userId, adminId) {
   return withTransaction(async (connection) => {
     const request = await sellerVerificationRepository.findByUserId(userId, connection);
     if (!request || request.status !== 'PENDING') throw new AppError('No pending seller verification request was found.', 409, 'SELLER_REQUEST_NOT_PENDING');
-    const [sellerRoleId] = await roleRepository.findIdsByCodes(connection, ['SELLER']);
-    if (!sellerRoleId) throw new AppError('SELLER role is missing from the database.', 500, 'ROLE_SETUP_ERROR');
-    await userRepository.assignRoles(connection, userId, [sellerRoleId]);
     await userRepository.updateAccountMode(connection, userId, 'UNIFIED');
     await sellerVerificationRepository.approve(connection, userId, adminId);
     await notificationService.create({ userId, type: 'SELLER_VERIFICATION_APPROVED', title: '\u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34 Seller \u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08', message: 'คำขอ Seller ของคุณได้รับการอนุมัติแล้ว', referenceType: 'SELLER_VERIFICATION', referenceId: request.id }, connection);

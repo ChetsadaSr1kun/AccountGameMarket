@@ -11,10 +11,17 @@
     el.textContent = text;
     el.style.color = error ? 'var(--danger)' : 'var(--success)';
   }
-  function setStatus(text, kind = 'info') {
+  function setStatus(text, kind = 'info', showCrossmark = false) {
     const el = document.getElementById('sellerVerificationStatus');
     if (!el) return;
     el.textContent = text;
+    if (showCrossmark) {
+      const icon = document.createElement('img');
+      icon.className = 'ui-emoji';
+      icon.src = 'assets/icons/crossmark.svg';
+      icon.alt = '';
+      el.prepend(icon, document.createTextNode(' '));
+    }
     el.className = `notice ${kind}`;
   }
   function request(url, options = {}) {
@@ -49,9 +56,9 @@
       state.status = verification?.status || 'NOT_SUBMITTED';
       const text = state.status === 'PENDING' ? '⏳ ส่งคำขอแล้ว กำลังรอ Admin ตรวจสอบ'
         : state.status === 'APPROVED' ? '✅ ได้รับอนุมัติเป็นผู้ขายแล้ว'
-        : state.status === 'REJECTED' ? `❌ คำขอถูกปฏิเสธ: ${verification?.rejectionReason || 'ไม่ระบุเหตุผล'}`
+        : state.status === 'REJECTED' ? `คำขอถูกปฏิเสธ: ${verification?.rejectionReason || 'ไม่ระบุเหตุผล'}`
         : '📝 ยังไม่ได้ส่งคำขอสมัครเป็นผู้ขาย';
-      setStatus(text, state.status === 'APPROVED' ? 'success' : state.status === 'REJECTED' ? 'warn' : 'info');
+      setStatus(text, state.status === 'APPROVED' ? 'success' : state.status === 'REJECTED' ? 'warn' : 'info', state.status === 'REJECTED');
       if (state.status === 'APPROVED') {
         if (window.currentUser && !window.currentUser.roles?.includes('SELLER')) {
           window.currentUser.roles = [...(window.currentUser.roles || []), 'SELLER'];

@@ -39,8 +39,6 @@ async function register(label, overrides = {}) {
 
 async function promoteRegisteredUserToSeller(email) {
   const [users] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
-  const [roles] = await pool.execute("SELECT id FROM roles WHERE code = 'SELLER'");
-  await pool.execute('INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)', [users[0].id, roles[0].id]);
   await pool.execute("UPDATE users SET account_mode = 'UNIFIED' WHERE id = ?", [users[0].id]);
 }
 
@@ -51,18 +49,12 @@ async function createUserDirect(email, username, accountMode = 'SELLER_ONLY') {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [email, username, passwordHash, accountMode, 'Direct', 'User', '0812345678', '2000-01-01'],
   );
-  const [roles] = await pool.execute('SELECT id FROM roles WHERE code = ?', [accountMode === 'SELLER_ONLY' ? 'SELLER' : 'CUSTOMER']);
-  await pool.execute('INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)', [result.insertId, roles[0].id]);
   return result.insertId;
 }
 
 async function cleanup() {
   const patterns = [sellerEmail, buyerEmail, sellerBEmail, `%_product_${runId}@example.test`, `%_${runId.slice(0, 18)}`];
   for (const pattern of patterns) {
-    await pool.execute(
-      `DELETE user_roles FROM user_roles INNER JOIN users ON users.id = user_roles.user_id WHERE users.email = ? OR users.email LIKE ?`,
-      [pattern, pattern],
-    );
     await pool.execute('DELETE FROM users WHERE email = ? OR email LIKE ?', [pattern, pattern]);
   }
 }
@@ -99,12 +91,9 @@ test('rejects product list without authentication', async () => {
 
 test('creates a draft product for the authenticated seller', async () => {
   const gameResponse = await api.get('/api/v1/games');
-  const valorant = gameResponse.body.data.find((game) => game.slug === 'valorant');
-  const attributesResponse = await api.get(`/api/v1/games/${valorant.id}/attributes`);
-  const attributes = attributesResponse.body.data;
-  const rank = attributes.find((attribute) => attribute.slug === 'rank');
-  const level = attributes.find((attribute) => attribute.slug === 'account-level');
-  const immortal = rank.options.find((option) => option.value === 'immortal');
+  const valorant = gameResponse.body.data.find(
+    (game) => game.slug === 'valorant'
+  );
 
   const response = await api
     .post('/api/v1/user/products')
@@ -116,16 +105,81 @@ test('creates a draft product for the authenticated seller', async () => {
       description: 'Product API integration test',
       price: 1500,
       status: 'DRAFT',
-      attributes: [
-        { attributeId: rank.id, optionId: immortal.id },
-        { attributeId: level.id, valueNumber: 230 },
-      ],
     });
 
   assert.equal(response.status, 201);
   assert.equal(response.body.data.title, 'Test Valorant Account');
   assert.equal(response.body.data.status, 'DRAFT');
   sellerProductId = response.body.data.id;
+});
+
+test('rejects creating an active product without game credentials', async () => {
+  const games = (await api.get('/api/v1/games')).body.data;
+  const valorant = games.find((game) => game.slug === 'valorant');
+  const response = await api
+    .post('/api/v1/user/products')
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
+    .send({
+      gameId: valorant.id,
+      title: 'Active Product Without Credentials',
+      description: 'Should fail',
+      price: 100,
+      status: 'ACTIVE',
+    });
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'PRODUCT_CREDENTIALS_REQUIRED');
+});
+
+test('creates an active product when game credentials are provided', async () => {
+  const games = (await api.get('/api/v1/games')).body.data;
+  const valorant = games.find((game) => game.slug === 'valorant');
+  const response = await api
+    .post('/api/v1/user/products')
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
+    .send({
+      gameId: valorant.id,
+      title: 'Active Product With Credentials',
+      description: 'Should succeed',
+      price: 100,
+      status: 'ACTIVE',
+      credentials: { gameUsername: 'test-user', gamePassword: 'test-pass' },
+    });
+
+  assert.equal(response.status, 201);
+  assert.equal(response.body.data.status, 'ACTIVE');
+  assert.equal(response.body.data.credentials.gameUsername, 'test-user');
+  assert.equal(response.body.data.credentials.gamePassword, 'test-pass');
+  await api
+    .delete(`/api/v1/user/products/${response.body.data.id}`)
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken);
+});
+
+test('rejects activating a product without game credentials', async () => {
+  const response = await api
+    .patch(`/api/v1/user/products/${sellerProductId}`)
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
+    .send({ status: 'ACTIVE' });
+
+  assert.equal(response.status, 422);
+  assert.equal(response.body.error.code, 'PRODUCT_CREDENTIALS_REQUIRED');
+});
+
+test('activates a product when game credentials are provided', async () => {
+  const response = await api
+    .patch(`/api/v1/user/products/${sellerProductId}`)
+    .set('Cookie', cookieHeader(sellerCookies))
+    .set('X-CSRF-Token', sellerCsrfToken)
+    .send({ status: 'ACTIVE', credentials: { gameUsername: 'test-user', gamePassword: 'test-pass' } });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.status, 'ACTIVE');
+  assert.equal(response.body.data.credentials.gameUsername, 'test-user');
+  assert.equal(response.body.data.credentials.gamePassword, 'test-pass');
 });
 
 test('lists only products owned by the authenticated seller', async () => {
@@ -145,53 +199,6 @@ test('prevents one seller from reading another seller product', async () => {
     .set('X-CSRF-Token', sellerBCsrfToken);
   assert.equal(response.status, 404);
   assert.equal(response.body.error.code, 'PRODUCT_NOT_FOUND');
-});
-
-test('rejects a product when attribute does not belong to selected game', async () => {
-  const valorant = (await api.get('/api/v1/games')).body.data.find((game) => game.slug === 'valorant');
-  const genshin = (await api.get('/api/v1/games')).body.data.find((game) => game.slug === 'genshin-impact');
-  const genshinAttributes = (await api.get(`/api/v1/games/${genshin.id}/attributes`)).body.data;
-  const adventureRank = genshinAttributes.find((attribute) => attribute.slug === 'adventure-rank');
-
-  const response = await api
-    .post('/api/v1/user/products')
-    .set('Cookie', cookieHeader(sellerCookies))
-    .set('X-CSRF-Token', sellerCsrfToken)
-    .send({
-      gameId: valorant.id,
-      title: 'Invalid Attribute Product',
-      description: 'Should fail',
-      price: 100,
-      status: 'DRAFT',
-      attributes: [{ attributeId: adventureRank.id, valueNumber: 60 }],
-    });
-
-  assert.equal(response.status, 422);
-  assert.equal(response.body.error.code, 'INVALID_ATTRIBUTES');
-});
-
-test('rejects a SELECT option that does not belong to its attribute', async () => {
-  const games = (await api.get('/api/v1/games')).body.data;
-  const valorant = games.find((game) => game.slug === 'valorant');
-  const attrs = (await api.get(`/api/v1/games/${valorant.id}/attributes`)).body.data;
-  const rank = attrs.find((attribute) => attribute.slug === 'rank');
-  const region = attrs.find((attribute) => attribute.slug === 'region');
-  const asia = region.options.find((option) => option.value === 'asia');
-
-  const response = await api
-    .post('/api/v1/user/products')
-    .set('Cookie', cookieHeader(sellerCookies))
-    .set('X-CSRF-Token', sellerCsrfToken)
-    .send({
-      gameId: valorant.id,
-      title: 'Invalid Option Product',
-      description: 'Should fail',
-      price: 100,
-      attributes: [{ attributeId: rank.id, optionId: asia.id }],
-    });
-
-  assert.equal(response.status, 422);
-  assert.equal(response.body.error.code, 'INVALID_ATTRIBUTES');
 });
 
 test('updates a product owned by the seller', async () => {

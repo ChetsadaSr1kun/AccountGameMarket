@@ -2,12 +2,84 @@ function productDetailEscape(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
-function formatProductAttribute(item) {
-  if (item.optionLabel) return item.optionLabel;
-  if (item.valueText !== null && item.valueText !== undefined) return item.valueText;
-  if (item.valueNumber !== null && item.valueNumber !== undefined) return item.valueNumber;
-  if (item.valueBoolean !== null && item.valueBoolean !== undefined) return item.valueBoolean ? 'ใช่' : 'ไม่ใช่';
-  return '-';
+function formatProductDetailVerificationDate(
+  value
+) {
+  const raw =
+    String(value || '').trim();
+
+  if (!raw) {
+    return '';
+  }
+
+  const normalized =
+    /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/
+      .test(raw)
+      ? raw.replace(' ', 'T') + 'Z'
+      : raw;
+
+  const date =
+    new Date(normalized);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(
+    'th-TH',
+    {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'Asia/Bangkok',
+    }
+  ).format(date);
+}
+
+function orderDetailProductPreview(order) {
+  const imageUrl = order?.product?.primaryImageUrl;
+  const title = order?.product?.title || 'สินค้า';
+
+  if (imageUrl) {
+    return `
+      <img
+        src="${productDetailEscape(imageUrl)}"
+        alt="${productDetailEscape(title)}"
+        style="
+          width:176px;
+          height:110px;
+          object-fit:cover;
+          border-radius:12px;
+          border:1px solid var(--border);
+          display:block;
+          flex-shrink:0;
+        "
+      />
+    `;
+  }
+
+  return `
+    <div
+      style="
+        width:176px;
+        height:110px;
+        border-radius:12px;
+        border:1px solid var(--border);
+        background:var(--card);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:34px;
+        flex-shrink:0;
+      "
+    >
+      <img class="ui-emoji" src="assets/icons/game.svg" alt="">
+    </div>
+  `;
 }
 
 async function openProductDetail(id) {
@@ -32,7 +104,40 @@ async function openProductDetail(id) {
   const images = Array.isArray(product.images) ? product.images : [];
   const mainImage = images[0]?.imageUrl || '';
   const thumbs = images.map((image, index) => `<button type="button" class="product-detail-thumb ${index === 0 ? 'is-active' : ''}" data-product-image="${productDetailEscape(image.imageUrl)}" aria-label="รูปที่ ${index + 1}"><img src="${productDetailEscape(image.imageUrl)}" alt="รูปสินค้า ${index + 1}"/></button>`).join('');
-  const attributes = (product.attributes || []).map((item) => `<div class="product-detail-stat"><div class="product-detail-stat-label">${productDetailEscape(item.name)}</div><div class="product-detail-stat-value">${productDetailEscape(formatProductAttribute(item))}</div></div>`).join('');
+  const verification =
+    product.valorantVerification;
+
+  const verificationDate =
+    verification?.lastCheckedAt
+      ? formatProductDetailVerificationDate(
+          verification.lastCheckedAt
+        )
+      : '';
+
+  const verificationCard =
+    verification?.verified
+      ? `
+        <div class="product-detail-verification">
+          <div class="product-detail-verification-title">
+            ✓ ตรวจสอบข้อมูลบัญชีเกมแล้ว
+          </div>
+
+          ${
+            verificationDate
+              ? `
+                <div class="product-detail-verification-date">
+                  ตรวจสอบล่าสุด:
+                  ${productDetailEscape(
+                    verificationDate
+                  )}
+                </div>
+              `
+              : ''
+          }
+        </div>
+      `
+      : '';
+
   content.innerHTML = `
     <div class="product-detail-shell">
       <div class="product-detail-hero">
@@ -44,28 +149,33 @@ async function openProductDetail(id) {
         </section>
 
         <section class="product-detail-summary">
-          <div class="product-detail-game">🎮 ${productDetailEscape(product.game?.name || '-')}</div>
+          <div class="product-detail-game"><img class="ui-emoji" src="assets/icons/game.svg" alt=""> ${productDetailEscape(product.game?.name || '-')}</div>
           <h1 class="product-detail-title">${productDetailEscape(product.title || 'ประกาศสินค้า')}</h1>
           <div class="product-detail-seller"><span>ผู้ขาย</span><button type="button" class="product-detail-seller-link" onclick="openSellerProfile(${Number(product.seller?.id || product.sellerId || 0)})">${productDetailEscape(product.seller?.username || '-')}</button><span class="product-detail-seller-dot">•</span><span>พร้อมส่งมอบอัตโนมัติ</span></div>
           <div class="product-detail-price">${Number(product.price || 0).toLocaleString('th-TH')} <span>บาท</span></div>
 
           <div class="product-detail-action-card">
             <div class="product-detail-action-row"><span>สถานะสินค้า</span><strong class="product-detail-status"><span></span> กำลังเปิดขาย</strong></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-primary btn-lg btn-full product-detail-buy" onclick="startProductPurchase(${Number(product.id)})">🛒 ซื้อสินค้า</button><button class="btn btn-secondary btn-lg btn-full" type="button" onclick="contactProductSeller(${Number(product.seller?.id || product.sellerId || 0)},${Number(product.id)})">💬 ติดต่อผู้ขาย</button></div>
-            <div class="product-detail-safe-note">🔒 ข้อมูลบัญชีจะเปิดเผยหลังชำระเงินสำเร็จเท่านั้น</div>
+            ${verificationCard}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-primary btn-lg btn-full product-detail-buy" onclick="startProductPurchase(${Number(product.id)})"><img class="ui-emoji" src="assets/icons/shop.svg" alt=""> ซื้อสินค้า</button><button class="btn btn-secondary btn-lg btn-full" type="button" onclick="contactProductSeller(${Number(product.seller?.id || product.sellerId || 0)},${Number(product.id)})"><img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ติดต่อผู้ขาย</button></div>
+            <div class="product-detail-safe-note"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> ข้อมูลบัญชีจะเปิดเผยหลังชำระเงินสำเร็จเท่านั้น</div>
           </div>
         </section>
       </div>
 
       <section class="product-detail-info-card">
-        <div class="product-detail-section-title"><span>📋</span><div><h2>รายละเอียดสินค้า</h2><p>ข้อมูลเพิ่มเติมจากผู้ขาย</p></div></div>
+        <div class="product-detail-section-title"><span><img class="ui-emoji" src="assets/icons/history.svg" alt=""></span><div><h2>รายละเอียดสินค้า</h2><p>ข้อมูลเพิ่มเติมจากผู้ขาย</p></div></div>
         <div class="product-detail-description">${productDetailEscape(product.description || 'ผู้ขายยังไม่ได้เพิ่มรายละเอียดสินค้า')}</div>
       </section>
 
-      ${attributes ? `<section class="product-detail-info-card"><div class="product-detail-section-title"><span>🎮</span><div><h2>รายละเอียดบัญชีเกม</h2><p>ข้อมูลสำคัญของบัญชี</p></div></div><div class="product-detail-stats">${attributes}</div></section>` : ''}
-
       <section class="product-detail-info-card" id="product-review-card">
-        <div class="product-detail-section-title"><span>⭐</span><div><h2>รีวิวจากผู้ซื้อ</h2><p>ความคิดเห็นจากผู้ซื้อสินค้านี้</p></div></div>
+        <div class="product-detail-section-title">
+          <span><img class="ui-emoji" src="assets/icons/star.svg" alt=""></span>
+          <div>
+            <h2>รีวิวผู้ขาย</h2>
+            <p>ความคิดเห็นและคะแนนจากผู้ซื้อของผู้ขายรายนี้</p>
+          </div>
+        </div>
         <div id="product-review-content"><div class="product-review-loading">กำลังโหลดรีวิว...</div></div>
       </section>
     </div>`;
@@ -80,7 +190,21 @@ async function openProductDetail(id) {
   });
 
   bindProductDetailMainImage();
-  window.loadProductReviews?.(product.id);
+  const sellerId =
+    Number(
+      product.seller?.id ||
+      product.sellerId ||
+      0
+    );
+
+  const sellerUsername =
+    product.seller?.username ||
+    'ผู้ขาย';
+
+  window.loadSellerReviewsForProduct?.(
+    sellerId,
+    sellerUsername
+  );
 }
 
 function ensureProductImageLightbox() {
@@ -200,17 +324,153 @@ function orderCsrfToken() {
   return typeof getCookieValue === 'function' ? getCookieValue('gm_csrf') : '';
 }
 
-async function contactProductSeller(sellerId, productId) {
-  const sid=Number(sellerId),pid=Number(productId);
-  if(!Number.isInteger(sid)||sid<=0||!Number.isInteger(pid)||pid<=0){alert('ไม่พบข้อมูลผู้ขาย');return;}
-  if(typeof isLoggedIn!=='undefined'&&!isLoggedIn){goPage('login');return;}
-  const csrf=orderCsrfToken();if(!csrf){alert('ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่');return;}
-  try{const response=await fetch('/api/v1/chat',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({otherUserId:sid,productId:pid})});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body.error?.message||'ไม่สามารถเปิดแชทกับผู้ขายได้');goPage('chat');}catch(error){console.error('contactProductSeller failed:',error);alert(error.message||'ไม่สามารถเปิดแชทกับผู้ขายได้');}
+async function contactProductSeller(
+  sellerId,
+  productId = null
+) {
+  const sid =
+    Number(sellerId);
+
+  const pid =
+    productId == null
+      ? null
+      : Number(productId);
+
+  if (
+    !Number.isInteger(sid) ||
+    sid <= 0
+  ) {
+    alert('ไม่พบข้อมูลผู้ขาย');
+    return;
+  }
+
+  if (
+    pid !== null &&
+    (
+      !Number.isInteger(pid) ||
+      pid <= 0
+    )
+  ) {
+    alert('ไม่พบข้อมูลสินค้า');
+    return;
+  }
+
+  if (
+    typeof isLoggedIn !==
+      'undefined' &&
+    !isLoggedIn
+  ) {
+    goPage('login');
+    return;
+  }
+
+  const csrf =
+    orderCsrfToken();
+
+  if (!csrf) {
+    alert(
+      'ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่'
+    );
+    return;
+  }
+
+  try {
+    const response =
+      await fetch(
+        '/api/v1/chat',
+        {
+          method: 'POST',
+
+          credentials:
+            'include',
+
+          headers: {
+            'Content-Type':
+              'application/json',
+
+            'X-CSRF-Token':
+              csrf,
+          },
+
+          body:
+            JSON.stringify({
+              otherUserId:
+                sid,
+
+              productId:
+                pid,
+            }),
+        }
+      );
+
+    const body =
+      await response
+        .json()
+        .catch(
+          () => ({})
+        );
+
+    if (!response.ok) {
+      throw new Error(
+        body.error?.message ||
+        'ไม่สามารถเปิดแชทกับผู้ขายได้'
+      );
+    }
+
+    const conversation =
+      body.data?.conversation ||
+      body.conversation;
+
+    const conversationId =
+      Number(
+        conversation?.id || 0
+      );
+
+    if (
+      !Number.isInteger(
+        conversationId
+      ) ||
+      conversationId <= 0
+    ) {
+      throw new Error(
+        'ไม่พบห้องสนทนาของผู้ขาย'
+      );
+    }
+
+    window.pendingChatConversationId =
+      conversationId;
+
+    goPage('chat');
+
+  } catch (error) {
+    console.error(
+      'contactProductSeller failed:',
+      error
+    );
+
+    alert(
+      error.message ||
+      'ไม่สามารถเปิดแชทกับผู้ขายได้'
+    );
+  }
 }
 
 async function startProductPurchase(id) {
   const productId = Number(id);
   if (!Number.isInteger(productId) || productId <= 0) return;
+  if (typeof isLoggedIn === 'undefined' || !isLoggedIn) {
+    goPage('login');
+    return;
+  }
+
+  if (!currentUser?.accountVerified) {
+    alert(
+      'กรุณายืนยัน Email และเบอร์โทรศัพท์ให้ครบก่อนซื้อสินค้า'
+    );
+    goPage('profile');
+    return;
+  }
+
   const csrf = orderCsrfToken();
   if (!csrf) { alert('ไม่พบข้อมูลความปลอดภัย กรุณารีเฟรชหน้าแล้วลองใหม่'); return; }
 
@@ -253,26 +513,127 @@ async function openOrderDetail(id) {
     const amount = Number(order?.amount || 0).toLocaleString('th-TH');
     const createdAt = order?.createdAt ? new Date(order.createdAt).toLocaleString('th-TH') : '-';
     const statusText = order?.status === 'PENDING' ? 'PENDING' : order?.status === 'COMPLETED' ? 'COMPLETED' : productDetailEscape(order?.status || '-');
+    const statusClass = order?.status === 'COMPLETED'
+  ? 'badge-green'
+  : order?.status === 'PENDING'
+    ? 'badge-yellow'
+    : 'badge-blue';
     content.innerHTML = `
-      <button class="btn btn-ghost btn-sm" onclick="goPage('listings-user')" style="margin-bottom:20px">← กลับไปหน้ารายการสินค้า</button>
+      <button class="btn btn-ghost btn-sm" onclick="goPage('history')" style="margin-bottom:20px">← ย้อนกลับ</button>
       <div class="card" style="max-width:820px;margin:0 auto;padding:32px">
         <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap">
           <div><div class="badge badge-blue" style="margin-bottom:10px">คำสั่งซื้อ #${order.id}</div><h1 style="font-size:28px;margin:0 0 6px">🧾 รายละเอียดคำสั่งซื้อ</h1><p style="color:var(--muted);margin:0">ตรวจสอบข้อมูลก่อนดำเนินการชำระเงิน</p></div>
-          <span class="badge badge-yellow" style="font-size:14px">${statusText}</span>
+          <span class="badge ${statusClass}" style="font-size:14px">${statusText}</span>
         </div>
-        <div class="card" style="background:var(--card2);margin-bottom:18px">
-          <div style="color:var(--muted);font-size:12px;margin-bottom:6px">สินค้า</div><div style="font-size:20px;font-weight:700">${productDetailEscape(order.product?.title || '-')}</div>
-          <div style="color:var(--muted);margin-top:8px">🎮 ${productDetailEscape(order.product?.gameName || '-')}</div>
+        <div
+          class="card order-detail-product-card"
+          style="
+            background:var(--card2);
+            margin-bottom:18px;
+            display:flex;
+            align-items:center;
+            gap:20px;
+            padding:18px;
+          "
+        >
+          <div
+            class="order-detail-product-preview"
+            style="flex-shrink:0"
+          >
+            ${orderDetailProductPreview(order)}
+          </div>
+
+          <div
+            class="order-detail-product-info"
+            style="min-width:0;flex:1;text-align:left"
+          >
+            <div
+              style="
+                color:var(--muted);
+                font-size:12px;
+                margin-bottom:6px;
+              "
+            >
+              สินค้า
+            </div>
+
+            <div
+              style="
+                font-size:20px;
+                font-weight:700;
+                line-height:1.4;
+              "
+            >
+              ${productDetailEscape(order.product?.title || '-')}
+            </div>
+
+            <div
+              style="
+                color:var(--muted);
+                margin-top:8px;
+              "
+            >
+              <img class="ui-emoji" src="assets/icons/game.svg" alt=""> ${productDetailEscape(order.product?.gameName || '-')}
+            </div>
+
+            <div
+              class="order-detail-seller-row"
+            >
+              <span>
+                ผู้ขาย:
+              </span>
+
+              <button
+                type="button"
+                class="order-detail-seller-link"
+                onclick="
+                  openSellerProfile(
+                    ${Number(order.sellerId)}
+                  )
+                "
+              >
+                ${productDetailEscape(
+                  order.sellerUsername ||
+                  'ผู้ขาย'
+                )}
+              </button>
+            </div>
+
+          </div>
+
+          <div class="order-detail-seller-action">
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              onclick="
+                contactProductSeller(
+                  ${Number(order.sellerId)},
+                  ${Number(order.productId)}
+                )
+              "
+            >
+              <img class="ui-emoji" src="assets/icons/chat.svg" alt=""> ติดต่อผู้ขาย
+            </button>
+          </div>
+
         </div>
+
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
           <div class="card" style="padding:16px"><div style="font-size:12px;color:var(--muted)">ยอดที่ต้องชำระ</div><div class="kanit" style="font-size:28px;font-weight:800;color:var(--accent);margin-top:4px">${amount} บาท</div></div>
           <div class="card" style="padding:16px"><div style="font-size:12px;color:var(--muted)">วันที่สร้างรายการ</div><div style="font-weight:600;margin-top:8px">${createdAt}</div></div>
         </div>
-        <div class="notice info" style="margin-bottom:18px">🔒 ข้อมูลบัญชีเกมจะถูกเปิดเผยหลังจากชำระเงินสำเร็จเท่านั้น</div>
+        <div class="notice info" style="margin-bottom:18px"><img class="ui-emoji" src="assets/icons/lock.svg" alt=""> ข้อมูลบัญชีเกมจะถูกเปิดเผยหลังจากชำระเงินสำเร็จเท่านั้น</div>
         ${order?.status === 'PENDING'
           ? `<button class="btn btn-primary btn-full btn-lg" type="button" onclick="payOrderFromWallet(${order.id})">💳 ชำระเงินด้วย Wallet</button>`
           : `<div class="notice success" style="margin-bottom:14px">✓ ชำระเงินสำเร็จแล้ว คุณสามารถเปิดดูข้อมูลบัญชีเกมได้</div>
-             <button class="btn btn-primary btn-full btn-lg" type="button" onclick="loadOrderCredentials(${order.id})">🔐 แสดงข้อมูลบัญชีเกม</button>
+             <button
+              id="order-credentials-toggle-button"
+              class="btn btn-primary btn-full btn-lg"
+              type="button"
+              onclick="loadOrderCredentials(${order.id})"
+            >
+              🔐 แสดงข้อมูลบัญชีเกม
+            </button>
              <div id="order-credentials-content" style="margin-top:16px"></div>`}
       </div>`;
   } catch (error) {
@@ -286,6 +647,20 @@ async function loadOrderCredentials(id) {
   if (!Number.isInteger(orderId) || orderId <= 0) return;
   const target = document.getElementById('order-credentials-content');
   if (!target) return;
+  const toggleButton = document.getElementById(
+    'order-credentials-toggle-button'
+  );
+
+  if (target.dataset.open === 'true') {
+    target.innerHTML = '';
+    target.dataset.open = 'false';
+
+    if (toggleButton) {
+      toggleButton.textContent = '🔐 แสดงข้อมูลบัญชีเกม';
+    }
+
+    return;
+  }
   target.innerHTML = '<div class="card" style="padding:24px;text-align:center;color:var(--muted)">กำลังโหลดข้อมูลบัญชี...</div>';
   try {
     const response = await fetch(`/api/v1/orders/${orderId}/credentials`, { credentials: 'include' });
@@ -301,9 +676,14 @@ async function loadOrderCredentials(id) {
     target.innerHTML = `<div class="card" style="background:var(--card2);padding:20px">
       <div style="font-weight:800;font-size:18px;margin-bottom:14px">🔐 ข้อมูลบัญชีเกม</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        ${fields.map(([label, value], index) => `<div class="card" style="padding:14px"><div style="font-size:12px;color:var(--muted);margin-bottom:6px">${label}</div><div style="display:flex;gap:8px;align-items:center"><div id="credential-value-${index}" style="font-weight:700;word-break:break-all;flex:1" data-value="${productDetailEscape(value)}">${index === 1 || index === 3 ? '••••••••' : productDetailEscape(value)}</div>${index === 1 || index === 3 ? `<button class="btn btn-ghost btn-sm" type="button" onclick="toggleCredential(${index})">👁</button>` : ''}<button class="btn btn-ghost btn-sm" type="button" onclick="copyCredential(${index})">📋</button></div></div>`).join('')}
+        ${fields.map(([label, value], index) => `<div class="card" style="padding:14px"><div style="font-size:12px;color:var(--muted);margin-bottom:6px">${label}</div><div style="display:flex;gap:8px;align-items:center"><div id="credential-value-${index}" style="font-weight:700;word-break:break-all;flex:1" data-value="${productDetailEscape(value)}">${index === 1 || index === 3 ? '••••••••' : productDetailEscape(value)}</div>${index === 1 || index === 3 ? `<button class="btn btn-ghost btn-sm" type="button" onclick="toggleCredential(${index})">👁</button>` : ''}<button class="btn btn-ghost btn-sm" type="button" onclick="copyCredential(${index})"><img class="ui-emoji" src="assets/icons/history.svg" alt=""></button></div></div>`).join('')}
       </div>
     </div>`;
+    target.dataset.open = 'true';
+
+    if (toggleButton) {
+      toggleButton.innerHTML = '<img class="ui-emoji" src="assets/icons/lock.svg" alt=""> ซ่อนข้อมูลบัญชีเกม';
+    }
   } catch (error) {
     console.error('loadOrderCredentials failed:', error);
     target.innerHTML = `<div class="notice danger">${productDetailEscape(error.message || 'ไม่สามารถโหลดข้อมูลบัญชีได้')}</div>`;

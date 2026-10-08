@@ -17,24 +17,44 @@ async function createDraft(executor, userId) {
   return findByUserId(userId, executor);
 }
 
+const documentPrefixes = Object.freeze({ ID_FRONT: 'id_front', ID_BACK: 'id_back', SELFIE: 'selfie' });
+
+function documentPrefix(type) {
+  if (!Object.hasOwn(documentPrefixes, type)) throw new TypeError('Unsupported seller document type.');
+  return documentPrefixes[type];
+}
+
+function documentSelect(type) {
+  const prefix = documentPrefix(type);
+  return `SELECT ${prefix}_id id,id request_id,'${type}' document_type,
+    ${prefix}_storage_path storage_path,${prefix}_mime_type mime_type,
+    ${prefix}_file_size file_size,${prefix}_sha256 sha256,${prefix}_created_at created_at
+    FROM seller_verification_requests WHERE id=? AND ${prefix}_id IS NOT NULL`;
+}
+
 async function findDocument(requestId, documentType, executor = pool) {
-  const [rows] = await executor.execute(`SELECT id,request_id,document_type,storage_path,mime_type,file_size,sha256,created_at
-    FROM seller_verification_documents WHERE request_id=? AND document_type=? LIMIT 1`, [requestId, documentType]);
+  const [rows] = await executor.execute(documentSelect(documentType), [requestId]);
   return rows[0] || null;
 }
 
 async function listDocuments(requestId, executor = pool) {
-  const [rows] = await executor.execute(`SELECT id,request_id,document_type,storage_path,mime_type,file_size,sha256,created_at
-    FROM seller_verification_documents WHERE request_id=? ORDER BY id`, [requestId]);
+  const [rows] = await executor.execute(
+    Object.keys(documentPrefixes).map(documentSelect).join(' UNION ALL ') + ' ORDER BY id',
+    [requestId, requestId, requestId],
+  );
   return rows;
 }
 
 async function upsertDocument(executor, requestId, documentType, document) {
-  await executor.execute(`INSERT INTO seller_verification_documents
-    (request_id,document_type,storage_path,mime_type,file_size,sha256) VALUES (?,?,?,?,?,?)
-    ON DUPLICATE KEY UPDATE storage_path=VALUES(storage_path),mime_type=VALUES(mime_type),file_size=VALUES(file_size),
-      sha256=VALUES(sha256),created_at=CURRENT_TIMESTAMP(3)`,
-    [requestId, documentType, document.storagePath, document.mimeType, document.fileSize, document.sha256]);
+  const prefix = documentPrefix(documentType);
+  // The service supplies its transaction connection; serialize uploads to this request.
+  await executor.execute('SELECT id FROM seller_verification_requests WHERE id=? FOR UPDATE', [requestId]);
+  await executor.execute(`UPDATE seller_verification_requests SET
+    ${prefix}_id=COALESCE(${prefix}_id,document_id_floor + id * 3
+      + (id_front_id IS NOT NULL) + (id_back_id IS NOT NULL) + (selfie_id IS NOT NULL)),
+    ${prefix}_storage_path=?,${prefix}_mime_type=?,${prefix}_file_size=?,${prefix}_sha256=?,
+    ${prefix}_created_at=CURRENT_TIMESTAMP(3),updated_at=updated_at WHERE id=?`,
+    [document.storagePath, document.mimeType, document.fileSize, document.sha256, requestId]);
   return findDocument(requestId, documentType, executor);
 }
 
@@ -67,7 +87,7 @@ async function listAdminHistory(executor = pool) {
 
 async function findRequestWithUser(userId, executor = pool) {
   const [rows] = await executor.execute(`SELECT r.id,r.user_id,r.status,r.rejection_reason,r.reviewed_by,r.reviewed_at,r.created_at,r.updated_at,
-    u.username,u.email,u.first_name,u.last_name,u.phone FROM seller_verification_requests r
+    u.username,u.email,u.first_name,u.last_name,u.phone,u.date_of_birth FROM seller_verification_requests r
     INNER JOIN users u ON u.id=r.user_id WHERE r.user_id=? LIMIT 1`, [userId]);
   return rows[0] || null;
 }

@@ -2,7 +2,7 @@ const { pool } = require('../config/database');
 
 async function findSeller(sellerId, executor = pool) {
   const [rows] = await executor.execute(`SELECT u.id,u.username,u.avatar_url,u.created_at,
-    CASE WHEN EXISTS (SELECT 1 FROM user_roles ur INNER JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=u.id AND r.code='SELLER') THEN 1 ELSE 0 END is_seller,
+    (u.account_mode IN ('UNIFIED','SELLER_ONLY')) is_seller,
     CASE WHEN u.email_verified_at IS NOT NULL AND u.phone_verified_at IS NOT NULL THEN 1 ELSE 0 END account_verified
     FROM users u WHERE u.id=? LIMIT 1`, [sellerId]);
   return rows[0] || null;
@@ -17,7 +17,7 @@ async function getReviewSummary(sellerId, executor = pool) {
 }
 
 async function listReviews(sellerId, limit=50, executor = pool) {
-  const [rows] = await executor.execute(`SELECT r.id,r.rating,r.comment,r.created_at,r.seller_reply,r.seller_reply_at,u.username buyer_username
+  const [rows] = await executor.execute(`SELECT r.id,r.seller_id,r.rating,r.comment,r.created_at,r.seller_reply,r.seller_reply_at,u.username buyer_username
     FROM reviews r INNER JOIN users u ON u.id=r.buyer_id WHERE r.seller_id=? AND r.status='ACTIVE' ORDER BY r.created_at DESC LIMIT ?`, [sellerId, limit]);
   return rows;
 }
@@ -28,10 +28,51 @@ async function countCompletedSales(sellerId, executor = pool) {
 }
 
 async function listActiveProducts(sellerId, limit=6, executor = pool) {
-  const [rows] = await executor.execute(`SELECT p.id,p.title,p.description,p.price,p.status,p.created_at,g.id game_id,g.name game_name
-    FROM products p INNER JOIN games g ON g.id=p.game_id WHERE p.seller_id=? AND p.status IN ('ACTIVE','PUBLISHED')
+  const [rows] = await executor.execute(`SELECT
+  p.id,
+  p.title,
+  p.description,
+  p.price,
+  p.status,
+  p.created_at,
+  g.id game_id,
+  g.name game_name,
+  pi.image_url primary_image_url,
+
+  (
+    p.valorant_riot_puuid IS NOT NULL
+  ) AS valorant_verified
+FROM products p
+INNER JOIN games g
+  ON g.id=p.game_id
+LEFT JOIN product_images pi
+  ON pi.product_id=p.id
+  AND pi.is_primary=TRUE
+    WHERE p.seller_id=?
+      AND p.status IN ('ACTIVE','PUBLISHED')
+      AND g.status='ACTIVE'
     ORDER BY p.created_at DESC,p.id DESC LIMIT ?`, [sellerId,limit]);
-  return rows.map(row=>({id:Number(row.id),title:row.title,description:row.description,price:Number(row.price),status:row.status,createdAt:row.created_at,game:{id:Number(row.game_id),name:row.game_name}}));
+  return rows.map(row=>({
+    id:Number(row.id),
+    title:row.title,
+    description:row.description,
+    price:Number(row.price),
+    status:row.status,
+    primaryImageUrl:
+      row.primary_image_url || null,
+
+    valorantVerification:
+    row.valorant_verified
+      ? {
+          verified: true,
+        }
+      : null,
+    createdAt:row.created_at,
+    game:{
+      id:Number(row.game_id),
+      name:row.game_name
+    }
+  }));
 }
 
 module.exports={findSeller,getReviewSummary,listReviews,countCompletedSales,listActiveProducts};

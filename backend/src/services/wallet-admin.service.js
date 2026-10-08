@@ -1,3 +1,4 @@
+const { withdrawalRequests, requestColumns } = require('../repositories/withdrawal-storage');
 const AppError = require('../utils/app-error');
 const wallet = require('../repositories/wallet.repository');
 const { withTransaction } = require('../utils/transaction');
@@ -52,13 +53,18 @@ async function decide(requestId, adminId, approved, reason = null) {
     const [rows] = await connection.execute('SELECT * FROM wallet_topup_requests WHERE id=? FOR UPDATE', [requestId]);
     const request = rows[0];
     if (!request) throw new AppError('Top-up request not found.', 404, 'TOPUP_NOT_FOUND');
+    if (request.provider === '2C2P' || request.provider === 'SLIPOK') {
+      throw new AppError(
+        request.provider + ' top-ups are finalized only by the payment provider verification flow.',
+        409,
+        'TOPUP_MANAGED_BY_PROVIDER'
+      );
+    }
     if (request.status !== 'PENDING') throw new AppError('This top-up request has already been processed.', 409, 'TOPUP_ALREADY_PROCESSED');
     if (!approved && !String(reason || '').trim()) throw new AppError('Rejection reason is required.', 400, 'REJECTION_REASON_REQUIRED');
     if (approved) {
       await wallet.ensureWallet(request.user_id, connection);
-      const [walletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [request.user_id]);
-      const newBalance = Number(walletRows[0].balance) + Number(request.amount);
-      await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newBalance, request.user_id]);
+      const newBalance = await wallet.creditBalance(request.user_id, request.amount, connection);
       await connection.execute(`INSERT INTO wallet_transactions
         (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note)
         VALUES (?,'TOP_UP',?,?,?,?,?)`, [request.user_id, request.amount, newBalance, 'WALLET_TOPUP', request.id, `เติมพ้อยท์ #${request.id}`]);
@@ -72,43 +78,154 @@ async function decide(requestId, adminId, approved, reason = null) {
 
 async function listPendingWithdrawals() {
   const { pool } = require('../config/database');
-  const [rows] = await pool.execute(`SELECT r.id,r.user_id,u.username,r.payment_method,r.amount,
-    r.account_name,r.account_number,r.status,r.rejection_reason,r.created_at
-    FROM withdrawal_requests r INNER JOIN users u ON u.id=r.user_id
+  const [rows] = await pool.execute(`SELECT r.id,r.user_id,u.username,u.avatar_url,r.payment_method,r.bank_code,r.amount,
+  r.account_name,r.account_number,r.status,r.rejection_reason,r.created_at
+    FROM ${withdrawalRequests} r INNER JOIN users u ON u.id=r.user_id
     WHERE r.status='PENDING' ORDER BY r.id ASC`);
   return rows.map((row) => ({
-    id: Number(row.id), userId: Number(row.user_id), username: row.username,
-    paymentMethod: row.payment_method, amount: Number(row.amount),
-    accountName: row.account_name, accountNumber: row.account_number,
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    username: row.username,
+    avatarUrl: row.avatar_url || null,
+    paymentMethod: row.payment_method,
+    bankCode: row.bank_code || null,
+    amount: Number(row.amount),
+    accountName: row.account_name,
+    accountNumber: row.account_number,
     status: row.status, rejectionReason: row.rejection_reason,
     createdAt: row.created_at,
   }));
 }
 
+async function listWithdrawalHistory(limit = 100) {
+  const { pool } = require('../config/database');
+
+  const safeLimit = Math.min(
+    100,
+    Math.max(
+      1,
+      Number.parseInt(limit, 10) || 100
+    )
+  );
+
+  const [rows] = await pool.execute(`
+    SELECT
+      r.id,
+      r.user_id,
+      u.username,
+      u.avatar_url,
+      r.payment_method,
+      r.bank_code,
+      r.amount,
+      r.account_name,
+      r.account_number,
+      r.status,
+      r.rejection_reason,
+      r.reviewed_at,
+      r.created_at
+    FROM ${withdrawalRequests} r
+    INNER JOIN users u
+      ON u.id = r.user_id
+    ORDER BY r.id DESC
+    LIMIT ${safeLimit}
+  `);
+
+  return rows.map((row) => ({
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    username: row.username,
+    avatarUrl: row.avatar_url || null,
+    paymentMethod: row.payment_method,
+    bankCode: row.bank_code || null,
+    amount: Number(row.amount),
+    accountName: row.account_name,
+    accountNumber: row.account_number,
+    status: row.status,
+    rejectionReason:
+      row.rejection_reason || null,
+    reviewedAt:
+      row.reviewed_at || null,
+    createdAt: row.created_at,
+  }));
+}
+
+async function getWithdrawalSummary() {
+  const { pool } = require('../config/database');
+
+  const [rows] = await pool.execute(`
+    SELECT
+      SUM(
+        CASE
+          WHEN status = 'PENDING'
+          THEN 1
+          ELSE 0
+        END
+      ) AS pending_count,
+
+      SUM(
+        CASE
+          WHEN status = 'APPROVED'
+          THEN 1
+          ELSE 0
+        END
+      ) AS approved_count,
+
+      SUM(
+        CASE
+          WHEN status = 'REJECTED'
+          THEN 1
+          ELSE 0
+        END
+      ) AS rejected_count
+
+    FROM ${withdrawalRequests} withdrawal_rows
+  `);
+
+  const row = rows[0] || {};
+
+  return {
+    pendingCount:
+      Number(row.pending_count || 0),
+
+    approvedCount:
+      Number(row.approved_count || 0),
+
+    rejectedCount:
+      Number(row.rejected_count || 0),
+  };
+}
+
 async function decideWithdrawal(requestId, adminId, approved, reason = null) {
   return withTransaction(async (connection) => {
-    const [rows] = await connection.execute('SELECT * FROM withdrawal_requests WHERE id=? FOR UPDATE', [requestId]);
+    const [rows] = await connection.execute(`SELECT ${requestColumns} FROM withdrawals WHERE record_type='REQUEST' AND COALESCE(legacy_request_id,id)=? FOR UPDATE`, [requestId]);
     const request = rows[0];
     if (!request) throw new AppError('Withdrawal request not found.', 404, 'WITHDRAWAL_NOT_FOUND');
     if (request.status !== 'PENDING') throw new AppError('This withdrawal request has already been processed.', 409, 'WITHDRAWAL_ALREADY_PROCESSED');
     if (!approved && !String(reason || '').trim()) throw new AppError('Rejection reason is required.', 400, 'REJECTION_REASON_REQUIRED');
 
     if (approved) {
-      await connection.execute(`UPDATE withdrawal_requests SET status='APPROVED',reviewed_by=?,reviewed_at=CURRENT_TIMESTAMP(3) WHERE id=?`, [adminId, request.id]);
+      await connection.execute(`UPDATE withdrawals SET status='APPROVED',reviewed_by=?,reviewed_at=CURRENT_TIMESTAMP(3) WHERE record_type='REQUEST' AND COALESCE(legacy_request_id,id)=?`, [adminId, request.id]);
       await notificationService.create({ userId: request.user_id, type: 'WALLET_WITHDRAW_APPROVED', title: '\u0e16\u0e2d\u0e19\u0e1e\u0e49\u0e2d\u0e22\u0e17\u0e4c\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08', message: 'คำขอถอน #' + request.id + ' ได้รับการอนุมัติแล้ว', referenceType: 'WITHDRAWAL', referenceId: request.id }, connection);
     } else {
       await wallet.ensureWallet(request.user_id, connection);
-      const [walletRows] = await connection.execute('SELECT balance FROM wallets WHERE user_id=? FOR UPDATE', [request.user_id]);
-      const newBalance = Number(walletRows[0].balance) + Number(request.amount);
-      await connection.execute('UPDATE wallets SET balance=? WHERE user_id=?', [newBalance, request.user_id]);
+      const newBalance = await wallet.creditBalance(request.user_id, request.amount, connection);
       await connection.execute(`INSERT INTO wallet_transactions
         (wallet_user_id,type,amount,balance_after,reference_type,reference_id,note)
         VALUES (?,'REFUND',?,?,?,?,?)`, [request.user_id, request.amount, newBalance, 'WITHDRAWAL_REQUEST', request.id, 'คืนพ้อยท์จากคำขอถอนที่ไม่อนุมัติ']);
-      await connection.execute(`UPDATE withdrawal_requests SET status='REJECTED',reviewed_by=?,reviewed_at=CURRENT_TIMESTAMP(3),rejection_reason=? WHERE id=?`, [adminId, String(reason).trim(), request.id]);
+      await connection.execute(`UPDATE withdrawals SET status='REJECTED',reviewed_by=?,reviewed_at=CURRENT_TIMESTAMP(3),rejection_reason=? WHERE record_type='REQUEST' AND COALESCE(legacy_request_id,id)=?`, [adminId, String(reason).trim(), request.id]);
       await notificationService.create({ userId: request.user_id, type: 'WALLET_WITHDRAW_REJECTED', title: '\u0e16\u0e2d\u0e19\u0e1e\u0e49\u0e2d\u0e22\u0e17\u0e4c\u0e16\u0e39\u0e01\u0e1b\u0e0f\u0e34\u0e40\u0e2a\u0e18', message: 'คำขอถอน #' + request.id + ' ถูกปฏิเสธ: ' + String(reason).trim(), referenceType: 'WITHDRAWAL', referenceId: request.id }, connection);
     }
     return { id: Number(request.id), status: approved ? 'APPROVED' : 'REJECTED' };
   });
 }
 
-module.exports = { listPending, decide, listTopupHistory, getTopupSummary, listPendingWithdrawals, decideWithdrawal };
+module.exports = {
+  listPending,
+  decide,
+  listTopupHistory,
+  getTopupSummary,
+  listPendingWithdrawals,
+  listWithdrawalHistory,
+  getWithdrawalSummary,
+  decideWithdrawal
+};
